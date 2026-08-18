@@ -54,7 +54,11 @@ BANNED_PUBLIC_NAMES = frozenset(
 
 
 def scan_imports(paths: Iterable[Path]) -> list[str]:
-    """Return violation messages for banned core imports."""
+    """Return violation messages for banned core imports.
+
+    Only matches real import statements (line starts with import/from),
+    not docstring prose that happens to contain those substrings.
+    """
     violations: list[str] = []
     for path in paths:
         if not path.is_file() or path.suffix != ".py":
@@ -63,6 +67,9 @@ def scan_imports(paths: Iterable[Path]) -> list[str]:
         for i, line in enumerate(text.splitlines(), start=1):
             stripped = line.strip()
             if stripped.startswith("#"):
+                continue
+            is_import = stripped.startswith("import ") or stripped.startswith("from ")
+            if not is_import:
                 continue
             for banned in BANNED_IMPORT_PREFIXES:
                 if f"import {banned}" in stripped or f"from {banned}" in stripped:

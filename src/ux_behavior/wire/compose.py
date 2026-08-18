@@ -2,7 +2,7 @@
 
 Law on one Result: morph(T) XOR scene.enter(T, html=…).
 Navigate kinds ordered last.
-Does not import ux_channel.
+Speaks wire shape only — never loads the Channel package.
 """
 
 from __future__ import annotations
