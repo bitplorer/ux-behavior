@@ -1,6 +1,7 @@
 """Isolation and public-surface freeze.
 
 Application modules must never import cores.
+Only the progressive wire door may soft-load cores when present.
 Public __all__ is a freeze list; expanding it requires a DESIGN.md reopen entry.
 """
 
@@ -17,6 +18,9 @@ BANNED_IMPORT_PREFIXES = (
     "cek_runtime",
     "cek_framework",
 )
+
+# Progressive door: may speak wire shape / soft-attach cores.
+WIRE_DOOR_PARTS = ("/wire/", "\\wire\\")
 
 FROZEN_PUBLIC = frozenset(
     {
@@ -53,8 +57,13 @@ BANNED_PUBLIC_NAMES = frozenset(
 )
 
 
+def _in_wire_door(path: Path) -> bool:
+    text = str(path).replace("\\", "/")
+    return "/wire/" in text
+
+
 def scan_imports(paths: Iterable[Path]) -> list[str]:
-    """Return violation messages for banned core imports.
+    """Return violation messages for banned core imports outside the wire door.
 
     Only matches real import statements (line starts with import/from),
     not docstring prose that happens to contain those substrings.
@@ -62,6 +71,8 @@ def scan_imports(paths: Iterable[Path]) -> list[str]:
     violations: list[str] = []
     for path in paths:
         if not path.is_file() or path.suffix != ".py":
+            continue
+        if _in_wire_door(path):
             continue
         text = path.read_text(encoding="utf-8")
         for i, line in enumerate(text.splitlines(), start=1):

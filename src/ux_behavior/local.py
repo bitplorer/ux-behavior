@@ -7,7 +7,7 @@ Python; there is no Peer apply here.
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any
 
 from ux_behavior.ops import Op
 from ux_behavior.root import Behavior
@@ -19,7 +19,7 @@ class LocalRuntime:
     This is **not** a Host or Peer kernel. It only:
 
     - holds a Behavior registry
-    - calls ``@action`` methods
+    - dispatches ``@action`` methods (with dirty-field projection)
     - returns the Ops those methods produce (or refresh Ops)
     """
 
@@ -31,38 +31,11 @@ class LocalRuntime:
         return cls(behavior=behavior)
 
     def call(self, component_id: str, method: str, **kwargs: Any) -> list[Op]:
-        """Invoke an @action method and return its Ops (empty list if None)."""
-        inst = self.behavior.get(component_id)
-        fn = getattr(inst, method, None)
-        if fn is None or not callable(fn):
-            raise AttributeError(
-                f"{component_id}.{method} is not a callable action"
-            )
-        if not getattr(fn, "_ux_behavior_action", False):
-            raise TypeError(
-                f"{component_id}.{method} is not marked with @action"
-            )
-        result = fn(**kwargs)
-        if result is None:
-            return []
-        if isinstance(result, list):
-            return result
-        raise TypeError(
-            f"{component_id}.{method} returned {type(result).__name__}; "
-            "expected list[Op] | None"
-        )
+        """Invoke an @action via Behavior.dispatch (dirty projection included)."""
+        return self.behavior.dispatch(f"{component_id}.{method}", **kwargs)
 
     def refresh(self, component_id: str) -> list[Op]:
         return self.behavior.refresh(component_id)
 
-    def actions(self, component_id: str) -> list[str]:
-        """Names of @action methods on a registered component."""
-        inst = self.behavior.get(component_id)
-        names: list[str] = []
-        for name in dir(inst):
-            if name.startswith("_"):
-                continue
-            attr = getattr(inst, name, None)
-            if callable(attr) and getattr(attr, "_ux_behavior_action", False):
-                names.append(name)
-        return sorted(names)
+    def actions(self, component_id: str | None = None) -> list[str]:
+        return self.behavior.actions(component_id)
