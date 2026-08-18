@@ -4,17 +4,16 @@
 
 A clean author/composition layer with progressive disclosure, intentful names, low cognitive load, and strict isolation.
 
-Parallel redesign of the seat currently occupied by `ux-app`.
-
 ```python
 from ux_behavior import Behavior, Component, action, update, notify, go
+from ux_behavior import open, close, select, confirm
 
 class CartBadge(Component):
     id = "cart.badge"
     count: int = 0
 
     def render(self):
-        return Badge(self.count, on_click=self.add)
+        return f"<button id='cart.badge'>{self.count}</button>"
 
     @action(caps=())
     def add(self, sku: str = ""):
@@ -22,55 +21,66 @@ class CartBadge(Component):
 
 app = Behavior.boot(title="Shop")
 app.add(CartBadge)
+ops = app.refresh("cart.badge")  # re-render → update Op
 ```
 
 ## One mental model
 
 ```text
-Product meaning  →  ux-behavior  →  list[Op]
+Product behavior  →  ux-behavior  →  verified list[Op]
 Document owns markup
-Channel owns the wire + Caps
+Channel owns wire + Caps
 Motion is droppable
-Host owns product chrome and layout
+Host owns product chrome & layout
 ```
 
-There is **one** primary path. Advanced wire control is progressive, not a second competing API.
+There is **one** primary path. Advanced wire control is progressive, not a second API.
 
 ## Public surface (frozen)
 
 ```python
 from ux_behavior import (
-    Behavior,          # composition root
+    Behavior,          # composition root (+ refresh)
     Component,
-    action,
+    action,            # returns list[Op] | Op | None only
     update, notify, go,
     open, close, select, confirm,  # chrome verbs
-    Op,                # advanced only
+    Op,
 )
 ```
 
 ### Progressive door (Host / live Result)
 
 ```python
-from ux_behavior.wire import compose, lower, Conflict
+from ux_behavior.wire import Result, Conflict
 
-ops = compose(
-    lower("#view", html),
-    scene.play(),          # motion without html on #view — XOR enforced
+ops = (
+    Result()
+    .morph("#view", html)       # idiomorph
+    .motion(scene.play())       # XOR enforced — no html on #view
+    .navigate("/cart")          # ordered last
+    .build()
 )
 ```
 
-`compose` / `lower` are **not** on the top-level `__all__`. That friction is intentional.
+`compose` / `lower` / `Result` are **not** on top-level `__all__`. That friction is intentional.
+
+### Doctor
+
+```python
+from ux_behavior.isolation import doctor
+assert doctor() == []
+```
 
 ## What is different from ux-app
 
 | | ux-app | ux-behavior |
 |--|--------|-------------|
 | Name | Generic, overloaded | Specific: product *behavior* |
-| Root | `App` | `Behavior` |
+| Root | `App` | `Behavior` (+ `refresh`) |
 | Mental model | Dual audiences | One path + progressive disclosure |
 | Wire helpers | Feel bolted-on under `.adapter` | Clearly progressive `ux_behavior.wire` |
-| Chrome | Macros exist, ports visible | Verbs first (`open`/`close`/`select`), ports internal |
+| Chrome | Macros exist, ports visible | Verbs first; ports internal |
 | Public surface | Broader + historical residue | Small and frozen from day 1 |
 | Stability | Strong after cleanup | Explicit freeze + doctor from v0.1 |
 | Cognitive load | Medium-high | Designed to be low |
@@ -81,13 +91,15 @@ Hard laws kept identical: isolation, one-intent-one-name, no fifth kernel, XOR o
 
 ```bash
 pip install -e ".[dev]"
+pytest
 ```
 
 ## Docs
 
-- [DESIGN.md](DESIGN.md) — decisions, reopen conditions, comparison
-- [START.md](START.md) — first morph in five minutes
+- [DESIGN.md](DESIGN.md) — decisions, reopen conditions, anti-patterns
+- [START.md](START.md) — first behavior in five minutes
+- [ARCHITECTURE.md](ARCHITECTURE.md) — ownership planes (when present)
 
 ## Status
 
-Foundation. Core isolation, composition, and progressive wire door are in place. Not a full feature-for-feature port of every ux-app capability yet — the goal of this repo is a clean, high-signal seat with better ergonomics.
+Tier 1 complete (Result builder, XOR, doctor, START). Tier 2 started (`refresh`, action return contract).
