@@ -39,14 +39,14 @@ def go(href: str) -> Op:
     return Op("nav", "push", {"href": href})
 
 
-def form_result(
+def submit_outcome(
     target: str,
     html: Any = "",
     *,
     message: str | None = None,
     level: str = "info",
 ) -> list[Op]:
-    """Elevated form outcome: morph the form region + optional notice."""
+    """Outcome of a submit: morph the region + optional notice."""
     ops: list[Op] = [update(target, html)]
     if message is not None:
         ops.append(notify(message, level=level))

@@ -18,6 +18,7 @@ Clearer name, progressive disclosure, frozen public surface, Result builder, doc
 | `App.boot(...)` | `Behavior.boot(...)` |
 | `from ux_app import Component, action` | same names from `ux_behavior` |
 | `update` / `notify` / `go` | same |
+| form outcome helpers | `submit_outcome(target, html, message=...)` |
 | `from ux_app.overlay import open_overlay, close_overlay, select_region` | `from ux_behavior import open, close, select, confirm` |
 | `from ux_app.adapter import compose, lower_morph` | `from ux_behavior.wire import compose, lower, Result` |
 | `lower_morph(target, html)` | `lower(target, html)` or `Result().morph(...)` |
@@ -37,6 +38,15 @@ ops = open("dialog", title="Edit")
 ```
 
 Visual Dialog/Sheet markup stays in **ux-dom**. Placement stays in the **Host**.
+
+## Submit outcome
+
+```python
+from ux_behavior import submit_outcome
+
+ops = submit_outcome("#address-form", html, message="Saved")
+# → update(target) + optional notify(message)
+```
 
 ## Live Result + motion
 

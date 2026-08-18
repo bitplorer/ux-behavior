@@ -27,7 +27,7 @@ FROZEN_PUBLIC = frozenset(
         "update",
         "notify",
         "go",
-        "form_result",
+        "submit_outcome",
         "open",
         "close",
         "select",
@@ -51,6 +51,7 @@ BANNED_PUBLIC_NAMES = frozenset(
         "compose",
         "lower",
         "Result",
+        "form_result",
     }
 )
 

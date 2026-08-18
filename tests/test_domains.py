@@ -1,10 +1,10 @@
-"""Domain stamp + form_result."""
+"""Domain stamp + submit_outcome."""
 
 from __future__ import annotations
 
 import pytest
 
-from ux_behavior import Behavior, Component, action, form_result, update
+from ux_behavior import Behavior, Component, action, submit_outcome
 from ux_behavior.ops import Op
 from ux_behavior.wire.attach import attach_info, probe
 
@@ -40,8 +40,8 @@ def test_dispatch_rejects_unstamped_pair():
         app.dispatch("x.boom")
 
 
-def test_form_result():
-    ops = form_result("#form", "<ok/>", message="Saved")
+def test_submit_outcome():
+    ops = submit_outcome("#form", "<ok/>", message="Saved")
     assert len(ops) == 2
     assert ops[0].pair == ("ui.dom", "morph")
     assert ops[1].pair == ("log", "append")
