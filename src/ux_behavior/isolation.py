@@ -19,9 +19,6 @@ BANNED_IMPORT_PREFIXES = (
     "cek_framework",
 )
 
-# Progressive door: may speak wire shape / soft-attach cores.
-WIRE_DOOR_PARTS = ("/wire/", "\\wire\\")
-
 FROZEN_PUBLIC = frozenset(
     {
         "Behavior",
@@ -30,6 +27,7 @@ FROZEN_PUBLIC = frozenset(
         "update",
         "notify",
         "go",
+        "form_result",
         "open",
         "close",
         "select",
@@ -63,11 +61,7 @@ def _in_wire_door(path: Path) -> bool:
 
 
 def scan_imports(paths: Iterable[Path]) -> list[str]:
-    """Return violation messages for banned core imports outside the wire door.
-
-    Only matches real import statements (line starts with import/from),
-    not docstring prose that happens to contain those substrings.
-    """
+    """Return violation messages for banned core imports outside the wire door."""
     violations: list[str] = []
     for path in paths:
         if not path.is_file() or path.suffix != ".py":

@@ -37,3 +37,17 @@ def notify(message: str, *, level: str = "info") -> Op:
 def go(href: str) -> Op:
     """Navigate last."""
     return Op("nav", "push", {"href": href})
+
+
+def form_result(
+    target: str,
+    html: Any = "",
+    *,
+    message: str | None = None,
+    level: str = "info",
+) -> list[Op]:
+    """Elevated form outcome: morph the form region + optional notice."""
+    ops: list[Op] = [update(target, html)]
+    if message is not None:
+        ops.append(notify(message, level=level))
+    return ops

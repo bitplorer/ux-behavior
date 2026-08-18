@@ -6,8 +6,9 @@ Behavior is the single place product behavior is registered and turned into Ops.
 from __future__ import annotations
 
 import importlib.util
-from typing import Any, Type
+from typing import Any, Iterable, Type
 
+from ux_behavior.domains import DomainPack, DomainTable, default_table
 from ux_behavior.ops import Op, update
 
 
@@ -24,9 +25,10 @@ def _public_state(inst: Any) -> dict[str, Any]:
 class Behavior:
     """Composition root for product behavior."""
 
-    def __init__(self, title: str = "") -> None:
+    def __init__(self, title: str = "", domains: DomainTable | None = None) -> None:
         self.title = title
         self._components: dict[str, Any] = {}
+        self.domains = domains or default_table()
         self._cores_available: dict[str, bool] = {
             "ux_dom": False,
             "ux_channel": False,
@@ -49,6 +51,25 @@ class Behavior:
     @property
     def cores_available(self) -> dict[str, bool]:
         return dict(self._cores_available)
+
+    @property
+    def stamp(self) -> frozenset[tuple[str, str]]:
+        return self.domains.stamp
+
+    def use(self, *names: str) -> "Behavior":
+        """Agree domain packs into the session stamp."""
+        self.domains.use(*names)
+        return self
+
+    def domain(
+        self,
+        name: str,
+        version: str,
+        pairs: Iterable[tuple[str, str]],
+    ) -> "Behavior":
+        """Register a product domain pack and stamp its pairs."""
+        self.domains.domain(name, version, pairs)
+        return self
 
     def add(self, component: Type[Any] | Any) -> Any:
         """Register a Component class or instance."""
@@ -111,11 +132,12 @@ class Behavior:
 
         Return handling:
 
-        - explicit ``list[Op]`` / ``Op`` → used as-is (Op normalized by @action)
+        - explicit ``list[Op]`` → used as-is
         - ``None`` → if public fields changed, project ``refresh(component_id)``
         - ``None`` + no field changes → ``[]``
 
-        Caps metadata is recorded on the callable; live Cap verify stays in Channel.
+        Ops whose pairs are outside the session stamp raise ``PermissionError``.
+        Caps metadata is on the callable; live Cap verify stays in Channel.
         """
         if "." not in action:
             raise ValueError(
@@ -135,13 +157,25 @@ class Behavior:
         if result is None:
             after = _public_state(inst)
             if after != before:
-                return self.refresh(component_id)
-            return []
+                ops = self.refresh(component_id)
+            else:
+                ops = []
+        elif isinstance(result, list):
+            ops = result
+        else:
+            raise TypeError(
+                f"{action!r} returned {type(result).__name__}; "
+                "expected list[Op] | None"
+            )
 
-        if isinstance(result, list):
-            return result
+        self._check_stamp(ops)
+        return ops
 
-        raise TypeError(
-            f"{action!r} returned {type(result).__name__}; "
-            "expected list[Op] | None"
-        )
+    def _check_stamp(self, ops: list[Op]) -> None:
+        for op in ops:
+            if not isinstance(op, Op):
+                raise TypeError(f"expected Op, got {type(op).__name__}")
+            if not self.domains.allows(*op.pair):
+                raise PermissionError(
+                    f"pair {op.fq} is not on the session stamp"
+                )
