@@ -1,8 +1,7 @@
-"""Isolation and public-surface freeze.
+"""Isolation and public-surface freeze + richer doctor.
 
 Application modules must never import cores.
 Only the progressive wire door may soft-load cores when present.
-Public __all__ is a freeze list; expanding it requires a DESIGN.md reopen entry.
 """
 
 from __future__ import annotations
@@ -55,6 +54,16 @@ BANNED_PUBLIC_NAMES = frozenset(
     }
 )
 
+BANNED_SOURCE_TOKENS = frozenset(
+    {
+        "form_result",
+        "open_overlay",
+        "close_overlay",
+        "glue.js",
+        "lower_morph",
+    }
+)
+
 
 def _in_wire_door(path: Path) -> bool:
     text = str(path).replace("\\", "/")
@@ -62,7 +71,6 @@ def _in_wire_door(path: Path) -> bool:
 
 
 def scan_imports(paths: Iterable[Path]) -> list[str]:
-    """Return violation messages for banned core imports outside the wire door."""
     violations: list[str] = []
     for path in paths:
         if not path.is_file() or path.suffix != ".py":
@@ -83,8 +91,29 @@ def scan_imports(paths: Iterable[Path]) -> list[str]:
     return violations
 
 
+def scan_banned_tokens(paths: Iterable[Path]) -> list[str]:
+    """Flag retired / banned author names in package source (not tests)."""
+    violations: list[str] = []
+    for path in paths:
+        if not path.is_file() or path.suffix != ".py":
+            continue
+        # isolation itself lists banned tokens
+        if path.name == "isolation.py":
+            continue
+        text = path.read_text(encoding="utf-8")
+        for i, line in enumerate(text.splitlines(), start=1):
+            stripped = line.strip()
+            if stripped.startswith("#"):
+                continue
+            for token in BANNED_SOURCE_TOKENS:
+                if token in stripped:
+                    violations.append(
+                        f"{path}:{i}: banned token {token!r} (use submit_outcome / wire door)"
+                    )
+    return violations
+
+
 def check_public_surface(exported: Iterable[str]) -> list[str]:
-    """Return violations if exported names drift from the freeze list or hit bans."""
     names = set(exported)
     violations: list[str] = []
     extra = names - FROZEN_PUBLIC
@@ -101,11 +130,37 @@ def check_public_surface(exported: Iterable[str]) -> list[str]:
     return violations
 
 
+def check_stamp_hygiene() -> list[str]:
+    """Default domain stamp must only contain one-token names."""
+    from ux_behavior.domains import default_table
+
+    violations: list[str] = []
+    table = default_table()
+    for ns, name in sorted(table.stamp):
+        if "." in name:
+            violations.append(f"stamped pair {ns}.{name} has dotted name")
+        if not ns or not name:
+            violations.append(f"stamped pair has empty ns/name: {(ns, name)!r}")
+    required = {
+        ("kv", "set"),
+        ("ui.dom", "morph"),
+        ("log", "append"),
+        ("nav", "push"),
+    }
+    missing = required - set(table.stamp)
+    if missing:
+        violations.append(f"default stamp missing S pairs: {sorted(missing)}")
+    return violations
+
+
 def doctor(package_root: Path | None = None) -> list[str]:
-    """Run isolation + public-surface checks. Empty list means healthy."""
+    """Run isolation + surface + stamp + banned-token checks."""
     import ux_behavior
 
     violations = check_public_surface(ux_behavior.__all__)
+    violations.extend(check_stamp_hygiene())
     root = package_root or Path(ux_behavior.__file__).resolve().parent
-    violations.extend(scan_imports(root.rglob("*.py")))
+    paths = list(root.rglob("*.py"))
+    violations.extend(scan_imports(paths))
+    violations.extend(scan_banned_tokens(paths))
     return violations

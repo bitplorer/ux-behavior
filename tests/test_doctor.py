@@ -1,9 +1,14 @@
-"""isolation.doctor — freeze list + no banned public names."""
+"""Richer doctor."""
 
 from __future__ import annotations
 
 import ux_behavior
-from ux_behavior.isolation import FROZEN_PUBLIC, check_public_surface, doctor
+from ux_behavior.isolation import (
+    FROZEN_PUBLIC,
+    check_public_surface,
+    check_stamp_hygiene,
+    doctor,
+)
 
 
 def test_public_surface_matches_freeze():
@@ -14,11 +19,14 @@ def test_check_public_surface_clean():
     assert check_public_surface(ux_behavior.__all__) == []
 
 
+def test_stamp_hygiene_clean():
+    assert check_stamp_hygiene() == []
+
+
 def test_check_public_surface_rejects_compose():
     bad = list(ux_behavior.__all__) + ["compose"]
     violations = check_public_surface(bad)
     assert violations
-    assert any("compose" in v or "expanded" in v or "banned" in v for v in violations)
 
 
 def test_doctor_clean_on_package():

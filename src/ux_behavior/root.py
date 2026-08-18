@@ -6,9 +6,9 @@ Behavior is the single place product behavior is registered and turned into Ops.
 from __future__ import annotations
 
 import importlib.util
-from typing import Any, Iterable, Type
+from typing import Any, Callable, Iterable, Type
 
-from ux_behavior.domains import DomainPack, DomainTable, default_table
+from ux_behavior.domains import DomainTable, default_table
 from ux_behavior.ops import Op, update
 
 
@@ -33,14 +33,13 @@ class Behavior:
             "ux_dom": False,
             "ux_channel": False,
         }
+        self._wire: Any = None
+        self._region_render: Callable[[], Any] | None = None
+        self._region_uid: str | None = None
 
     @classmethod
     def boot(cls, title: str = "") -> "Behavior":
-        """Create a root. Soft-detects live cores without importing them.
-
-        Document/Channel attach stays behind the progressive wire door.
-        Cold import of this package never loads cores.
-        """
+        """Create a root. Soft-detects live cores without importing them."""
         root = cls(title=title)
         root._cores_available = {
             "ux_dom": importlib.util.find_spec("ux_dom") is not None,
@@ -57,7 +56,6 @@ class Behavior:
         return self.domains.stamp
 
     def use(self, *names: str) -> "Behavior":
-        """Agree domain packs into the session stamp."""
         self.domains.use(*names)
         return self
 
@@ -67,12 +65,23 @@ class Behavior:
         version: str,
         pairs: Iterable[tuple[str, str]],
     ) -> "Behavior":
-        """Register a product domain pack and stamp its pairs."""
         self.domains.domain(name, version, pairs)
         return self
 
+    def region(self, render: Callable[[], Any], *, uid: str | None = None) -> "Behavior":
+        """Register the Host paint callback for live Channel region attach."""
+        self._region_render = render
+        if uid:
+            self._region_uid = uid
+        return self
+
+    def attach(self, asgi: Any, **kwargs: Any) -> Any:
+        """Mount live Channel behind this Behavior (via the wire door)."""
+        from ux_behavior.wire.attach import attach as attach_wire
+
+        return attach_wire(self, asgi, **kwargs)
+
     def add(self, component: Type[Any] | Any) -> Any:
-        """Register a Component class or instance."""
         if isinstance(component, type):
             inst = component()
         else:
@@ -88,7 +97,6 @@ class Behavior:
         return dict(self._components)
 
     def get(self, component_id: str) -> Any:
-        """Return a registered component by id."""
         try:
             return self._components[component_id]
         except KeyError as exc:
@@ -98,7 +106,6 @@ class Behavior:
             ) from exc
 
     def refresh(self, component_id: str) -> list[Op]:
-        """Re-render a registered component into an authority morph Op."""
         inst = self.get(component_id)
         render = getattr(inst, "render", None)
         if not callable(render):
@@ -109,7 +116,6 @@ class Behavior:
         return [update(component_id, html)]
 
     def actions(self, component_id: str | None = None) -> list[str]:
-        """Qualified action names (``id.method``)."""
         names: list[str] = []
         items = (
             {component_id: self.get(component_id)}
@@ -126,19 +132,6 @@ class Behavior:
         return sorted(names)
 
     def dispatch(self, action: str, **kwargs: Any) -> list[Op]:
-        """Run ``component.method`` and return Ops.
-
-        Action name form: ``"cart.badge.add"`` (component id + method).
-
-        Return handling:
-
-        - explicit ``list[Op]`` → used as-is
-        - ``None`` → if public fields changed, project ``refresh(component_id)``
-        - ``None`` + no field changes → ``[]``
-
-        Ops whose pairs are outside the session stamp raise ``PermissionError``.
-        Caps metadata is on the callable; live Cap verify stays in Channel.
-        """
         if "." not in action:
             raise ValueError(
                 f"action name must be 'component.method', got {action!r}"
