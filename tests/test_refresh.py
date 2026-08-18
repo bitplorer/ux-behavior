@@ -48,7 +48,7 @@ def test_action_rejects_non_op_return():
             return "not-ops"
 
     inst = Bad()
-    with pytest.raises(TypeError, match="list\[Op\]"):
+    with pytest.raises(TypeError, match=r"list\[Op\]"):
         inst.boom()
 
 
