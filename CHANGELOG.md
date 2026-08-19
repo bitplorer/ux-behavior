@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Wire
+
+- `ux_behavior.wire.client_event` — Host-only Channel `{op: "dispatch"}` helper for CustomEvent. Not on the frozen public surface.
+
 ## 0.3.2
 
 ### Restore

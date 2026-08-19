@@ -14,3 +14,5 @@ def test_all_is_frozen_and_small():
     assert "compose" not in names
     assert "lower" not in names
     assert "adapter" not in names
+    assert "client_event" not in names
+    assert "Result" not in names

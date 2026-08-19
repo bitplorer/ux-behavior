@@ -90,3 +90,9 @@ follow_up(event: str, action: str, *, args_from: dict[str,str] | None = None, **
 ## DictBackend
 
 In-memory `{key: value}` with `get`/`set`.
+
+## Wire door (not public)
+
+Hosts import from `ux_behavior.wire`, never from the frozen top-level surface.
+
+`client_event(name, *, target=None, detail=None, bubbles=True) -> dict` — Channel `{op: "dispatch"}` for Host Results. Not a Behavior `Op`. Not in `__all__`.

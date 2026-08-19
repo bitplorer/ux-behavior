@@ -54,3 +54,24 @@ If Host called `app.use("effects"|"search")`, attach attempts `channel.use(name)
 | ATTACH_DEV_SECRET | warn | Set production secret |
 | PLANES_*_FALLBACK | warn | Inspect Channel state API |
 | DRIVERS_FAILED | warn | Register drivers on Host |
+
+## 8. CustomEvent (`client_event`)
+
+Host-only. Not a Behavior `Op`. Not on the frozen public surface.
+
+```python
+from ux_behavior.wire import client_event
+from ux_channel.protocol.types import Result
+
+@ch.on("cart.add")
+async def cart_add(ctx, sku: str):
+    await app.async_dispatch("cart.add", _trusted=True, sku=sku)
+    return Result.success(
+        client_event("cart:added", target="#cart", detail={"sku": sku}),
+    )
+```
+
+Wire shape: `{op: "dispatch", name, target?, detail?, bubbles?}`.
+`target` is a CSS selector; omit → classic `ux-channel.js` fires on `document.body`.
+Components still return `list[Op] | None`. Stock `attach()` still `return None`.
+This helper is for the Host `@ch.on` that returns a Channel Result.
