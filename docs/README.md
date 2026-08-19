@@ -1,22 +1,16 @@
 # ux-behavior documentation
 
-## Real-world UI patterns (start for product UI)
+## Real-world UI (including nested)
 
-**[patterns/README.md](patterns/README.md)** — Tabs, toasts, dropdown, modal, carousel, accordion, drawer, wizard, pagination, filters, typeahead, confirm, forms, nested chrome, and a **>99% coverage catalog**.
+| Doc | Contents |
+|-----|----------|
+| **[patterns/NESTED.md](patterns/NESTED.md)** | **Deep nested behaviors + full commerce shell** |
+| [patterns/README.md](patterns/README.md) | Tabs, toasts, modal, carousel, … |
+| [patterns/CATALOG.md](patterns/CATALOG.md) | >99% coverage map |
 
 ## Production contracts
 
-| Document | Purpose |
-|----------|--------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Boundaries, flow, non-goals |
-| [SECURITY.md](SECURITY.md) | Caps, trust, client risk |
-| [STATE_DEEP.md](STATE_DEEP.md) | Morph/Ref, planes, dirty |
-| [DISPATCH.md](DISPATCH.md) | Pipeline |
-| [WIRE.md](WIRE.md) | Channel attach |
-| [API.md](API.md) | Public API |
-| [ERRORS.md](ERRORS.md) | Errors + diagnostics |
-| [OPERATIONS.md](OPERATIONS.md) | Boot, doctor, tests |
-| [PRODUCTION_APP.md](PRODUCTION_APP.md) | Full shop system |
+[ARCHITECTURE](ARCHITECTURE.md) · [SECURITY](SECURITY.md) · [STATE_DEEP](STATE_DEEP.md) · [DISPATCH](DISPATCH.md) · [WIRE](WIRE.md) · [API](API.md) · [ERRORS](ERRORS.md) · [OPERATIONS](OPERATIONS.md) · [PRODUCTION_APP](PRODUCTION_APP.md)
 
 ## Onboarding
 

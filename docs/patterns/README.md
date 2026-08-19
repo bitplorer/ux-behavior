@@ -1,30 +1,27 @@
 # Real-world UI behavior patterns
 
-Production patterns for **ux-behavior**: state fields, actions, Ops, continuations.
-Markup is illustrative HTML strings — swap for **ux-dom** in product Hosts.
+## Nested systems (start here for composition)
+
+**[NESTED.md](NESTED.md)** — Full nested real-world behaviors: id rules, state isolation, cross-dispatch, Ops merge, Caps, and a complete **commerce shell** (chrome + menu + drawer filters + catalog + product modal with tabs & carousel + confirm + checkout continuation + toasts).
+
+## Single patterns
 
 | Pattern | File |
 |---------|------|
 | Tabs | [tabs.md](tabs.md) |
-| Toasts / notices | [toasts.md](toasts.md) |
-| Dropdown / menu | [dropdown.md](dropdown.md) |
-| Modal / dialog | [modal.md](modal.md) |
+| Toasts | [toasts.md](toasts.md) |
+| Dropdown | [dropdown.md](dropdown.md) |
+| Modal | [modal.md](modal.md) |
 | Carousel | [carousel.md](carousel.md) |
 | Accordion | [accordion.md](accordion.md) |
-| Drawer / sheet | [drawer.md](drawer.md) |
-| Wizard / stepper | [wizard.md](wizard.md) |
+| Drawer | [drawer.md](drawer.md) |
+| Wizard | [wizard.md](wizard.md) |
 | Pagination | [pagination.md](pagination.md) |
 | Filters | [filters.md](filters.md) |
-| Search typeahead | [typeahead.md](typeahead.md) |
-| Confirm flows | [confirm.md](confirm.md) |
-| Form suites | [forms.md](forms.md) |
-| Nested chrome | [nested_chrome.md](nested_chrome.md) |
-| Master catalog | [CATALOG.md](CATALOG.md) |
+| Typeahead | [typeahead.md](typeahead.md) |
+| Confirm | [confirm.md](confirm.md) |
+| Forms | [forms.md](forms.md) |
+| Nested chrome (short) | [nested_chrome.md](nested_chrome.md) |
+| Coverage catalog | [CATALOG.md](CATALOG.md) |
 
-**Shared rules**
-
-- Open/closed UI flags → `MorphState` (session) so morph repaints.
-- Ephemeral animation tokens / request ids → `RefState`.
-- User prefs (theme, density) → client Morph + `key=`.
-- Durable drafts → store Morph + Host `app.state.use("store", …)`.
-- Prefer `notify(...)` for one-shot toasts; prefer `open`/`close` chrome Ops for product chrome when Channel understands them.
+**Shared rules:** Morph for open/value; Ref for silent ids; `notify` for one-shot toasts; deep ids for nested units; Host orchestration when multiple units must morph together.
