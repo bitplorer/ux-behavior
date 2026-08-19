@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ux-behavior"
-version = "0.3.0"
+version = "0.3.1"
 description = "Standard Channel interface for product behavior: Component + actions + Morph/Ref state → verified Ops."
 readme = "README.md"
 license = { text = "MIT" }
@@ -25,6 +25,7 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+channel = ["ux-channel>=0.1"]
 
 [project.scripts]
 uxbehavior = "ux_behavior.cli:main"
@@ -32,6 +33,7 @@ uxbehavior = "ux_behavior.cli:main"
 [project.urls]
 Homepage = "https://github.com/bitplorer/ux-behavior"
 Repository = "https://github.com/bitplorer/ux-behavior"
+Documentation = "https://github.com/bitplorer/ux-behavior/tree/main/docs"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -43,3 +45,6 @@ ux_behavior = ["py.typed"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 asyncio_mode = "auto"
+filterwarnings = [
+  "ignore::DeprecationWarning",
+]

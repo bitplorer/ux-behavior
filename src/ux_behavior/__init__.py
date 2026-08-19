@@ -1,47 +1,55 @@
-"""ux-behavior — standard Channel interface for product behavior."""
+"""ux-behavior — standard Channel interface for product behavior.
+
+Public surface is intentionally small. Prefer::
+
+    from ux_behavior import Behavior, Component, MorphState, RefState, action
+
+Async entry points live on ``Behavior``: ``async_dispatch``, ``async_submit``,
+``async_emit``. Continuations: ``follow_up`` + ``Behavior.emit``.
+"""
 
 from ux_behavior._version import __version__
-from ux_behavior.root import Behavior
-from ux_behavior.component import Component
 from ux_behavior.action import action
-from ux_behavior.ops import Op, update, notify, go, submit_outcome
-from ux_behavior.chrome import open, close, select, confirm
-from ux_behavior.fields import MorphState, RefState, UiState, PrefState, KeepState
-from ux_behavior.planes import DictBackend
-from ux_behavior.state_api import StateAPI
-from ux_behavior.events import follow_up, Continuation
+from ux_behavior.chrome import close, confirm, open, select
+from ux_behavior.component import Component
 from ux_behavior.errors import (
-    BehaviorError,
     AuthorityError,
+    BehaviorError,
     ContinuationError,
     ValidationError,
 )
+from ux_behavior.events import Continuation, follow_up
+from ux_behavior.fields import KeepState, MorphState, PrefState, RefState, UiState
+from ux_behavior.ops import Op, go, notify, submit_outcome, update
+from ux_behavior.planes import DictBackend
+from ux_behavior.root import Behavior
+from ux_behavior.state_api import StateAPI
 
 __all__ = [
-    "Behavior",
-    "Component",
-    "action",
-    "update",
-    "notify",
-    "go",
-    "submit_outcome",
-    "open",
-    "close",
-    "select",
-    "confirm",
-    "MorphState",
-    "RefState",
-    "UiState",
-    "PrefState",
-    "KeepState",
-    "DictBackend",
-    "StateAPI",
-    "follow_up",
-    "Continuation",
-    "BehaviorError",
     "AuthorityError",
+    "Behavior",
+    "BehaviorError",
+    "Component",
+    "Continuation",
     "ContinuationError",
-    "ValidationError",
+    "DictBackend",
+    "KeepState",
+    "MorphState",
     "Op",
+    "PrefState",
+    "RefState",
+    "StateAPI",
+    "UiState",
+    "ValidationError",
     "__version__",
+    "action",
+    "close",
+    "confirm",
+    "follow_up",
+    "go",
+    "notify",
+    "open",
+    "select",
+    "submit_outcome",
+    "update",
 ]

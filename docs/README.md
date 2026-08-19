@@ -1,22 +1,33 @@
 # ux-behavior documentation
 
-## Mode matrix × all examples
+## Start here
 
-| Doc | Role |
-|-----|------|
-| **[examples/EXAMPLES_MATRIX.md](examples/EXAMPLES_MATRIX.md)** | Matrix applied to **every** pattern family |
-| [examples/EVERY_MODE.md](examples/EVERY_MODE.md) | Exhaustive Demo truth table |
-| `tests/test_examples_matrix.py` | Automated coverage |
-| `tests/test_every_mode.py` | Demo modes |
+| Doc | Purpose |
+|-----|---------|
+| [../README.md](../README.md) | Install + mental model |
+| [tutorial/](tutorial/README.md) | Progressive onboarding |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System design |
+| [API.md](API.md) | Surface reference |
 
-## Product UI patterns
+## Product UI
 
-[patterns/COMPLEX_NESTED.md](patterns/COMPLEX_NESTED.md) · [patterns/COMPLEX.md](patterns/COMPLEX.md) · [patterns/MORE_CASES.md](patterns/MORE_CASES.md) · [patterns/NESTED.md](patterns/NESTED.md) · [patterns/README.md](patterns/README.md)
+| Doc | Purpose |
+|-----|---------|
+| [patterns/README.md](patterns/README.md) | Widget + complex index |
+| [patterns/COMPLEX_NESTED.md](patterns/COMPLEX_NESTED.md) | Full product systems |
+| [patterns/COMPLEX.md](patterns/COMPLEX.md) | Infinite scroll, optimistic UI, … |
+| [patterns/MORE_CASES.md](patterns/MORE_CASES.md) | Residuals |
+| [patterns/NESTED.md](patterns/NESTED.md) | Nesting rules |
+
+## Modes (offline / online / Caps / async)
+
+| Doc | Purpose |
+|-----|---------|
+| [examples/EVERY_MODE.md](examples/EVERY_MODE.md) | Truth table |
+| [examples/EXAMPLES_MATRIX.md](examples/EXAMPLES_MATRIX.md) | Per-family matrix |
+| [examples/OFFLINE_ONLINE.md](examples/OFFLINE_ONLINE.md) | Test parity |
+| [examples/MATRIX_ALL.md](examples/MATRIX_ALL.md) | Full pattern Caps map |
 
 ## Contracts
 
-[ARCHITECTURE](ARCHITECTURE.md) · [SECURITY](SECURITY.md) · [STATE_DEEP](STATE_DEEP.md) · [DISPATCH](DISPATCH.md) · [WIRE](WIRE.md) · [API](API.md) · [ERRORS](ERRORS.md) · [OPERATIONS](OPERATIONS.md)
-
-## Onboarding
-
-[tutorial/](tutorial/README.md) · [GUIDE.md](GUIDE.md)
+[SECURITY](SECURITY.md) · [STATE_DEEP](STATE_DEEP.md) · [DISPATCH](DISPATCH.md) · [WIRE](WIRE.md) · [ERRORS](ERRORS.md) · [OPERATIONS](OPERATIONS.md)
