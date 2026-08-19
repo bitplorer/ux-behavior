@@ -1,105 +1,70 @@
 # ux-behavior
 
-**Product behavior becomes a verified list of Ops. Cores stay pure. Host owns chrome.**
-
-A clean author/composition layer with progressive disclosure, intentful names, low cognitive load, and strict isolation.
+**Standard Channel interface for product behavior.**  
+Component + actions + Morph/Ref state → verified `list[Op]`. Optional live Caps via `ux-channel`.
 
 ```python
-from ux_behavior import Behavior, Component, action, update, notify, go
-from ux_behavior import open, close, select, confirm
+from ux_behavior import Behavior, Component, MorphState, action
 
-class CartBadge(Component):
-    id = "cart.badge"
-    count: int = 0
+class Cart(Component):
+    id = "cart"
+    count = MorphState(0)
 
     def render(self):
-        return f"<button id='cart.badge'>{self.count}</button>"
+        return f"<div id='cart'>{self.count}</div>"
 
     @action(caps=())
     def add(self, sku: str = ""):
-        self.count += 1
+        self.count = int(self.count) + 1
+        return None  # auto morph
 
-app = Behavior.boot(title="Shop")
-app.add(CartBadge)
-ops = app.refresh("cart.badge")  # re-render → update Op
+app = Behavior.boot("Shop")
+app.add(Cart)
+ops = app.dispatch("cart.add", sku="tee")
 ```
 
-## One mental model
+## Docs (start here)
+
+**[docs/README.md](docs/README.md)** — full index  
+**[docs/GUIDE.md](docs/GUIDE.md)** — mental model + first app  
+**[docs/REFERENCE.md](docs/REFERENCE.md)** — API  
+**[docs/CONTROL_FLOW.md](docs/CONTROL_FLOW.md)** — Caps, errors, diagnostics  
+**[docs/STATE.md](docs/STATE.md)** — MorphState / RefState / app.state  
+**[docs/HOST.md](docs/HOST.md)** — production Host  
+**[docs/EXAMPLES.md](docs/EXAMPLES.md)** — patterns  
+**[docs/INTERNALS.md](docs/INTERNALS.md)** — package internals  
+
+## One model
 
 ```text
-Product behavior  →  ux-behavior  →  verified list[Op]
-Document owns markup
-Channel owns wire + Caps
-Motion is droppable
-Host owns product chrome & layout
+Component  = who (state + verbs + render)
+Action     = what (@action)
+Behavior   = runs it → Ops
+Event      = signal (follow_up / emit)
+Wire       = Channel when attached
 ```
-
-There is **one** primary path. Advanced wire control is progressive, not a second API.
-
-## Public surface (frozen)
-
-```python
-from ux_behavior import (
-    Behavior,          # composition root (+ refresh)
-    Component,
-    action,            # returns list[Op] | Op | None only
-    update, notify, go,
-    open, close, select, confirm,  # chrome verbs
-    Op,
-)
-```
-
-### Progressive door (Host / live Result)
-
-```python
-from ux_behavior.wire import Result, Conflict
-
-ops = (
-    Result()
-    .morph("#view", html)       # idiomorph
-    .motion(scene.play())       # XOR enforced — no html on #view
-    .navigate("/cart")          # ordered last
-    .build()
-)
-```
-
-`compose` / `lower` / `Result` are **not** on top-level `__all__`. That friction is intentional.
-
-### Doctor
-
-```python
-from ux_behavior.isolation import doctor
-assert doctor() == []
-```
-
-## What is different from ux-app
-
-| | ux-app | ux-behavior |
-|--|--------|-------------|
-| Name | Generic, overloaded | Specific: product *behavior* |
-| Root | `App` | `Behavior` (+ `refresh`) |
-| Mental model | Dual audiences | One path + progressive disclosure |
-| Wire helpers | Feel bolted-on under `.adapter` | Clearly progressive `ux_behavior.wire` |
-| Chrome | Macros exist, ports visible | Verbs first; ports internal |
-| Public surface | Broader + historical residue | Small and frozen from day 1 |
-| Stability | Strong after cleanup | Explicit freeze + doctor from v0.1 |
-| Cognitive load | Medium-high | Designed to be low |
-
-Hard laws kept identical: isolation, one-intent-one-name, no fifth kernel, XOR on one Result, cold import clean.
 
 ## Install
 
 ```bash
-pip install -e ".[dev]"
-pytest
+pip install ux-behavior
+pip install ux-channel   # optional live Caps
+uxbehavior doctor --fail
 ```
 
-## Docs
+## Public surface
 
-- [DESIGN.md](DESIGN.md) — decisions, reopen conditions, anti-patterns
-- [START.md](START.md) — first behavior in five minutes
-- [ARCHITECTURE.md](ARCHITECTURE.md) — ownership planes (when present)
+`Behavior`, `Component`, `action`, Ops macros, chrome verbs, `MorphState` / `RefState` (+ sugar), `StateAPI` / `DictBackend`, `follow_up` / `Continuation`, errors, `Op`.
 
-## Status
+## Boundaries
 
-Tier 1 complete (Result builder, XOR, doctor, START). Tier 2 started (`refresh`, action return contract).
+| This package | Not this package |
+|--------------|------------------|
+| Actions, state fields, Ops, stamp, attach door | Cap crypto (Channel) |
+| Cap **policy** | Peer apply (Channel) |
+| Diagnostics + fail-closed | Markup (ux-dom) |
+| | Domain SQL (Host) |
+
+## License
+
+MIT
