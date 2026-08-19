@@ -1,4 +1,4 @@
-"""Mode matrix applied to every major example family: sync/async × public/protected/trust.
+"""Mode matrix applied to every major example family: sync/async x public/protected/trust.
 
 One Behavior graph holds representative units from widgets, complex, nested, residual.
 """
@@ -21,9 +21,6 @@ from ux_behavior import (
     close,
     update,
 )
-
-
-# ─── Representative components (examples distilled) ───
 
 
 class Tabs(Component):
@@ -55,7 +52,8 @@ class Toasts(Component):
     @action(caps=())
     def push(self, message: str = ""):
         self._seq = int(self._seq or 0) + 1
-        self.items = tuple(self.items or ()) + ({{"id": str(self._seq), "message": message}},)
+        row = dict(id=str(self._seq), message=message)
+        self.items = tuple(self.items or ()) + (row,)
         return None
 
     @action(caps=())
@@ -291,14 +289,22 @@ class Tree(Component):
 def build():
     app = Behavior.boot(strict_caps=True)
     for C in (
-        Tabs, Toasts, Modal, Carousel, Confirm, Grid, Like, Table,
-        Checkout, Form, Versions, Tree,
+        Tabs,
+        Toasts,
+        Modal,
+        Carousel,
+        Confirm,
+        Grid,
+        Like,
+        Table,
+        Checkout,
+        Form,
+        Versions,
+        Tree,
     ):
         app.add(C)
     return app
 
-
-# ─── Public examples: sync + async entry ───
 
 PUBLIC_SYNC = [
     ("tabs.select", {"tab": "b"}),
@@ -355,8 +361,6 @@ async def test_public_async_action_on_async_entry(action, kwargs):
     ops = await app.async_dispatch(action, **kwargs)
     assert ops is not None
 
-
-# ─── Protected examples: refuse / trust / trusted / async ───
 
 PROTECTED_SYNC = [
     ("confirm.confirm", {}),
@@ -434,8 +438,6 @@ async def test_protected_async_action_trusted(action, kwargs):
     assert ops is not None
 
 
-# ─── Continuations (emit sync + async) ───
-
 def test_checkout_emit_sync():
     app = build()
     app.dispatch("checkout.start")
@@ -459,8 +461,6 @@ async def test_checkout_async_emit_async_finish():
     assert app.get("checkout").status == "paid"
 
 
-# ─── Validation both entries ───
-
 def test_form_validation_sync():
     app = build()
     ops = app.dispatch("form.save", name="")
@@ -473,8 +473,6 @@ async def test_form_validation_async():
     ops = await app.async_dispatch("form.save", name="")
     assert "error" in ops[0].payload["target"]
 
-
-# ─── control offline for a sample of public actions ───
 
 def test_control_offline_samples():
     app = build()
