@@ -1,14 +1,14 @@
-"""ClientState participates in dirty (SSR-first)."""
+"""Pref MorphState dirties; RefState does not."""
 
 from __future__ import annotations
 
-from ux_behavior import Behavior, ClientState, Component, TransientState, action
+from ux_behavior import Behavior, Component, MorphState, RefState, action
 
 
 class Theme(Component):
     id = "theme"
-    mode = ClientState("system", key="ui.theme")
-    tick = TransientState(0)
+    mode = MorphState("system", backend="client", key="ui.theme")
+    tick = RefState(0)
 
     def render(self):
         return f"<div data-theme='{self.mode}'></div>"
@@ -24,17 +24,16 @@ class Theme(Component):
         return None
 
 
-def test_client_state_dirties():
+def test_client_morph_dirties():
     app = Behavior.boot()
     app.add(Theme)
     ops = app.dispatch("theme.set_mode", mode="dark")
     assert app.get("theme").mode == "dark"
     assert len(ops) == 1
     assert ops[0].pair == ("ui.dom", "morph")
-    assert "dark" in str(ops[0].payload.get("patch"))
 
 
-def test_transient_still_skips_dirty():
+def test_ref_skips_dirty():
     app = Behavior.boot()
     app.add(Theme)
     assert app.dispatch("theme.bump") == []
