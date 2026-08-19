@@ -1,4 +1,4 @@
-"""Composition root."""
+"""Composition root — standard Channel interface for product behavior."""
 
 from __future__ import annotations
 
@@ -6,6 +6,8 @@ import importlib.util
 from typing import Any, Callable, Iterable, Type
 
 from ux_behavior.domains import DomainTable, default_table
+from ux_behavior.errors import AuthorityError, ContinuationError
+from ux_behavior.events import Continuation, _begin_follow_ups, _end_follow_ups
 from ux_behavior.fields import Field, plane_storage_key, ref_field_names
 from ux_behavior.ops import Op, update
 from ux_behavior.planes import MISSING
@@ -25,11 +27,24 @@ def _public_state(inst: Any) -> dict[str, Any]:
 
 
 class Behavior:
-    def __init__(self, title: str = "", domains: DomainTable | None = None) -> None:
+    """Composition root for product behavior.
+
+    Hosts: boot → add components → optional state.use / attach → dispatch.
+    """
+
+    def __init__(
+        self,
+        title: str = "",
+        domains: DomainTable | None = None,
+        *,
+        strict_caps: bool = True,
+    ) -> None:
         self.title = title
+        self.strict_caps = strict_caps
         self._components: dict[str, Any] = {}
         self.domains = domains or default_table()
         self.state = StateAPI(self)
+        self._continuations: dict[str, Continuation] = {}
         self._cores_available: dict[str, bool] = {
             "ux_dom": False,
             "ux_channel": False,
@@ -39,8 +54,13 @@ class Behavior:
         self._region_uid: str | None = None
 
     @classmethod
-    def boot(cls, title: str = "") -> "Behavior":
-        root = cls(title=title)
+    def boot(
+        cls,
+        title: str = "",
+        *,
+        strict_caps: bool = True,
+    ) -> "Behavior":
+        root = cls(title=title, strict_caps=strict_caps)
         root._cores_available = {
             "ux_dom": importlib.util.find_spec("ux_dom") is not None,
             "ux_channel": importlib.util.find_spec("ux_channel") is not None,
@@ -82,6 +102,10 @@ class Behavior:
     def stamp(self) -> frozenset[tuple[str, str]]:
         return self.domains.stamp
 
+    @property
+    def continuations(self) -> dict[str, Continuation]:
+        return dict(self._continuations)
+
     def use(self, *names: str) -> "Behavior":
         self.domains.use(*names)
         return self
@@ -111,7 +135,12 @@ class Behavior:
 
         return control_attrs(self, action, **args)
 
-    def submit(self, action: str, args: dict[str, Any] | None = None, **kwargs: Any) -> list[Op]:
+    def submit(
+        self,
+        action: str,
+        args: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> list[Op]:
         payload = dict(args or {})
         payload.update(kwargs)
         return self.dispatch(action, **payload)
@@ -171,11 +200,28 @@ class Behavior:
                     names.append(f"{cid}.{name}")
         return sorted(names)
 
+    def _require_caps(self, fn: Any, action: str, *,
+                      trusted: bool) -> None:
+        caps = tuple(getattr(fn, "_ux_behavior_caps", ()) or ())
+        if not caps:
+            return
+        if trusted:
+            return
+        # Live Channel path verifies Cap before invoking dispatch from wire.
+        if self._wire is not None:
+            return
+        if self.strict_caps:
+            raise AuthorityError(
+                f"{action!r} requires Cap {caps}; "
+                "attach Channel, use control() under wire, or dispatch(..., _trusted=True) in tests"
+            )
+
     def dispatch(self, action: str, **kwargs: Any) -> list[Op]:
         if "." not in action:
             raise ValueError(
                 f"action name must be 'component.method', got {action!r}"
             )
+        trusted = bool(kwargs.pop("_trusted", False))
         component_id, method = action.rsplit(".", 1)
         inst = self.get(component_id)
         fn = getattr(inst, method, None)
@@ -184,8 +230,17 @@ class Behavior:
         if not getattr(fn, "_ux_behavior_action", False):
             raise TypeError(f"{action!r} is not marked with @action")
 
+        self._require_caps(fn, action, trusted=trusted)
+
+        token = _begin_follow_ups()
         before = _public_state(inst)
-        result = fn(**kwargs)
+        try:
+            result = fn(**kwargs)
+        finally:
+            pending = _end_follow_ups(token)
+
+        for item in pending:
+            self._continuations[item.event] = item
 
         if result is None:
             after = _public_state(inst)
@@ -203,6 +258,23 @@ class Behavior:
 
         self._check_stamp(ops)
         return ops
+
+    def emit(self, event: str, **slots: Any) -> list[Op]:
+        """Fire a continuation registered by follow_up during a prior action."""
+        event = str(event or "").strip()
+        item = self._continuations.get(event)
+        if item is None:
+            raise ContinuationError(f"no continuation for event {event!r}")
+        resolved = dict(item.args)
+        for dest, src in item.args_from.items():
+            if src in slots:
+                resolved[dest] = slots[src]
+        for key, value in slots.items():
+            if key not in resolved:
+                resolved[key] = value
+        # Continuation runs with trust: Cap was established when follow_up was recorded
+        # under an authorized action. Live Hosts should still gate emit at the edge.
+        return self.dispatch(item.action, _trusted=True, **resolved)
 
     def _check_stamp(self, ops: list[Op]) -> None:
         for op in ops:

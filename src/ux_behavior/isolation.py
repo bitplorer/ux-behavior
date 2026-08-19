@@ -1,4 +1,4 @@
-"""Isolation and public-surface freeze + richer doctor."""
+"""Isolation and public-surface freeze + doctor."""
 
 from __future__ import annotations
 
@@ -34,6 +34,11 @@ FROZEN_PUBLIC = frozenset(
         "KeepState",
         "DictBackend",
         "StateAPI",
+        "follow_up",
+        "Continuation",
+        "BehaviorError",
+        "AuthorityError",
+        "ContinuationError",
         "Op",
         "__version__",
     }
@@ -66,9 +71,6 @@ BANNED_PUBLIC_NAMES = frozenset(
         "StoreState",
         "TransientState",
         "set_plane_backend",
-        "SilentState",
-        "NoMorphState",
-        "AutoMorphState",
     }
 )
 

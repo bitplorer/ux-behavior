@@ -1,15 +1,10 @@
-"""Domain packs and session stamp.
-
-Author-layer stamp only. Peer drivers stay with Channel/Host wiring.
-Always-understood S pairs seed baseline + ui.
-"""
+"""Domain packs and session stamp."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Iterable
 
-# Always understood (S). name is one token.
 S_PAIRS: frozenset[tuple[str, str]] = frozenset(
     {
         ("kv", "set"),
@@ -62,16 +57,31 @@ NAV = DomainPack(
     core=True,
 )
 
+# Stamp-only packs Hosts/wire may also register drivers for
+EFFECTS = DomainPack(
+    name="effects",
+    version="1",
+    seed_pairs=(("ui.notice", "push"), ("ui.notice", "clear")),
+    core=False,
+)
+
+SEARCH = DomainPack(
+    name="search",
+    version="1",
+    seed_pairs=(("search", "hits"), ("search", "clear")),
+    core=False,
+)
+
 
 @dataclass
 class DomainTable:
-    """Agreed packs + stamp. Drivers are Host/Channel concern."""
-
     _packs: dict[str, DomainPack] = field(
         default_factory=lambda: {
             "baseline": BASELINE,
             "ui": UI,
             "nav": NAV,
+            "effects": EFFECTS,
+            "search": SEARCH,
         }
     )
     _agreed: list[str] = field(default_factory=lambda: ["baseline", "ui", "nav"])
@@ -125,6 +135,4 @@ class DomainTable:
 
 
 def default_table() -> DomainTable:
-    table = DomainTable()
-    # baseline/ui/nav already agreed in defaults
-    return table
+    return DomainTable()
