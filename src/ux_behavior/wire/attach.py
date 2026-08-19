@@ -44,6 +44,20 @@ def attach_info(behavior: Any | None = None) -> dict[str, Any]:
     }
 
 
+def _payload_from(ctx: Any, args: dict[str, Any]) -> dict[str, Any]:
+    reserved = {UX_ACTION_KEY}
+    payload = {k: v for k, v in args.items() if k not in reserved}
+    if ctx is not None:
+        form = getattr(ctx, "form", None) or getattr(ctx, "data", None) or {}
+        if isinstance(form, dict):
+            for key, value in form.items():
+                if key in reserved:
+                    continue
+                if key not in payload:
+                    payload[str(key)] = value
+    return payload
+
+
 def attach(
     behavior: Any,
     asgi: Any,
@@ -97,27 +111,33 @@ def attach(
 
     slot = ch.region(slot_uid)(_paint)
 
-    @ch.on("ux_behavior.dispatch", refresh=[slot], idempotent=False)
-    def dispatch(ctx, ux_action: str = "", **args: Any):
-        # Channel already authenticated the request → trusted product dispatch
-        reserved = {UX_ACTION_KEY}
-        payload = {k: v for k, v in args.items() if k not in reserved}
-        if ctx is not None:
-            form = getattr(ctx, "form", None) or getattr(ctx, "data", None) or {}
-            if isinstance(form, dict):
-                for key, value in form.items():
-                    if key in reserved:
-                        continue
-                    if key not in payload:
-                        payload[str(key)] = value
-        name = str(ux_action or "")
-        if not name:
+    # Prefer async handler so async @action works under ASGI
+    try:
+
+        @ch.on("ux_behavior.dispatch", refresh=[slot], idempotent=False)
+        async def dispatch_async(ctx, ux_action: str = "", **args: Any):
+            name = str(ux_action or "")
+            if not name:
+                return None
+            await behavior.async_dispatch(
+                name, _trusted=True, **_payload_from(ctx, args)
+            )
             return None
-        behavior.dispatch(name, _trusted=True, **payload)
-        return None
+
+        behavior._dispatch = dispatch_async
+    except Exception:
+
+        @ch.on("ux_behavior.dispatch", refresh=[slot], idempotent=False)
+        def dispatch_sync(ctx, ux_action: str = "", **args: Any):
+            name = str(ux_action or "")
+            if not name:
+                return None
+            behavior.dispatch(name, _trusted=True, **_payload_from(ctx, args))
+            return None
+
+        behavior._dispatch = dispatch_sync
 
     behavior._wire = ch
-    behavior._dispatch = dispatch
     behavior._region_uid = slot_uid
 
     if channel_planes:

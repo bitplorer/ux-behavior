@@ -1,4 +1,4 @@
-"""Async actions, validation morphs, preview, trust."""
+"""Async actions, validation, preview, trust, client risk, dual emit."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from ux_behavior import (
     Component,
     MorphState,
     action,
+    follow_up,
     notify,
 )
 
@@ -17,6 +18,8 @@ from ux_behavior import (
 class Box(Component):
     id = "box"
     n = MorphState(0)
+    theme = MorphState("system", backend="client", key="ui.theme")
+    price = MorphState(0, backend="client", key="cart.price")
 
     def render(self):
         return f"<div>{self.n}</div>"
@@ -35,14 +38,26 @@ class Box(Component):
     def secure(self):
         return [notify("s")]
 
+    @action(caps=())
+    def start(self):
+        follow_up("done", "box.set_n", n=7)
+        return [notify("go")]
+
+    @action(caps=())
+    async def astart(self):
+        follow_up("adone", "box.aset", n=8)
+        return [notify("ago")]
+
 
 @pytest.mark.asyncio
-async def test_async_dispatch():
+async def test_async_dispatch_and_submit():
     app = Behavior.boot()
     app.add(Box)
     ops = await app.async_dispatch("box.aset", n=3)
     assert app.get("box").n == 3
     assert ops[0].pair == ("log", "append")
+    await app.async_submit("box.aset", {"n": 4})
+    assert app.get("box").n == 4
 
 
 def test_sync_rejects_async_action():
@@ -76,3 +91,28 @@ def test_trust_context():
         app.dispatch("box.secure")
     with app.trust():
         assert app.dispatch("box.secure")
+
+
+def test_client_risk():
+    app = Behavior.boot()
+    inst = app.add(Box)
+    inst.theme = "dark"  # safe
+    with pytest.raises(AuthorityError):
+        inst.price = 10
+
+
+def test_emit_sync():
+    app = Behavior.boot()
+    app.add(Box)
+    app.dispatch("box.start")
+    app.emit("done")
+    assert app.get("box").n == 7
+
+
+@pytest.mark.asyncio
+async def test_async_emit():
+    app = Behavior.boot()
+    app.add(Box)
+    await app.async_dispatch("box.astart")
+    await app.async_emit("adone")
+    assert app.get("box").n == 8

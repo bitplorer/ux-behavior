@@ -1,46 +1,47 @@
-# Behavior — standard product interface
+# Behavior 0.3 — standard product interface
 
-Dumb Host shape::
+## Sync and async (first-class)
+
+| API | Use |
+|-----|-----|
+| ``dispatch`` / ``submit`` / ``emit`` | **sync** actions only |
+| ``async_dispatch`` / ``async_submit`` / ``async_emit`` | sync **or** async actions |
+
+Wire attach prefers an **async** Channel handler so async ``@action`` works under ASGI.
+
+## Dumb Host
 
 ```python
 app = Behavior.boot("Shop")
 app.add(Cart)
 app.use("effects")
 app.attach(asgi)
-# buttons
 button(**app.control(cart.add, sku="x"))
-# server path is Channel → trusted dispatch
 ```
 
-## Caps
-
-- ``@action(caps=())`` public
-- ``@action(caps=("orders.write",))`` protected
-- Offline: refuse unless ``app.trust()`` / ``_trusted=True`` / attached wire
-- Live wire dispatch is trusted after Channel auth
-
-## Async
+## Caps / trust / preview
 
 ```python
-@action(caps=())
-async def save(self): ...
-await app.async_dispatch("cart.save")
-```
+@action(caps=())              # public
+@action(caps=("orders.write",))  # protected offline
 
-## Validation
-
-Bad / mistyped args → morph targets ``{action}.{field}-error`` (no exception to Host).
-
-## Preview
-
-```python
-with app.preview():
-    # session/store writes refuse; safe for dry-run UI
+with app.trust(): ...
+with app.preview(): ...       # blocks session/store writes
 ```
 
 ## Continuations
 
 ```python
-follow_up("paid", "orders.confirm", order_id=1)
-app.emit("paid")
+follow_up("paid", "orders.confirm", args_from={"order_id": "id"})
+app.emit("paid", id=42)
+await app.async_emit("paid", id=42)
 ```
+
+## Client risk
+
+Money-shaped client paths (``price``, ``amount``, ``qty``, …) refuse by default.
+``Behavior.boot(client_risk=False)`` to disable.
+
+## Validation
+
+Bad args → morph ``{action}.{field}-error`` (no exception to Host).
