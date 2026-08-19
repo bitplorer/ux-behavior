@@ -1,44 +1,44 @@
-# Live checks — 2026-08-19
+# Live checks
 
-## Environment
+## Quick run
 
-| Package | Present |
-|---------|---------|
-| ux-behavior | yes (editable) |
-| ux-channel | **yes** (`python/` subdir install) |
-| ux-dom | no (not required for these checks) |
-| FastAPI | yes (for ASGI attach) |
+```bash
+pip install -e ".[dev]"
+pip install -e "git+https://github.com/bitplorer/ux-channel.git#subdirectory=python#egg=ux-channel"
+pip install fastapi httpx
+pytest tests/test_live_channel.py -q
+# full suite (live tests skip if Channel missing)
+pytest -q
+uxbehavior doctor --fail
+```
 
-## Results
+## Coverage (when Channel present)
 
-| Check | Result |
+| Check | Status |
 |-------|--------|
-| Cold import `ux_behavior` | ok |
-| `probe()` with Channel installed | `{"ux_dom": false, "ux_channel": true}` |
-| `present()` | `True` |
-| `dispatch("cart.add")` dirty → refresh | ok — returns morph Op |
-| `attach(app, None)` | `None` (correct) |
-| `attach(app, FastAPI())` | **Channel** instance; `attached=True` |
-| Idempotent second attach | returns same wire |
-| Isolation `uxbehavior doctor --fail` | ok |
+| `probe()` / `present()` | Channel detected |
+| `dispatch` dirty projection | morph Op |
+| `dispatch` explicit Ops | morph + notify |
+| stamp rejects unstamped pair | PermissionError |
+| `attach(FastAPI())` | Channel instance, idempotent |
+| `attach(None)` | soft None |
+| chrome open/close | kv + morph |
+| Result XOR | Conflict on morph + transition html |
+| Result navigate last | ordered |
+| doctor | clean |
 
-## Friction notes
+## Harbor pilot
 
-1. **Channel install path** is `git+.../ux-channel.git#subdirectory=python` — Hosts must document that.
-2. **Attach requires a real ASGI app** (FastAPI). Without it, soft-fail is correct.
-3. **Harbor still depends on ux-app** (`finish`, `open_overlay`, `Session`, `act`/`wire` helpers). Pilot maps one component pattern only; full harbor swap is multi-file.
-4. **ux-dom not required** for wire attach or dispatch tests.
+```bash
+cd harbor
+pip install -e ".[dev]"
+pytest tests/test_behavior_pilot.py -q
+export HARBOR_BEHAVIOR_PILOT=1
+# import app.host → behavior_host populated when flag set
+```
 
-## Harbor pilot scope (recommended first screen)
+## Notes
 
-**Cart / bag** (`app/screens/bag.py`) is the best first target:
-
-| Harbor (ux-app) | ux-behavior |
-|-----------------|-------------|
-| `Component` + methods | `Component` + `@action` |
-| `finish(open_overlay(...))` | `open("sheet", key="cart")` + optional `notify` |
-| `Session("")` fields | plain instance attrs + dirty projection |
-| `go("cart")` | `go("/cart")` or Host route helper |
-| `host = App.boot` | `Behavior.boot` + `attach(asgi)` |
-
-See `examples/harbor_cart_pilot.py` for a minimal parallel implementation.
+- Channel install path uses `#subdirectory=python`.
+- Live suite uses `importorskip` so CI without Channel still passes unit tests.
+- Full HTTP Intent→Action through Channel peer is Host/product work; this suite validates the **Behavior ↔ Channel attach door** and author Ops laws.
