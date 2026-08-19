@@ -1,9 +1,6 @@
 """Composition root — standard Channel interface for product behavior.
 
-Sync and async are first-class:
-
-* ``dispatch`` / ``submit`` / ``emit`` — sync actions
-* ``async_dispatch`` / ``async_submit`` / ``async_emit`` — async or sync actions
+Sync and async are first-class. Failures are explicit (raise or diagnostics).
 """
 
 from __future__ import annotations
@@ -13,6 +10,7 @@ from contextlib import contextmanager
 from typing import Any, Callable, Iterable, Iterator, Type
 
 from ux_behavior.client_risk import check_client_write
+from ux_behavior.diagnostics import Diagnostics
 from ux_behavior.domains import DomainTable, default_table
 from ux_behavior.errors import AuthorityError, ContinuationError, ValidationError
 from ux_behavior.events import Continuation, _begin_follow_ups, _end_follow_ups
@@ -45,10 +43,15 @@ class Behavior:
         *,
         strict_caps: bool = True,
         client_risk: bool = True,
+        strict_control: bool = False,
+        strict_attach: bool = False,
     ) -> None:
         self.title = title
         self.strict_caps = strict_caps
         self.client_risk = client_risk
+        self.strict_control = strict_control
+        self.strict_attach = strict_attach
+        self.diagnostics = Diagnostics()
         self._components: dict[str, Any] = {}
         self.domains = domains or default_table()
         self.state = StateAPI(self)
@@ -69,12 +72,25 @@ class Behavior:
         *,
         strict_caps: bool = True,
         client_risk: bool = True,
+        strict_control: bool = False,
+        strict_attach: bool = False,
     ) -> "Behavior":
-        root = cls(title=title, strict_caps=strict_caps, client_risk=client_risk)
+        root = cls(
+            title=title,
+            strict_caps=strict_caps,
+            client_risk=client_risk,
+            strict_control=strict_control,
+            strict_attach=strict_attach,
+        )
         root._cores_available = {
             "ux_dom": importlib.util.find_spec("ux_dom") is not None,
             "ux_channel": importlib.util.find_spec("ux_channel") is not None,
         }
+        if not root._cores_available["ux_channel"]:
+            root.diagnostics.info(
+                "CORE_CHANNEL_ABSENT",
+                "ux_channel not installed; live Caps unavailable until install+attach",
+            )
         return root
 
     def _backend_for(self, plane: str, fld: Field | None = None) -> Any:
@@ -107,7 +123,13 @@ class Behavior:
             check_client_write(key, value)
         backend = self._backend_for(plane, fld)
         if backend is None:
-            return
+            self.diagnostics.error(
+                "PLANE_NO_BACKEND",
+                f"no backend for plane {plane!r}",
+                plane=plane,
+                field=fld.name,
+            )
+            raise AuthorityError(f"no backend for plane {plane!r}")
         backend.set(key, value)
 
     @property
@@ -130,19 +152,23 @@ class Behavior:
     def preview(self) -> Iterator["Behavior"]:
         prev = self._preview
         self._preview = True
+        self.diagnostics.info("PREVIEW_ON", "preview mode enabled")
         try:
             yield self
         finally:
             self._preview = prev
+            self.diagnostics.info("PREVIEW_OFF", "preview mode disabled")
 
     @contextmanager
     def trust(self) -> Iterator["Behavior"]:
         prev = self.strict_caps
         self.strict_caps = False
+        self.diagnostics.warn("TRUST_ON", "strict_caps disabled in trust() context")
         try:
             yield self
         finally:
             self.strict_caps = prev
+            self.diagnostics.info("TRUST_OFF", "strict_caps restored")
 
     def use(self, *names: str) -> "Behavior":
         self.domains.use(*names)
@@ -182,6 +208,12 @@ class Behavior:
         cid = str(cid)
         if not cid:
             raise ValueError("component id must be a non-empty string")
+        if cid in self._components:
+            self.diagnostics.warn(
+                "COMPONENT_REPLACE",
+                f"replacing existing component id {cid!r}",
+                id=cid,
+            )
         bind = getattr(inst, "bind_behavior", None)
         if callable(bind):
             bind(self)
@@ -233,12 +265,24 @@ class Behavior:
         if not caps or trusted or self._wire is not None:
             return
         if self.strict_caps:
+            self.diagnostics.error(
+                "CAP_REQUIRED",
+                f"{action} requires Cap {caps}",
+                action=action,
+                caps=list(caps),
+            )
             raise AuthorityError(
                 f"{action!r} requires Cap {caps}; "
                 "attach Channel, use app.trust(), or dispatch(..., _trusted=True)"
             )
 
     def _validation_ops(self, action: str, err: ValidationError) -> list[Op]:
+        self.diagnostics.warn(
+            "VALIDATION_FAILED",
+            str(err),
+            action=action,
+            fields=dict(err.fields),
+        )
         ops: list[Op] = []
         for field, msg in err.fields.items():
             target = f"{action}.{field}-error" if field != "_" else f"{action}-error"
@@ -256,6 +300,12 @@ class Behavior:
     ) -> list[Op]:
         for item in pending:
             self._continuations[item.event] = item
+            self.diagnostics.info(
+                "CONTINUATION_ARMED",
+                f"follow_up {item.event!r} → {item.action}",
+                event=item.event,
+                action=item.action,
+            )
 
         if result is None:
             after = _public_state(inst)
@@ -283,10 +333,17 @@ class Behavior:
             raise TypeError(f"{action!r} is not marked with @action")
         return component_id, inst, fn
 
-    def _continuation_args(self, event: str, slots: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    def _continuation_args(
+        self, event: str, slots: dict[str, Any]
+    ) -> tuple[str, dict[str, Any]]:
         event = str(event or "").strip()
         item = self._continuations.get(event)
         if item is None:
+            self.diagnostics.error(
+                "CONTINUATION_MISSING",
+                f"no continuation for event {event!r}",
+                event=event,
+            )
             raise ContinuationError(f"no continuation for event {event!r}")
         resolved = dict(item.args)
         for dest, src in item.args_from.items():
@@ -298,7 +355,6 @@ class Behavior:
         return item.action, resolved
 
     def dispatch(self, action: str, **kwargs: Any) -> list[Op]:
-        """Run a **sync** action. Async actions must use ``async_dispatch``."""
         trusted = bool(kwargs.pop("_trusted", False))
         component_id, inst, fn = self._resolve(action)
         if getattr(fn, "_ux_behavior_async", False):
@@ -320,7 +376,6 @@ class Behavior:
         return self._finish(action, component_id, inst, before, result, pending)
 
     async def async_dispatch(self, action: str, **kwargs: Any) -> list[Op]:
-        """Run sync or async actions. Preferred entry under ASGI / wire."""
         trusted = bool(kwargs.pop("_trusted", False))
         component_id, inst, fn = self._resolve(action)
         self._require_caps(fn, action, trusted=trusted)
@@ -373,6 +428,11 @@ class Behavior:
             if not isinstance(op, Op):
                 raise TypeError(f"expected Op, got {type(op).__name__}")
             if not self.domains.allows(*op.pair):
+                self.diagnostics.error(
+                    "STAMP_REJECT",
+                    f"pair {op.fq} not on stamp",
+                    pair=op.fq,
+                )
                 raise PermissionError(
                     f"pair {op.fq} is not on the session stamp"
                 )

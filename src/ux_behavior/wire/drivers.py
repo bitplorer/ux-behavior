@@ -1,4 +1,4 @@
-"""Soft-register Channel drivers for agreed domain packs."""
+"""Soft-register Channel drivers — report every outcome."""
 
 from __future__ import annotations
 
@@ -6,41 +6,37 @@ from typing import Any
 
 
 def try_register_drivers(behavior: Any, channel: Any) -> dict[str, str]:
-    """Best-effort: if Host agreed effects/search, ask Channel to wire drivers.
-
-    Fail-closed: missing APIs leave report as 'skipped'.
-    """
     report: dict[str, str] = {}
+    diag = getattr(behavior, "diagnostics", None)
     names = set(getattr(getattr(behavior, "domains", None), "names", []) or [])
 
     if "effects" in names:
-        report["effects"] = _try_effects(channel)
+        report["effects"] = _try(channel, "effects", diag)
     if "search" in names:
-        report["search"] = _try_search(channel)
+        report["search"] = _try(channel, "search", diag)
 
     behavior._driver_report = report
     return report
 
 
-def _try_effects(channel: Any) -> str:
-    try:
-        # Channel may expose notice helpers; never hard-depend
-        st = getattr(channel, "st", None)
-        if st is not None and hasattr(st, "client"):
-            return "channel"
-        if hasattr(channel, "use"):
-            channel.use("effects")
-            return "channel"
-    except Exception:
-        return "skipped"
-    return "skipped"
-
-
-def _try_search(channel: Any) -> str:
+def _try(channel: Any, name: str, diag: Any) -> str:
     try:
         if hasattr(channel, "use"):
-            channel.use("search")
+            channel.use(name)
             return "channel"
-    except Exception:
+        if diag is not None:
+            diag.warn(
+                "DRIVER_NO_USE",
+                f"Channel has no use() for domain {name!r}",
+                domain=name,
+            )
         return "skipped"
-    return "skipped"
+    except Exception as exc:
+        if diag is not None:
+            diag.warn(
+                "DRIVER_FAILED",
+                f"domain {name!r}: {exc}",
+                domain=name,
+                error=type(exc).__name__,
+            )
+        return "skipped"
