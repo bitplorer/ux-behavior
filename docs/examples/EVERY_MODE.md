@@ -1,8 +1,8 @@
-# Every mode matrix — offline / live / Caps / trust
+# Every mode matrix — sync / async × offline / live × Caps / trust
 
-This is the exhaustive **how to run behavior** guide. Same components; different **authority modes**.
+Exhaustive **how to run** guide. Same components; every **entry** and **authority** combination.
 
-Runnable tests: `tests/test_every_mode.py`.
+Automated: `tests/test_every_mode.py`.
 
 ---
 
@@ -10,11 +10,12 @@ Runnable tests: `tests/test_every_mode.py`.
 
 | Axis | Values |
 |------|--------|
+| **Sync / async entry** | `dispatch` / `submit` / `emit` · `async_dispatch` / `async_submit` / `async_emit` |
+| **Action kind** | Sync `@action` · Async `@action` (`async def`) |
 | **Network** | Offline (no Channel) · Live (`attach` + Channel) |
-| **Caps on action** | Public `caps=()` · Protected `caps=("…",)` |
+| **Caps** | Public `caps=()` · Protected `caps=("…",)` |
 | **Authority** | Strict default · `trust()` · `_trusted=True` · wire attached |
-| **Entry** | `dispatch` · `async_dispatch` · `submit` · `emit` · `control` |
-| **Outcome** | Ops · morph error · `AuthorityError` · diagnostic |
+| **Outcome** | Ops · morph error · `AuthorityError` · `TypeError` · diagnostic |
 
 ---
 
@@ -22,7 +23,7 @@ Runnable tests: `tests/test_every_mode.py`.
 
 ```python
 from ux_behavior import (
-    Behavior, Component, MorphState, action, notify, follow_up, go,
+    Behavior, Component, MorphState, action, notify, follow_up,
     AuthorityError,
 )
 
@@ -33,14 +34,11 @@ class Demo(Component):
     def render(self):
         return f"<div id='demo'>{self.n}</div>"
 
+    # ── sync actions ──
     @action(caps=())
     def public_inc(self):
         self.n = int(self.n) + 1
         return None
-
-    @action(caps=())
-    def public_notify(self):
-        return [notify("hello")]
 
     @action(caps=("demo.write",))
     def protected_set(self, n: int = 0):
@@ -53,229 +51,215 @@ class Demo(Component):
         return [notify("started")]
 
     @action(caps=())
+    def start_async_flow(self):
+        follow_up("adone", "demo.protected_async_set", n=11)
+        return [notify("started async flow")]
+
+    @action(caps=())
     def typed(self, n: int = 0):
         self.n = n
         return None
 
+    # ── async actions ──
     @action(caps=())
-    async def public_async(self):
+    async def public_async_inc(self):
         self.n = int(self.n) + 10
         return None
+
+    @action(caps=("demo.write",))
+    async def protected_async_set(self, n: int = 0):
+        self.n = n
+        return [notify(f"async set {n}")]
 ```
 
 ---
 
-## 1. Offline + public
+## Sync / async compatibility matrix
+
+| Action kind | `dispatch` / `submit` / `emit` | `async_dispatch` / `async_submit` / `async_emit` |
+|-------------|-------------------------------|--------------------------------------------------|
+| **Sync** `@action def` | **runs** | **runs** (awaitable path calls sync fn) |
+| **Async** `@action async def` | **`TypeError`** (use async_*) | **runs** |
+
+**Rule:** async actions require async entry points. Sync actions run on both.
+
+---
+
+## Authority × entry (sync)
+
+| caps | offline strict | trust / `_trusted` | `dispatch` |
+|------|----------------|--------------------|------------|
+| public | any | any | **runs** |
+| protected | yes | no | **AuthorityError** |
+| protected | yes | yes | **runs** |
+| protected | `strict_caps=False` | no | **runs** (dev) |
+
+Same rows for **`submit`**. Same Cap rules for **`emit`** target action (emit always passes `_trusted=True`).
+
+---
+
+## Authority × entry (async)
+
+| caps | offline strict | trust / `_trusted` | `async_dispatch` |
+|------|----------------|--------------------|------------------|
+| public sync action | any | any | **runs** |
+| public async action | any | any | **runs** |
+| protected sync action | yes | no | **AuthorityError** |
+| protected async action | yes | no | **AuthorityError** |
+| protected sync/async | yes | yes | **runs** |
+| async action via `dispatch` | any | any | **TypeError** |
+
+Same Cap rows for **`async_submit`** / **`async_emit`**.
+
+---
+
+## Examples by mode
+
+### S1 — Sync entry + sync public (offline)
 
 ```python
-app = Behavior.boot(strict_caps=True)  # no attach
+app = Behavior.boot(strict_caps=True)
 app.add(Demo)
-
 ops = app.dispatch("demo.public_inc")
 assert app.get("demo").n == 1
-assert ops[0].pair == ("ui.dom", "morph")
-
-ops = app.dispatch("demo.public_notify")
-assert ops[0].pair == ("log", "append")
-
-attrs = app.control(app.get("demo").public_inc)
-assert attrs["data_action"] == "demo.public_inc"
-assert attrs.get("data_cap", "") == ""  # offline: no Cap token
-# diagnostic: CONTROL_OFFLINE
+app.submit("demo.public_inc", {})
+assert app.get("demo").n == 2
 ```
 
----
-
-## 2. Offline + protected → refuse
+### S2 — Sync entry + sync protected refuse (offline)
 
 ```python
-app = Behavior.boot(strict_caps=True)
-app.add(Demo)
-
 try:
-    app.dispatch("demo.protected_set", n=3)
-    assert False, "must refuse"
-except AuthorityError as e:
-    assert "Cap" in str(e)
-    # diagnostic CAP_REQUIRED + hint
+    app.dispatch("demo.protected_set", n=1)
+except AuthorityError:
+    pass
 ```
 
----
-
-## 3. Offline + protected + trust()
+### S3 — Sync entry + sync protected + trust / _trusted
 
 ```python
-app = Behavior.boot(strict_caps=True)
-app.add(Demo)
-
 with app.trust():
-    ops = app.dispatch("demo.protected_set", n=3)
-assert app.get("demo").n == 3
-# diagnostic TRUST_ON / TRUST_OFF
+    app.dispatch("demo.protected_set", n=3)
+app.dispatch("demo.protected_set", n=4, _trusted=True)
 ```
 
-**Production:** never wrap normal HTTP handlers in `trust()`.
-
----
-
-## 4. Offline + protected + `_trusted=True`
+### S4 — Sync entry + sync protected continuation
 
 ```python
-app = Behavior.boot(strict_caps=True)
-app.add(Demo)
-
-ops = app.dispatch("demo.protected_set", n=4, _trusted=True)
-assert app.get("demo").n == 4
-```
-
-Same power as trust for one call. Wire uses this **after** Channel verifies the request.
-
----
-
-## 5. Offline + strict_caps=False
-
-```python
-app = Behavior.boot(strict_caps=False)
-app.add(Demo)
-# protected runs without Cap — dev only
-app.dispatch("demo.protected_set", n=1)
-```
-
----
-
-## 6. Continuations offline
-
-```python
-app = Behavior.boot(strict_caps=True)
-app.add(Demo)
-
-app.dispatch("demo.start_flow")           # public; arms follow_up
-app.emit("done")                          # runs protected_set with _trusted
+app.dispatch("demo.start_flow")
+app.emit("done")  # protected_set via _trusted
 assert app.get("demo").n == 9
 ```
 
-`emit` always dispatches the continuation action as trusted (armed under an earlier authorized action). Still authenticate who may call `emit` on a network edge.
-
----
-
-## 7. Validation morph (any mode)
+### A1 — Async entry + sync public
 
 ```python
-app = Behavior.boot()
-app.add(Demo)
-ops = app.dispatch("demo.typed", n="bad")  # type: ignore
-assert ops[0].pair == ("ui.dom", "morph")
-assert "error" in ops[0].payload["target"]
+await app.async_dispatch("demo.public_inc")
+await app.async_submit("demo.public_inc", {})
 ```
 
-Does not raise to Host; returns error morphs.
-
----
-
-## 8. Async offline
+### A2 — Async entry + async public
 
 ```python
-import asyncio
-app = Behavior.boot()
-app.add(Demo)
+await app.async_dispatch("demo.public_async_inc")
+assert app.get("demo").n == 10  # from 0
+```
 
-# sync API rejects async action
+### A3 — Sync entry + async action → TypeError
+
+```python
 try:
-    app.dispatch("demo.public_async")
-    assert False
-except TypeError:
+    app.dispatch("demo.public_async_inc")
+except TypeError as e:
+    assert "async" in str(e).lower()
+```
+
+### A4 — Async entry + async protected refuse
+
+```python
+try:
+    await app.async_dispatch("demo.protected_async_set", n=1)
+except AuthorityError:
     pass
-
-asyncio.run(app.async_dispatch("demo.public_async"))
-assert app.get("demo").n == 10
 ```
 
----
-
-## 9. Live path (Channel attached)
+### A5 — Async entry + async protected + _trusted
 
 ```python
-app = Behavior.boot(strict_caps=True, strict_control=True, strict_attach=True)
-app.add(Demo)
-app.region(lambda: app.get("demo").render(), uid="app.root")
-
-ch = app.attach(asgi)  # requires pip install ux-channel
-if ch is None:
-    print(app.diagnostics.last_hint())  # CHANNEL_MISSING or ATTACH_*
-else:
-    # control mints Cap via Channel
-    attrs = app.control(app.get("demo").protected_set, n=1)
-    assert "data_cap" in attrs or any("cap" in k.lower() for k in attrs)
-    # inbound: Channel verifies → wire calls
-    #   await async_dispatch(name, _trusted=True, **payload)
+await app.async_dispatch("demo.protected_async_set", n=7, _trusted=True)
+assert app.get("demo").n == 7
 ```
 
-When `_wire` is set, Behavior treats protected actions as allowed at the Behavior layer (Channel already gated). Cap **crypto** remains Channel-only.
-
----
-
-## 10. Live missing Channel
+### A6 — Async entry + async protected + trust()
 
 ```python
-app = Behavior.boot()
-app.add(Demo)
-ch = app.attach(asgi)  # ImportError path → None
-assert ch is None
-# CORE_CHANNEL_ABSENT / CHANNEL_MISSING in diagnostics
-# protected still refused offline
+with app.trust():
+    await app.async_dispatch("demo.protected_async_set", n=8)
 ```
 
----
-
-## 11. submit helpers
+### A7 — Async emit continuation to async protected
 
 ```python
-app = Behavior.boot()
-app.add(Demo)
-app.submit("demo.public_inc", {})
-app.submit("demo.protected_set", {"n": 2}, _trusted=True)
+app.dispatch("demo.start_async_flow")  # sync arm
+await app.async_emit("adone")           # async protected_async_set trusted
+assert app.get("demo").n == 11
 ```
 
----
-
-## 12. Preview mode
+### A8 — Async emit continuation to sync protected
 
 ```python
-app = Behavior.boot()
-app.add(Demo)
-with app.preview():
-    try:
-        app.get("demo").n = 99  # session Morph write
-        assert False
-    except AuthorityError:
-        pass
+app.dispatch("demo.start_flow")
+await app.async_emit("done")
+assert app.get("demo").n == 9
+```
+
+### V1 — Validation on sync and async entry
+
+```python
+ops = app.dispatch("demo.typed", n="bad")  # morph error
+ops = await app.async_dispatch("demo.typed", n="bad")
+```
+
+### C1 — control() (always sync helper; Cap offline vs live)
+
+```python
+attrs = app.control(app.get("demo").public_inc)
+# offline: data_action, empty data_cap
+# live after attach: Channel Cap material when mint OK
+```
+
+### L1 — Live attach
+
+```python
+ch = app.attach(asgi)  # wire prefers async_dispatch for inbound
+# protected inbound runs with _trusted after Channel auth
 ```
 
 ---
 
-## Truth table (dispatch)
+## Full truth table (copy)
 
-| caps | offline strict | trust/_trusted | attached wire | Result |
-|------|----------------|----------------|---------------|--------|
-| `()` | any | any | any | **runs** |
-| non-empty | strict | no | no | **AuthorityError** |
-| non-empty | strict | yes | no | **runs** |
-| non-empty | strict | no | yes | **runs** (Channel gated) |
-| non-empty | `strict_caps=False` | no | no | **runs** (dev) |
+| # | Entry | Action | Caps | Authority | Result |
+|---|-------|--------|------|-----------|--------|
+| 1 | dispatch | sync public | () | offline | runs |
+| 2 | dispatch | sync protected | non-empty | offline strict | AuthorityError |
+| 3 | dispatch | sync protected | non-empty | trust / _trusted | runs |
+| 4 | dispatch | async any | any | any | TypeError |
+| 5 | async_dispatch | sync public | () | offline | runs |
+| 6 | async_dispatch | async public | () | offline | runs |
+| 7 | async_dispatch | sync protected | non-empty | offline strict | AuthorityError |
+| 8 | async_dispatch | async protected | non-empty | offline strict | AuthorityError |
+| 9 | async_dispatch | sync/async protected | non-empty | trust / _trusted | runs |
+| 10 | submit | (same as dispatch) | | | |
+| 11 | async_submit | (same as async_dispatch) | | | |
+| 12 | emit | target action | (trusted) | offline | runs target |
+| 13 | async_emit | target sync/async | (trusted) | offline | runs target |
+| 14 | control | — | — | offline | attrs, no Cap |
+| 15 | control | — | — | live mint OK | Cap attrs |
+| 16 | wire inbound | sync/async | protected | attached | async_dispatch + _trusted |
 
 ---
 
-## Truth table (control)
+## Live note
 
-| wire | mint | strict_control | Result |
-|------|------|----------------|--------|
-| no | — | any | offline attrs + CONTROL_OFFLINE |
-| yes | ok | any | Cap attrs + CONTROL_MINTED |
-| yes | fail | False | offline attrs + CONTROL_MINT_FAILED |
-| yes | fail | True | **raises** |
-
----
-
-## Copy-paste matrix runner
-
-See `tests/test_every_mode.py` for automated coverage of rows above.
+After `attach`, Channel should call **`async_dispatch`** (or `async_submit`) so both sync and async actions work on the same edge. Behavior does not require Hosts to pick the entry style per action if the wire always uses the async API.

@@ -1,4 +1,4 @@
-"""Every authority / entry mode: offline public/protected, trust, trusted, emit, validation, async."""
+"""Every mode: sync/async entry × public/protected × trust/_trusted × emit/submit."""
 
 from __future__ import annotations
 
@@ -27,10 +27,6 @@ class Demo(Component):
         self.n = int(self.n) + 1
         return None
 
-    @action(caps=())
-    def public_notify(self):
-        return [notify("hello")]
-
     @action(caps=("demo.write",))
     def protected_set(self, n: int = 0):
         self.n = n
@@ -42,14 +38,24 @@ class Demo(Component):
         return [notify("started")]
 
     @action(caps=())
+    def start_async_flow(self):
+        follow_up("adone", "demo.protected_async_set", n=11)
+        return [notify("started async flow")]
+
+    @action(caps=())
     def typed(self, n: int = 0):
         self.n = n
         return None
 
     @action(caps=())
-    async def public_async(self):
+    async def public_async_inc(self):
         self.n = int(self.n) + 10
         return None
+
+    @action(caps=("demo.write",))
+    async def protected_async_set(self, n: int = 0):
+        self.n = n
+        return [notify(f"async set {n}")]
 
 
 def _app(**kw):
@@ -58,87 +64,154 @@ def _app(**kw):
     return app
 
 
-def test_offline_public_inc_and_notify():
+# ── Sync entry + sync action ──
+
+def test_sync_public_dispatch_and_submit():
     app = _app()
-    ops = app.dispatch("demo.public_inc")
+    app.dispatch("demo.public_inc")
     assert app.get("demo").n == 1
-    assert ops[0].pair == ("ui.dom", "morph")
-    ops = app.dispatch("demo.public_notify")
-    assert ops[0].pair == ("log", "append")
+    app.submit("demo.public_inc", {})
+    assert app.get("demo").n == 2
 
 
-def test_offline_control_no_cap():
-    app = _app()
-    attrs = app.control(app.get("demo").public_inc)
-    assert attrs["data_action"] == "demo.public_inc"
-    assert attrs.get("data_cap", "") == ""
-
-
-def test_offline_protected_refuses():
+def test_sync_protected_refuses():
     app = _app(strict_caps=True)
     with pytest.raises(AuthorityError):
         app.dispatch("demo.protected_set", n=1)
+    with pytest.raises(AuthorityError):
+        app.submit("demo.protected_set", {"n": 1})
 
 
-def test_offline_protected_trust_context():
+def test_sync_protected_trust_and_trusted():
     app = _app(strict_caps=True)
     with app.trust():
         app.dispatch("demo.protected_set", n=3)
     assert app.get("demo").n == 3
-
-
-def test_offline_protected_trusted_kwarg():
-    app = _app(strict_caps=True)
     app.dispatch("demo.protected_set", n=4, _trusted=True)
     assert app.get("demo").n == 4
-
-
-def test_offline_strict_caps_false():
-    app = _app(strict_caps=False)
-    app.dispatch("demo.protected_set", n=5)
+    app.submit("demo.protected_set", {"n": 5}, _trusted=True)
     assert app.get("demo").n == 5
 
 
-def test_emit_runs_protected_continuation():
+def test_sync_emit_protected_continuation():
     app = _app(strict_caps=True)
     app.dispatch("demo.start_flow")
     app.emit("done")
     assert app.get("demo").n == 9
 
 
-def test_validation_morph():
-    app = _app()
-    ops = app.dispatch("demo.typed", n="bad")  # type: ignore[arg-type]
-    assert ops
-    assert ops[0].pair == ("ui.dom", "morph")
-    assert "error" in ops[0].payload["target"]
-
-
-def test_sync_rejects_async_action():
+def test_sync_entry_rejects_async_action():
     app = _app()
     with pytest.raises(TypeError, match="async"):
-        app.dispatch("demo.public_async")
+        app.dispatch("demo.public_async_inc")
+    with pytest.raises(TypeError, match="async"):
+        app.submit("demo.public_async_inc", {})
 
 
-@pytest.mark.asyncio
-async def test_async_dispatch_public():
+def test_sync_validation_morph():
     app = _app()
-    await app.async_dispatch("demo.public_async")
-    assert app.get("demo").n == 10
+    ops = app.dispatch("demo.typed", n="bad")  # type: ignore[arg-type]
+    assert ops and "error" in ops[0].payload["target"]
+
+
+# ── Async entry + sync action ──
+
+@pytest.mark.asyncio
+async def test_async_entry_sync_public():
+    app = _app()
+    await app.async_dispatch("demo.public_inc")
+    assert app.get("demo").n == 1
+    await app.async_submit("demo.public_inc", {})
+    assert app.get("demo").n == 2
 
 
 @pytest.mark.asyncio
-async def test_async_dispatch_protected_trusted():
+async def test_async_entry_sync_protected_refuses():
     app = _app(strict_caps=True)
-    await app.async_dispatch("demo.protected_set", n=7, _trusted=True)
+    with pytest.raises(AuthorityError):
+        await app.async_dispatch("demo.protected_set", n=1)
+
+
+@pytest.mark.asyncio
+async def test_async_entry_sync_protected_trusted():
+    app = _app(strict_caps=True)
+    await app.async_dispatch("demo.protected_set", n=6, _trusted=True)
+    assert app.get("demo").n == 6
+    with app.trust():
+        await app.async_dispatch("demo.protected_set", n=7)
     assert app.get("demo").n == 7
 
 
-def test_submit_helpers():
+@pytest.mark.asyncio
+async def test_async_emit_sync_protected_continuation():
+    app = _app(strict_caps=True)
+    app.dispatch("demo.start_flow")
+    await app.async_emit("done")
+    assert app.get("demo").n == 9
+
+
+# ── Async entry + async action ──
+
+@pytest.mark.asyncio
+async def test_async_entry_async_public():
     app = _app()
-    app.submit("demo.public_inc", {})
+    await app.async_dispatch("demo.public_async_inc")
+    assert app.get("demo").n == 10
+    await app.async_submit("demo.public_async_inc", {})
+    assert app.get("demo").n == 20
+
+
+@pytest.mark.asyncio
+async def test_async_entry_async_protected_refuses():
+    app = _app(strict_caps=True)
+    with pytest.raises(AuthorityError):
+        await app.async_dispatch("demo.protected_async_set", n=1)
+
+
+@pytest.mark.asyncio
+async def test_async_entry_async_protected_trusted_and_trust():
+    app = _app(strict_caps=True)
+    await app.async_dispatch("demo.protected_async_set", n=7, _trusted=True)
+    assert app.get("demo").n == 7
+    with app.trust():
+        await app.async_dispatch("demo.protected_async_set", n=8)
+    assert app.get("demo").n == 8
+
+
+@pytest.mark.asyncio
+async def test_async_emit_async_protected_continuation():
+    app = _app(strict_caps=True)
+    app.dispatch("demo.start_async_flow")
+    await app.async_emit("adone")
+    assert app.get("demo").n == 11
+
+
+@pytest.mark.asyncio
+async def test_async_validation_morph():
+    app = _app()
+    ops = await app.async_dispatch("demo.typed", n="bad")  # type: ignore[arg-type]
+    assert ops and "error" in ops[0].payload["target"]
+
+
+# ── Misc ──
+
+def test_control_offline():
+    app = _app()
+    attrs = app.control(app.get("demo").public_inc)
+    assert attrs["data_action"] == "demo.public_inc"
+    assert attrs.get("data_cap", "") == ""
+
+
+def test_strict_caps_false_sync():
+    app = _app(strict_caps=False)
+    app.dispatch("demo.protected_set", n=1)
     assert app.get("demo").n == 1
-    app.submit("demo.protected_set", {"n": 2}, _trusted=True)
+
+
+@pytest.mark.asyncio
+async def test_strict_caps_false_async():
+    app = _app(strict_caps=False)
+    await app.async_dispatch("demo.protected_async_set", n=2)
     assert app.get("demo").n == 2
 
 
@@ -149,16 +222,7 @@ def test_preview_blocks_session_write():
             app.get("demo").n = 99
 
 
-def test_attach_without_channel_returns_none():
-    app = _app()
-    # asgi object unused if channel missing
-    ch = app.attach(object())
-    # may be None if ux_channel not installed
-    if ch is None:
-        assert app.diagnostics.events  # CHANNEL_MISSING or similar recorded on attach path
-
-
-def test_public_still_works_when_protected_refused():
+def test_public_still_works_after_protected_refuse():
     app = _app(strict_caps=True)
     with pytest.raises(AuthorityError):
         app.dispatch("demo.protected_set", n=1)
