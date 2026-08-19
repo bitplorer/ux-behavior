@@ -1,23 +1,16 @@
-# Offline vs online test parity
+# Offline vs online example coverage (equal)
 
-| Layer | File | What it proves |
-|-------|------|----------------|
-| **Offline matrix** | `tests/test_examples_matrix.py` | Public × sync/async entry, protected refuse/trust/_trusted, async actions, emit, validation, control |
-| **Offline Demo law** | `tests/test_every_mode.py` | Full authority × sync/async truth table |
-| **Online HTTP matrix** | `tests/test_online_matrix.py` | **Same public + protected + trusted + emit + validation** over real HTTP |
-| **Channel (optional)** | `tests/test_live_channel.py` | Soft attach / Cap mint when `ux-channel` installed |
-
-## Breadth claim
-
-Online is **not** thinner on product examples:
-
-- Every public family used offline is hit via `POST /dispatch`.
-- Every protected action is **403** without trust and **200** with `trusted: true`.
-- Async action on sync HTTP edge → **400 TypeError** (same law).
-- Form validation + checkout `emit` match offline.
-
-Channel crypto is optional; HTTP + `_trusted` is the always-on stand-in for “Channel already verified”.
+| Case | Offline `test_examples_matrix` | Online `test_online_matrix` (HTTP) |
+|------|--------------------------------|-------------------------------------|
+| Public widgets (tabs, toasts, modal, carousel, confirm.ask, grid, like, table, form, tree, versions, accordion, drawer, filters, typeahead, menu) | `dispatch` + `async_dispatch` | `POST /dispatch` + `POST /async_dispatch` |
+| Public async actions | TypeError on sync; OK on async entry | TypeError on `/dispatch`; OK on `/async_dispatch` |
+| Protected (confirm, bulk_delete, checkout.finish, versions.restore) | refuse / trust / `_trusted` | 403 / `trusted: true` → 200 |
+| Protected on async entry | refuse / `_trusted` | `/async_dispatch` refuse / trusted |
+| Form validation | sync + async entry | `/dispatch` + `/async_dispatch` |
+| Checkout emit | `emit` + `async_emit` | `POST /emit` + `POST /async_emit` |
+| control() | offline attrs | Host concern (no Cap offline) — intentional |
+| Channel Cap mint | n/a | optional `test_live_channel.py` |
 
 ```bash
-pytest tests/test_examples_matrix.py tests/test_every_mode.py tests/test_online_matrix.py -q
+pytest tests/test_examples_matrix.py tests/test_online_matrix.py tests/test_every_mode.py -q
 ```
