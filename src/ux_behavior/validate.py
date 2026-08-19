@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import Any, get_args, get_origin
+from typing import Any, get_args, get_origin, get_type_hints
 
 from ux_behavior.errors import ValidationError
 
@@ -20,6 +20,11 @@ def bind_action_args(fn: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
     out = dict(bound.arguments)
     errors: dict[str, str] = {}
 
+    try:
+        hints = get_type_hints(fn)
+    except Exception:
+        hints = {}
+
     for name, param in sig.parameters.items():
         if name not in out:
             if param.default is inspect.Parameter.empty and param.kind not in (
@@ -28,9 +33,7 @@ def bind_action_args(fn: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
             ):
                 errors[name] = "required"
             continue
-        if name not in out:
-            continue
-        ann = param.annotation
+        ann = hints.get(name, param.annotation)
         if ann is inspect.Parameter.empty:
             continue
         val = out[name]
@@ -47,14 +50,15 @@ def _ann_name(ann: Any) -> str:
 
 
 def _matches(ann: Any, value: Any) -> bool:
+    if isinstance(ann, str):
+        return True  # unresolved forward ref — skip
     origin = get_origin(ann)
     if origin is None:
         if ann is Any:
             return True
         if isinstance(ann, type):
-            return type(value) is ann or isinstance(value, ann)
+            return isinstance(value, ann)
         return True
-    # Optional / Union
     args = get_args(ann)
     if type(None) in args:
         if value is None:
