@@ -1,28 +1,24 @@
 # Real-world UI behavior patterns
 
-## Complex production systems
+## Complex nested systems (almost all product graphs)
 
-**[COMPLEX.md](COMPLEX.md)** — Infinite scroll, virtual lists, optimistic UI, debounced search, faceted filters+URL, data tables, master/detail, notifications, feeds, chat, kanban, calendar, uploads, command palette, mega menu, consent, onboarding, banners, compare tray, saved views, mini-cart races, presence, skeletons, pull-to-refresh, undo snackbar.
+**[COMPLEX_NESTED.md](COMPLEX_NESTED.md)** — Seven full systems:
 
-## Nested compositions
+| System | Covers |
+|--------|--------|
+| A Commerce | facets + endless grid + product modal (tabs/gallery) + mini-cart + compare + checkout |
+| B SaaS admin | palette + table + bulk confirm + undo + detail drawer |
+| C Social | endless feed + likes + thread modal + notifications |
+| D Messaging | inbox master + chat + presence |
+| E Work board | kanban + card modal + checklist |
+| F Booking | calendar + slots + checkout |
+| G Content | mega menu + tabs + FAQ + consent |
 
-**[NESTED.md](NESTED.md)** — Commerce shell: chrome + menu + drawer filters + catalog + product modal (tabs + gallery) + confirm + checkout + toasts.
+## Also
 
-## Single patterns
-
-| Pattern | File |
-|---------|------|
-| Tabs | [tabs.md](tabs.md) |
-| Toasts | [toasts.md](toasts.md) |
-| Dropdown | [dropdown.md](dropdown.md) |
-| Modal | [modal.md](modal.md) |
-| Carousel | [carousel.md](carousel.md) |
-| Accordion | [accordion.md](accordion.md) |
-| Drawer | [drawer.md](drawer.md) |
-| Wizard | [wizard.md](wizard.md) |
-| Pagination | [pagination.md](pagination.md) |
-| Filters | [filters.md](filters.md) |
-| Typeahead | [typeahead.md](typeahead.md) |
-| Confirm | [confirm.md](confirm.md) |
-| Forms | [forms.md](forms.md) |
-| Coverage map | [CATALOG.md](CATALOG.md) |
+| Doc | Contents |
+|-----|----------|
+| [COMPLEX.md](COMPLEX.md) | Individual complex patterns (infinite scroll, optimistic UI, …) |
+| [NESTED.md](NESTED.md) | Nesting rules + commerce shell |
+| [CATALOG.md](CATALOG.md) | Coverage map |
+| Single patterns | tabs, toasts, modal, carousel, … (see files in this folder) |
