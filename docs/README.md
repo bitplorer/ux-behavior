@@ -1,21 +1,28 @@
 # ux-behavior documentation
 
-## Tutorial (start here)
+**Audience:** engineers shipping product UI behavior on Channel-backed (or offline-test) Hosts.
 
-**[tutorial/README.md](tutorial/README.md)** — FastAPI-style progressive path with full copy-paste examples:
+This is the **production** documentation set. Tutorials exist for onboarding; the pages below are the contract.
 
-states together · forms · Caps · continuations · async · live Channel · full shop · cookbook
+## Reading order
 
-## Reference
+| Priority | Document | Purpose |
+|----------|----------|--------|
+| 1 | [ARCHITECTURE.md](ARCHITECTURE.md) | System boundaries, data flow, non-goals |
+| 2 | [SECURITY.md](SECURITY.md) | Caps policy, trust, client risk, preview, secrets |
+| 3 | [STATE_DEEP.md](STATE_DEEP.md) | Morph/Ref, planes, dirty projection, SSR, Host backends |
+| 4 | [DISPATCH.md](DISPATCH.md) | Sync/async pipeline, validation, Ops, stamp |
+| 5 | [WIRE.md](WIRE.md) | attach, control, planes, drivers, failure matrix |
+| 6 | [API.md](API.md) | Exhaustive public API |
+| 7 | [ERRORS.md](ERRORS.md) | Exception + diagnostic catalog with recovery |
+| 8 | [OPERATIONS.md](OPERATIONS.md) | Boot profiles, observability, tests, doctor |
+| 9 | [PRODUCTION_APP.md](PRODUCTION_APP.md) | Full multi-component system |
+| 10 | [MIGRATION_UX_APP.md](MIGRATION_UX_APP.md) | Kill-path from ux-app |
 
-| Doc | Contents |
-|-----|----------|
-| [GUIDE.md](GUIDE.md) | Mental model, install, boundaries |
-| [REFERENCE.md](REFERENCE.md) | Public API |
-| [STATE.md](STATE.md) | Morph/Ref/planes |
-| [CONTROL_FLOW.md](CONTROL_FLOW.md) | Caps, diagnostics, errors |
-| [INTERNALS.md](INTERNALS.md) | Package internals |
-| [HOST.md](HOST.md) | Production Host |
-| [EXAMPLES.md](EXAMPLES.md) | Short snippets |
+### Onboarding (shallower)
 
-**Version:** package `__version__` (0.3.x).
+[tutorial/README.md](tutorial/README.md) · [GUIDE.md](GUIDE.md)
+
+### Package version
+
+Docs target **ux-behavior 0.3.x**. Behavior that differs by minor version is called out explicitly.
