@@ -1,13 +1,14 @@
 # ux-behavior documentation
 
-## Product UI — start here for real apps
+## Product UI patterns
 
-| Doc | What |
-|-----|------|
-| **[patterns/COMPLEX_NESTED.md](patterns/COMPLEX_NESTED.md)** | **Seven full nested product systems (commerce, admin, social, chat, kanban, booking, content)** |
-| [patterns/COMPLEX.md](patterns/COMPLEX.md) | Infinite scroll, optimistic UI, tables, chat, … |
-| [patterns/NESTED.md](patterns/NESTED.md) | Nesting rules + shell |
-| [patterns/README.md](patterns/README.md) | Pattern index |
+| Doc | Contents |
+|-----|----------|
+| [patterns/COMPLEX_NESTED.md](patterns/COMPLEX_NESTED.md) | Full nested product systems |
+| [patterns/COMPLEX.md](patterns/COMPLEX.md) | Complex single patterns |
+| [patterns/MORE_CASES.md](patterns/MORE_CASES.md) | **Residual cases (tree, map, tour, offline, KYC, …)** |
+| [patterns/NESTED.md](patterns/NESTED.md) | Nesting rules |
+| [patterns/README.md](patterns/README.md) | Index |
 
 ## Contracts
 
