@@ -3,8 +3,11 @@
 * ``MorphState`` ≈ useState — may auto-morph on change + return None
 * ``RefState``   ≈ useRef   — never auto-morph
 
-    MorphState(0, type=int)
-    MorphState("", validate=check_email)
+    MorphState("home")
+    MorphState(1, backend="store")
+    MorphState("system", backend="client", key="ui.theme")
+    MorphState(0, type=int)              # exact type, no coerce
+    MorphState("", validate=check_email) # callable guard
     RefState(None)
 
 ``seal=`` is not used on fields (Cap language stays on Channel).
@@ -48,8 +51,8 @@ class Field:
                 "type= must be a class (e.g. int); use validate= for callables"
             )
         if backend is None:
-            pass
-        elif isinstance(backend, str):
+            return
+        if isinstance(backend, str):
             if backend not in _PLANE_NAMES:
                 raise ValueError(
                     f"backend must be session|client|store or a PlaneBackend, got {backend!r}"
@@ -60,7 +63,7 @@ class Field:
             if self.plane not in _PLANE_NAMES:
                 self.plane = "store"
 
-    def __set_name__(self, owner: builtins.type, name: str) -> None:
+    def __set_name__(self, owner: type, name: str) -> None:
         self.name = name
 
     def _guard_write(self, value: Any) -> Any:
@@ -74,7 +77,7 @@ class Field:
             value = self.validate(value)
         return value
 
-    def __get__(self, obj: Any, owner: builtins.type | None = None) -> Any:
+    def __get__(self, obj: Any, owner: type | None = None) -> Any:
         if obj is None:
             return self
         if self.plane == "ref":
