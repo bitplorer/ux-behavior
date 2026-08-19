@@ -1,8 +1,4 @@
-"""Isolation and public-surface freeze + richer doctor.
-
-Application modules must never import cores.
-Only the progressive wire door may soft-load cores when present.
-"""
+"""Isolation and public-surface freeze + richer doctor."""
 
 from __future__ import annotations
 
@@ -31,6 +27,10 @@ FROZEN_PUBLIC = frozenset(
         "close",
         "select",
         "confirm",
+        "Session",
+        "Client",
+        "Store",
+        "Transient",
         "Op",
         "__version__",
     }
@@ -51,6 +51,8 @@ BANNED_PUBLIC_NAMES = frozenset(
         "lower",
         "Result",
         "form_result",
+        "Badge",
+        "App",
     }
 )
 
@@ -92,12 +94,10 @@ def scan_imports(paths: Iterable[Path]) -> list[str]:
 
 
 def scan_banned_tokens(paths: Iterable[Path]) -> list[str]:
-    """Flag retired / banned author names in package source (not tests)."""
     violations: list[str] = []
     for path in paths:
         if not path.is_file() or path.suffix != ".py":
             continue
-        # isolation itself lists banned tokens
         if path.name == "isolation.py":
             continue
         text = path.read_text(encoding="utf-8")
@@ -131,7 +131,6 @@ def check_public_surface(exported: Iterable[str]) -> list[str]:
 
 
 def check_stamp_hygiene() -> list[str]:
-    """Default domain stamp must only contain one-token names."""
     from ux_behavior.domains import default_table
 
     violations: list[str] = []
@@ -154,7 +153,6 @@ def check_stamp_hygiene() -> list[str]:
 
 
 def doctor(package_root: Path | None = None) -> list[str]:
-    """Run isolation + surface + stamp + banned-token checks."""
     import ux_behavior
 
     violations = check_public_surface(ux_behavior.__all__)

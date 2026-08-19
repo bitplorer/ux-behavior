@@ -9,6 +9,7 @@ from ux_behavior.component import Component
 from ux_behavior.action import action
 from ux_behavior.ops import Op, update, notify, go, submit_outcome
 from ux_behavior.chrome import open, close, select, confirm
+from ux_behavior.fields import Session, Client, Store, Transient
 
 __all__ = [
     "Behavior",
@@ -22,6 +23,10 @@ __all__ = [
     "close",
     "select",
     "confirm",
+    "Session",
+    "Client",
+    "Store",
+    "Transient",
     "Op",
     "__version__",
 ]

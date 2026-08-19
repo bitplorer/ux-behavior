@@ -69,17 +69,27 @@ class Behavior:
         return self
 
     def region(self, render: Callable[[], Any], *, uid: str | None = None) -> "Behavior":
-        """Register the Host paint callback for live Channel region attach."""
         self._region_render = render
         if uid:
             self._region_uid = uid
         return self
 
     def attach(self, asgi: Any, **kwargs: Any) -> Any:
-        """Mount live Channel behind this Behavior (via the wire door)."""
         from ux_behavior.wire.attach import attach as attach_wire
 
         return attach_wire(self, asgi, **kwargs)
+
+    def control(self, action: Any, **args: Any) -> dict[str, str]:
+        """Mint control attrs (Channel when attached; offline data-action)."""
+        from ux_behavior.wire.control import control_attrs
+
+        return control_attrs(self, action, **args)
+
+    def submit(self, action: str, args: dict[str, Any] | None = None, **kwargs: Any) -> list[Op]:
+        """Alias of dispatch for Hosts migrating from App.submit."""
+        payload = dict(args or {})
+        payload.update(kwargs)
+        return self.dispatch(action, **payload)
 
     def add(self, component: Type[Any] | Any) -> Any:
         if isinstance(component, type):
