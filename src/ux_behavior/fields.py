@@ -46,15 +46,13 @@ class Field:
             raise TypeError(
                 "type= must be a class (e.g. int); use validate= for callables"
             )
-        if backend is None:
-            pass
-        elif isinstance(backend, str):
+        if isinstance(backend, str):
             if backend not in _PLANE_NAMES:
                 raise ValueError(
                     f"backend must be session|client|store or a PlaneBackend, got {backend!r}"
                 )
             self.plane = backend
-        else:
+        elif backend is not None:
             self.custom_backend = backend
             if self.plane not in _PLANE_NAMES:
                 self.plane = "store"

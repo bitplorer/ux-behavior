@@ -3,7 +3,7 @@
 **Status:** Binding  
 **Audience:** Staff+ engineers, architecture review, board-level technical discussion  
 **Date:** 2026-08-18  
-**Version:** 0.1 (foundation)
+**Version:** 0.3.2 (foundation freeze 0.1; MorphState/RefState joined Day-1)
 
 ---
 
@@ -106,6 +106,8 @@ Derived from progressive disclosure practice (SwiftUI), API simplicity/composabi
 from ux_behavior import (
     Behavior,       # composition root
     Component,      # unit of behavior + render
+    MorphState,     # dirty / must-repaint field
+    RefState,       # silent field
     action,         # decorator; Caps required unless caps=()
     update,         # morph
     notify,         # S-only notice

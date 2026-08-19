@@ -9,22 +9,24 @@ pip install -e ".[dev]"
 ## Day-1: Component + Action
 
 ```python
-from ux_behavior import Behavior, Component, action, update, notify, go
+from ux_behavior import Behavior, Component, MorphState, action, notify
 from ux_behavior import open, close, select, confirm
 
 class CartBadge(Component):
     id = "cart.badge"
-    count: int = 0
+    count = MorphState(0)
 
     def render(self):
         return f"<button id='cart.badge'>{self.count}</button>"
 
     @action(caps=())
     def add(self, sku: str = ""):
-        self.count += 1
+        self.count = int(self.count) + 1
+        return [notify("Added")]
 
 app = Behavior.boot(title="Cart")
 app.add(CartBadge)
+print(app.dispatch("cart.badge.add", sku="tee"))
 print(list(app.components().keys()))  # ['cart.badge']
 ```
 

@@ -2,7 +2,7 @@
 
 Default offline: MemoryPlanes.
 After Behavior.attach, wire may install Channel session/client defaults
-unless the Host already called set_plane_backend (Host wins).
+unless the Host already called ``app.state.use(...)`` (Host wins).
 Fail-closed: if Channel state is missing, memory stays.
 """
 

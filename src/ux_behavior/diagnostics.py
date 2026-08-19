@@ -23,6 +23,19 @@ HINTS: dict[str, str] = {
     ),
     "CHANNEL_MISSING": "Install ux-channel before attach if live Caps are required.",
     "ATTACH_FAILED": "Inspect Channel ASGI factory; check version compatibility.",
+    "ATTACH_NO_ASGI": "Pass a real ASGI app: app.attach(asgi).",
+    "ATTACH_DEV_SECRET": (
+        "Set env UX_CHANNEL_SECRET (or UX_BEHAVIOR_SECRET) before production attach."
+    ),
+    "ATTACH_BOOT_FAILED": (
+        "Check Channel config, secret length, and Redis URL; retry attach."
+    ),
+    "ATTACH_ASYNC_HANDLER": "Inbound dispatch uses async_dispatch.",
+    "ATTACH_ASYNC_HANDLER_FAILED": (
+        "Sync dispatch is active; prefer a Channel build that accepts async handlers."
+    ),
+    "ATTACH_IDEMPOTENT": "Reuse the existing Channel; no second boot.",
+    "ATTACH_OK": "Live Caps and control() mint are available.",
     "CONTROL_OFFLINE": (
         "Call app.attach(asgi) so control() can mint Cap tokens, "
         "or keep offline attrs for pure SSR tests."
@@ -35,6 +48,7 @@ HINTS: dict[str, str] = {
         "Buttons lack Cap until mint works; do not ship this path to production."
     ),
     "CONTROL_NO_DISPATCH": "Re-run attach() so the dispatch handler is registered.",
+    "CONTROL_MINTED": "Button attrs include a Cap token.",
     "CAP_REQUIRED": (
         "Attach Channel for live Caps. "
         "app.trust() / _trusted=True are for tests and wire-after-verify only."
@@ -59,13 +73,19 @@ HINTS: dict[str, str] = {
         "Client mirror kept locally; fix Channel client.set or path allowlist."
     ),
     "PLANES_INSTALL_FAILED": "Planes remain memory; inspect Channel state adapters.",
+    "PLANES_INSTALLED": "Session/client backends now use Channel.",
+    "PLANES_NO_CHANNEL_STATE": "Channel has no state(); memory planes stay.",
+    "PLANES_STATE_FAILED": "Inspect Channel state adapters; memory planes stay.",
     "DRIVERS_FAILED": "Drivers skipped; stamp still applies — register drivers on Host/Channel.",
     "DRIVER_NO_USE": "Channel has no use(); register drivers on the Host.",
     "DRIVER_FAILED": "Fix Channel domain registration or omit app.use for that domain.",
+    "DRIVERS_REPORT": "Domain drivers registered on Channel.",
     "REGION_EMPTY": "app.region(render) or pass region= to attach().",
     "COMPONENT_REPLACE": "Use unique component id= to avoid overwriting.",
     "TRUST_ON": "Leave trust() ASAP; never enable in production request paths.",
+    "TRUST_OFF": "strict_caps restored.",
     "PREVIEW_ON": "Writes to session/store raise until the with-block exits.",
+    "PREVIEW_OFF": "session/store writes are allowed again.",
 }
 
 
@@ -96,10 +116,8 @@ class Diagnostics:
         **context: Any,
     ) -> DiagEvent:
         if self.developer_hints:
-            next_step = hint if hint is not None else HINTS.get(code, "")
+            next_step = HINTS.get(code, "") if hint is None else hint
         else:
-            # Production: never attach bypass / install recipes to events or logs.
-            next_step = "" if hint is None else (hint if self.developer_hints else "")
             next_step = ""
         ev = DiagEvent(
             level=level,

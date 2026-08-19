@@ -14,6 +14,7 @@ def boot(
     client_risk: bool = True,
     strict_control: bool = False,
     strict_attach: bool = False,
+    developer_hints: bool = False,
 ) -> Behavior
 ```
 
@@ -42,7 +43,9 @@ def boot(
 
 ### Properties
 
-`title`, `strict_*`, `client_risk`, `diagnostics`, `state`, `stamp`, `continuations`, `cores_available`, `is_preview`
+`title`, `strict_*`, `client_risk`, `developer_hints`, `diagnostics`, `state`, `stamp`, `continuations`, `cores_available`, `is_preview`
+
+Production: leave `developer_hints=False` so Cap errors and `diagnostics.summary()` never include `trust()` / `_trusted` recipes.
 
 ## @action
 

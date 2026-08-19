@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ux-behavior"
-version = "0.3.1"
+version = "0.3.2"
 description = "Standard Channel interface for product behavior: Component + actions + Morph/Ref state → verified Ops."
 readme = "README.md"
 license = { text = "MIT" }

@@ -107,6 +107,7 @@ Behavior.boot(
     client_risk=True,
     strict_control=True,
     strict_attach=True,
+    developer_hints=False,
 )
 ```
 

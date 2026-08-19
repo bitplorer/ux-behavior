@@ -23,4 +23,5 @@ class Component:
         self._behavior = behavior
 
     def render(self) -> Any:
-        raise NotImplementedError
+        """Return markup for this unit. Subclasses must implement."""
+        raise NotImplementedError(f"{type(self).__name__}.render() is required")

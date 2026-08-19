@@ -100,6 +100,8 @@ def attach(
                 "ux_channel not installed; attach aborted",
                 error=str(exc),
             )
+        if getattr(behavior, "strict_attach", False):
+            raise
         return None
 
     secret = (

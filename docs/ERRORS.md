@@ -18,6 +18,8 @@
 
 Every event has `level`, `code`, `message`, **`hint`**, `context`, `at`.
 
+`hint` and `context` are empty unless `Behavior.boot(developer_hints=True)` (tests / local Hosts only).
+
 Primary codes (non-exhaustive; see `ux_behavior.diagnostics.HINTS`):
 
 `CORE_CHANNEL_ABSENT`, `CHANNEL_MISSING`, `ATTACH_*`, `CONTROL_*`, `CAP_REQUIRED`, `VALIDATION_FAILED`, `STAMP_REJECT`, `CONTINUATION_*`, `DISPATCH_*`, `PLANE_*`, `DRIVER_*`, `TRUST_*`, `PREVIEW_*`, `COMPONENT_REPLACE`
