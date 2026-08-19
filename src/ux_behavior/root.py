@@ -6,19 +6,20 @@ import importlib.util
 from typing import Any, Callable, Iterable, Type
 
 from ux_behavior.domains import DomainTable, default_table
-from ux_behavior.fields import (
-    Field,
-    client_field_names,
-    plane_storage_key,
-    transient_field_names,
-)
+from ux_behavior.fields import Field, plane_storage_key, transient_field_names
 from ux_behavior.ops import Op, update
 from ux_behavior.planes import MISSING, MemoryPlanes, PlaneBackend
 
 
 def _public_state(inst: Any) -> dict[str, Any]:
-    """Dirty snapshot: skip TransientState and ClientState (ux-app parity)."""
-    skip = transient_field_names(inst) | client_field_names(inst)
+    """Dirty snapshot for auto-morph when action returns None.
+
+    Skips only TransientState (ephemeral; must not request re-render alone).
+    ClientState **is** included: SSR may paint prefs into HTML, so a theme
+    change must be able to morph. (ux-app skipped client dirty because it
+    leaned on browser client ops; ux-behavior is SSR-first.)
+    """
+    skip = transient_field_names(inst)
     out: dict[str, Any] = {}
     for key, value in vars(inst).items():
         if key.startswith("_"):
@@ -62,11 +63,6 @@ class Behavior:
         *,
         host_locked: bool = True,
     ) -> "Behavior":
-        """Replace session/client/store backend.
-
-        Host calls (default) lock the plane so attach will not overwrite.
-        Wire auto-install uses host_locked=False.
-        """
         if plane not in {"session", "client", "store"}:
             raise ValueError(f"unknown plane {plane!r}; use session|client|store")
         self._plane_overrides[plane] = backend
@@ -89,12 +85,9 @@ class Behavior:
             if key not in data:
                 return MISSING
             return data[key]
-        # Channel / custom backends: get may return MISSING
         val = backend.get(key, fld.default)
         if val is MISSING:
             return MISSING
-        # If backend has no has() and returns default for missing keys,
-        # prefer instance mirror when never written — ChannelSession always has get
         return val
 
     def plane_set(self, plane: str, inst: Any, fld: Field, value: Any) -> None:
