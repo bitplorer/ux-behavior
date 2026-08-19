@@ -8,11 +8,11 @@ from typing import Any, Callable, Iterable, Type
 from ux_behavior.domains import DomainTable, default_table
 from ux_behavior.fields import Field, plane_storage_key, ref_field_names
 from ux_behavior.ops import Op, update
-from ux_behavior.planes import MISSING, MemoryPlanes, PlaneBackend
+from ux_behavior.planes import MISSING
+from ux_behavior.state_api import StateAPI
 
 
 def _public_state(inst: Any) -> dict[str, Any]:
-    """Dirty snapshot for MorphState fields only (skip RefState)."""
     skip = ref_field_names(inst)
     out: dict[str, Any] = {}
     for key, value in vars(inst).items():
@@ -29,10 +29,7 @@ class Behavior:
         self.title = title
         self._components: dict[str, Any] = {}
         self.domains = domains or default_table()
-        self.planes = MemoryPlanes()
-        self._plane_overrides: dict[str, PlaneBackend] = {}
-        self._plane_host_locked: set[str] = set()
-        self._plane_channel_report: dict[str, str] = {}
+        self.state = StateAPI(self)
         self._cores_available: dict[str, bool] = {
             "ux_dom": False,
             "ux_channel": False,
@@ -50,29 +47,13 @@ class Behavior:
         }
         return root
 
-    def set_plane_backend(
-        self,
-        plane: str,
-        backend: PlaneBackend,
-        *,
-        host_locked: bool = True,
-    ) -> "Behavior":
-        if plane not in {"session", "client", "store"}:
-            raise ValueError(f"unknown plane {plane!r}; use session|client|store")
-        self._plane_overrides[plane] = backend
-        if host_locked:
-            self._plane_host_locked.add(plane)
-        return self
-
-    def _backend(self, plane: str, fld: Field | None = None) -> PlaneBackend | None:
+    def _backend_for(self, plane: str, fld: Field | None = None) -> Any:
         if fld is not None and getattr(fld, "custom_backend", None) is not None:
             return fld.custom_backend
-        if plane in self._plane_overrides:
-            return self._plane_overrides[plane]
-        return self.planes.backend(plane)
+        return self.state.backend(plane)
 
     def plane_get(self, plane: str, inst: Any, fld: Field) -> Any:
-        backend = self._backend(plane, fld)
+        backend = self._backend_for(plane, fld)
         if backend is None:
             return MISSING
         key = plane_storage_key(plane, inst, fld)
@@ -87,7 +68,7 @@ class Behavior:
         return val
 
     def plane_set(self, plane: str, inst: Any, fld: Field, value: Any) -> None:
-        backend = self._backend(plane, fld)
+        backend = self._backend_for(plane, fld)
         if backend is None:
             return
         key = plane_storage_key(plane, inst, fld)

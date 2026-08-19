@@ -3,14 +3,10 @@
 * ``MorphState`` ≈ useState — may auto-morph on change + return None
 * ``RefState``   ≈ useRef   — never auto-morph
 
-    MorphState("home")
-    MorphState(1, backend="store")
-    MorphState("system", backend="client", key="ui.theme")
-    MorphState(0, type=int)              # exact type, no coerce
-    MorphState("", validate=check_email) # callable guard
-    RefState(None)
+Storage plane on MorphState: backend="session"|"client"|"store"|PlaneBackend
+Host wires plane implementations via ``app.state.use(...)``.
 
-``seal=`` is not used on fields (Cap language stays on Channel).
+Sugar: UiState, PrefState, KeepState (fixed backend names).
 """
 
 from __future__ import annotations
@@ -51,8 +47,8 @@ class Field:
                 "type= must be a class (e.g. int); use validate= for callables"
             )
         if backend is None:
-            return
-        if isinstance(backend, str):
+            pass
+        elif isinstance(backend, str):
             if backend not in _PLANE_NAMES:
                 raise ValueError(
                     f"backend must be session|client|store or a PlaneBackend, got {backend!r}"
@@ -63,7 +59,7 @@ class Field:
             if self.plane not in _PLANE_NAMES:
                 self.plane = "store"
 
-    def __set_name__(self, owner: type, name: str) -> None:
+    def __set_name__(self, owner: builtins.type, name: str) -> None:
         self.name = name
 
     def _guard_write(self, value: Any) -> Any:
@@ -77,7 +73,7 @@ class Field:
             value = self.validate(value)
         return value
 
-    def __get__(self, obj: Any, owner: type | None = None) -> Any:
+    def __get__(self, obj: Any, owner: builtins.type | None = None) -> Any:
         if obj is None:
             return self
         if self.plane == "ref":
@@ -108,7 +104,6 @@ def MorphState(
     type: Any = None,
     validate: Callable[[Any], Any] | None = None,
 ) -> Field:
-    """Reactive field ≈ useState. May auto-morph when changed and action returns None."""
     if isinstance(backend, str):
         return Field(
             default, plane=backend, key=key, type=type, validate=validate, backend=backend
@@ -124,7 +119,6 @@ def RefState(
     type: Any = None,
     validate: Callable[[Any], Any] | None = None,
 ) -> Field:
-    """Silent field ≈ useRef. Never auto-morphs. Not a DOM ref."""
     return Field(default, plane="ref", type=type, validate=validate)
 
 
@@ -156,22 +150,12 @@ def KeepState(
     return MorphState(default, backend="store", type=type, validate=validate)
 
 
-SessionState = UiState
-ClientState = PrefState
-StoreState = KeepState
-TransientState = RefState
-
-
 def ref_field_names(inst: Any) -> frozenset[str]:
     names: set[str] = set()
     for key, val in vars(builtins.type(inst)).items():
         if isinstance(val, Field) and val.plane == "ref":
             names.add(key)
     return frozenset(names)
-
-
-nomorph_field_names = ref_field_names
-transient_field_names = ref_field_names
 
 
 def plane_storage_key(plane: str, inst: Any, fld: Field) -> str:

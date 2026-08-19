@@ -31,7 +31,9 @@ def attach_info(behavior: Any | None = None) -> dict[str, Any]:
         domains = getattr(behavior, "domains", None)
         if domains is not None:
             stamp = sorted(f"{ns}.{name}" for ns, name in domains.stamp)
-        planes = dict(getattr(behavior, "_plane_channel_report", {}) or {})
+        state = getattr(behavior, "state", None)
+        if state is not None:
+            planes = dict(state.report)
     return {
         "title": title,
         "cores": available,
@@ -52,11 +54,6 @@ def attach(
     uid: str | None = None,
     channel_planes: bool = True,
 ) -> Any:
-    """Boot live Channel behind Behavior.
-
-    ``channel_planes=True`` (default): install Channel session/client backends
-    for planes the Host has not locked. Fail-closed to memory on any error.
-    """
     if region is not None:
         behavior._region_render = region
     if uid:
@@ -128,10 +125,6 @@ def attach(
 
             try_install_channel_planes(behavior, ch)
         except Exception:
-            behavior._plane_channel_report = {
-                "session": "skipped_error",
-                "client": "skipped_error",
-                "store": "memory",
-            }
+            pass
 
     return ch

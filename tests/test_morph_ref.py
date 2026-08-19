@@ -1,4 +1,4 @@
-"""MorphState + RefState — type= / validate=."""
+"""MorphState + RefState."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import pytest
 from ux_behavior import (
     Behavior,
     Component,
+    DictBackend,
     KeepState,
     MorphState,
     PrefState,
@@ -14,7 +15,6 @@ from ux_behavior import (
     UiState,
     action,
 )
-from ux_behavior.planes import DictBackend
 
 
 class Box(Component):
@@ -38,11 +38,6 @@ class Box(Component):
         self.token = "x"
         return None
 
-    @action(caps=())
-    def set_n(self, n: int = 0):
-        self.n = n
-        return None
-
 
 def test_morph_dirties_ref_does_not():
     app = Behavior.boot()
@@ -52,15 +47,15 @@ def test_morph_dirties_ref_does_not():
     assert app.dispatch("box.bump_ref") == []
 
 
-def test_backends():
+def test_backends_via_state():
     app = Behavior.boot()
     inst = app.add(Box)
     inst.page = "a"
     inst.step = 9
     inst.theme = "dark"
-    assert app.planes.session.data["box.page"] == "a"
-    assert app.planes.store.data["box.step"] == 9
-    assert app.planes.client.data["ui.theme"] == "dark"
+    assert app.state.backend("session").data["box.page"] == "a"
+    assert app.state.backend("store").data["box.step"] == 9
+    assert app.state.backend("client").data["ui.theme"] == "dark"
 
 
 def test_type_no_coerce():
@@ -96,7 +91,7 @@ def test_validate():
     assert inst.label == "HI"
 
 
-def test_sugar_aliases():
+def test_sugar():
     class C(Component):
         id = "c"
         a = UiState("x")
@@ -110,7 +105,7 @@ def test_sugar_aliases():
     app = Behavior.boot()
     inst = app.add(C)
     inst.a = "z"
-    assert app.planes.session.data["c.a"] == "z"
+    assert app.state.backend("session").data["c.a"] == "z"
 
 
 def test_field_custom_backend():

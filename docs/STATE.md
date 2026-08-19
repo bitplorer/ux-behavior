@@ -1,33 +1,34 @@
-# Component field state
+# State
 
-## Canonical pair
+## Author fields
 
-| API | Effect | Industry |
-|-----|--------|----------|
-| **`MorphState`** | may auto-morph on change + `return None` | `useState` |
-| **`RefState`** | never auto-morph | `useRef` |
+| API | Effect |
+|-----|--------|
+| **MorphState** | may auto-morph (`useState`) |
+| **RefState** | never auto-morph (`useRef`) |
 
 ```python
-MorphState("home")
+MorphState("home")                                 # session
 MorphState(1, backend="store")
 MorphState("system", backend="client", key="ui.theme")
-MorphState(0, type=int)               # exact type, no coerce
-MorphState("", validate=check_email)  # callable
+MorphState(0, type=int)
+MorphState("", validate=fn)
 RefState(None)
+UiState / PrefState / KeepState   # sugar
 ```
 
-## Write guards
+## Host storage — ``app.state``
 
-| Param | Role |
-|-------|------|
-| **`type=`** | Exact Python type; no coerce (ux-app Sealed intent) |
-| **`validate=`** | Callable ``(value) -> value``; may raise |
+```python
+app.state.use("store", kv_backend)     # lock=True by default
+app.state.use("session", b, lock=True)
+app.state.report                       # {session, client, store} → memory|host|channel
+app.state.locked
+app.state.backends
+app.state.reset("session")
+app.state.reset()                      # all → memory
+```
 
-Do **not** use ``seal=`` on fields — Cap sealing is Channel language.
+Attach installs Channel session/client only for **unlocked** planes (`lock=False`, `source="channel"`).
 
-## backend=
-
-`session` | `client` | `store` | PlaneBackend
-
-Sugar: `UiState`, `PrefState`, `KeepState`.
-Aliases: Session/Client/Store/Transient.
+No ``set_plane_backend``. No SessionState/ClientState aliases.
