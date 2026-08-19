@@ -1,6 +1,8 @@
-"""Explicit diagnostics — nothing silent; every event carries a next step.
+"""In-process diagnostics.
 
-Hosts read ``app.diagnostics.summary()`` or individual events' ``hint``.
+**Production:** keep ``developer_hints=False`` (Behavior default). Do **not**
+serialize ``summary()`` or ``hint`` fields to end-user HTTP responses.
+Server logs may still record codes + safe messages.
 """
 
 from __future__ import annotations
@@ -10,29 +12,17 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Literal
 
-log = logging.getLogger("ux_behavior")
-
 Level = Literal["info", "warn", "error"]
 
-# Default next steps by code (overridable per emit)
+log = logging.getLogger("ux_behavior")
+
+# Developer-only next steps — never attach when developer_hints is False.
 HINTS: dict[str, str] = {
     "CORE_CHANNEL_ABSENT": (
-        "Install ux-channel (pip install ux-behavior[channel] or ux-channel) "
-        "then app.attach(asgi) for live Caps."
+        "pip install ux-channel (or ux-behavior[channel]) then app.attach(asgi)."
     ),
-    "CHANNEL_MISSING": (
-        "Install ux-channel and retry attach; offline Caps stay refused."
-    ),
-    "ATTACH_NO_ASGI": "Pass a real ASGI app: app.attach(asgi).",
-    "ATTACH_DEV_SECRET": (
-        "Set env UX_CHANNEL_SECRET (or UX_BEHAVIOR_SECRET) before production attach."
-    ),
-    "ATTACH_BOOT_FAILED": (
-        "Check Channel config, secret length, and Redis URL; retry attach."
-    ),
-    "ATTACH_ASYNC_HANDLER_FAILED": (
-        "Sync dispatch is active; prefer Channel build that accepts async handlers."
-    ),
+    "CHANNEL_MISSING": "Install ux-channel before attach if live Caps are required.",
+    "ATTACH_FAILED": "Inspect Channel ASGI factory; check version compatibility.",
     "CONTROL_OFFLINE": (
         "Call app.attach(asgi) so control() can mint Cap tokens, "
         "or keep offline attrs for pure SSR tests."
@@ -46,8 +36,8 @@ HINTS: dict[str, str] = {
     ),
     "CONTROL_NO_DISPATCH": "Re-run attach() so the dispatch handler is registered.",
     "CAP_REQUIRED": (
-        "Attach Channel for live Caps, or use with app.trust(): / "
-        "dispatch(..., _trusted=True) only in tests."
+        "Attach Channel for live Caps. "
+        "app.trust() / _trusted=True are for tests and wire-after-verify only."
     ),
     "VALIDATION_FAILED": (
         "Fix the posted args or show the returned {action}.{field}-error morphs."
@@ -92,7 +82,8 @@ class DiagEvent:
 
 
 class Diagnostics:
-    def __init__(self) -> None:
+    def __init__(self, *, developer_hints: bool = False) -> None:
+        self.developer_hints = developer_hints
         self.events: list[DiagEvent] = []
 
     def _emit(
@@ -104,7 +95,12 @@ class Diagnostics:
         hint: str | None = None,
         **context: Any,
     ) -> DiagEvent:
-        next_step = hint if hint is not None else HINTS.get(code, "See docs/BEHAVIOR.md")
+        if self.developer_hints:
+            next_step = hint if hint is not None else HINTS.get(code, "")
+        else:
+            # Production: never attach bypass / install recipes to events or logs.
+            next_step = "" if hint is None else (hint if self.developer_hints else "")
+            next_step = ""
         ev = DiagEvent(
             level=level,
             code=code,
@@ -113,8 +109,10 @@ class Diagnostics:
             context=dict(context),
         )
         self.events.append(ev)
-        line = f"[{code}] {message} → {next_step}"
-        if context:
+        line = f"[{code}] {message}"
+        if next_step:
+            line = f"{line} → {next_step}"
+        if context and self.developer_hints:
             line = f"{line} | {context}"
         if level == "error":
             log.error(line)
@@ -146,11 +144,12 @@ class Diagnostics:
                     "code": e.code,
                     "message": e.message,
                     "hint": e.hint,
-                    "context": e.context,
+                    "context": e.context if self.developer_hints else {},
                     "at": e.at,
                 }
                 for e in self.events
             ],
+            "developer_hints": self.developer_hints,
         }
 
     def clear(self) -> None:
@@ -163,7 +162,9 @@ class Diagnostics:
         return any(e.level == "warn" for e in self.events)
 
     def last_hint(self) -> str:
-        """Next step from the most recent warn/error, or empty."""
+        """Next step from the most recent warn/error, or empty when hints off."""
+        if not self.developer_hints:
+            return ""
         for e in reversed(self.events):
             if e.level in ("warn", "error") and e.hint:
                 return e.hint
