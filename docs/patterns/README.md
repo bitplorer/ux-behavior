@@ -1,8 +1,12 @@
 # Real-world UI behavior patterns
 
-## Nested systems (start here for composition)
+## Complex production systems
 
-**[NESTED.md](NESTED.md)** — Full nested real-world behaviors: id rules, state isolation, cross-dispatch, Ops merge, Caps, and a complete **commerce shell** (chrome + menu + drawer filters + catalog + product modal with tabs & carousel + confirm + checkout continuation + toasts).
+**[COMPLEX.md](COMPLEX.md)** — Infinite scroll, virtual lists, optimistic UI, debounced search, faceted filters+URL, data tables, master/detail, notifications, feeds, chat, kanban, calendar, uploads, command palette, mega menu, consent, onboarding, banners, compare tray, saved views, mini-cart races, presence, skeletons, pull-to-refresh, undo snackbar.
+
+## Nested compositions
+
+**[NESTED.md](NESTED.md)** — Commerce shell: chrome + menu + drawer filters + catalog + product modal (tabs + gallery) + confirm + checkout + toasts.
 
 ## Single patterns
 
@@ -21,7 +25,4 @@
 | Typeahead | [typeahead.md](typeahead.md) |
 | Confirm | [confirm.md](confirm.md) |
 | Forms | [forms.md](forms.md) |
-| Nested chrome (short) | [nested_chrome.md](nested_chrome.md) |
-| Coverage catalog | [CATALOG.md](CATALOG.md) |
-
-**Shared rules:** Morph for open/value; Ref for silent ids; `notify` for one-shot toasts; deep ids for nested units; Host orchestration when multiple units must morph together.
+| Coverage map | [CATALOG.md](CATALOG.md) |

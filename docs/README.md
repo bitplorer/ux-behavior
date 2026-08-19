@@ -1,17 +1,18 @@
 # ux-behavior documentation
 
-## Real-world UI (including nested)
+## Product UI patterns
 
-| Doc | Contents |
-|-----|----------|
-| **[patterns/NESTED.md](patterns/NESTED.md)** | **Deep nested behaviors + full commerce shell** |
-| [patterns/README.md](patterns/README.md) | Tabs, toasts, modal, carousel, … |
-| [patterns/CATALOG.md](patterns/CATALOG.md) | >99% coverage map |
+| Doc | Level |
+|-----|--------|
+| **[patterns/COMPLEX.md](patterns/COMPLEX.md)** | **Complex global-site behaviors (infinite scroll, optimistic UI, chat, kanban, …)** |
+| [patterns/NESTED.md](patterns/NESTED.md) | Nested compositions + commerce shell |
+| [patterns/README.md](patterns/README.md) | Single patterns index |
+| [patterns/CATALOG.md](patterns/CATALOG.md) | Coverage map |
 
-## Production contracts
+## Contracts
 
 [ARCHITECTURE](ARCHITECTURE.md) · [SECURITY](SECURITY.md) · [STATE_DEEP](STATE_DEEP.md) · [DISPATCH](DISPATCH.md) · [WIRE](WIRE.md) · [API](API.md) · [ERRORS](ERRORS.md) · [OPERATIONS](OPERATIONS.md) · [PRODUCTION_APP](PRODUCTION_APP.md)
 
 ## Onboarding
 
-[tutorial/README.md](tutorial/README.md) · [GUIDE.md](GUIDE.md)
+[tutorial/](tutorial/README.md) · [GUIDE.md](GUIDE.md)
