@@ -6,14 +6,14 @@ import importlib.util
 from typing import Any, Callable, Iterable, Type
 
 from ux_behavior.domains import DomainTable, default_table
-from ux_behavior.fields import Field, nomorph_field_names, plane_storage_key
+from ux_behavior.fields import Field, plane_storage_key, ref_field_names
 from ux_behavior.ops import Op, update
 from ux_behavior.planes import MISSING, MemoryPlanes, PlaneBackend
 
 
 def _public_state(inst: Any) -> dict[str, Any]:
-    """Dirty snapshot: all MorphState fields; skip NoMorphState."""
-    skip = nomorph_field_names(inst)
+    """Dirty snapshot for MorphState fields only (skip RefState)."""
+    skip = ref_field_names(inst)
     out: dict[str, Any] = {}
     for key, value in vars(inst).items():
         if key.startswith("_"):

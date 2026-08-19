@@ -8,7 +8,10 @@ from ux_behavior.ops import Op, update, notify, go, submit_outcome
 from ux_behavior.chrome import open, close, select, confirm
 from ux_behavior.fields import (
     MorphState,
-    NoMorphState,
+    RefState,
+    UiState,
+    PrefState,
+    KeepState,
     SessionState,
     ClientState,
     StoreState,
@@ -28,7 +31,10 @@ __all__ = [
     "select",
     "confirm",
     "MorphState",
-    "NoMorphState",
+    "RefState",
+    "UiState",
+    "PrefState",
+    "KeepState",
     "SessionState",
     "ClientState",
     "StoreState",

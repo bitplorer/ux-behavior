@@ -28,7 +28,10 @@ FROZEN_PUBLIC = frozenset(
         "select",
         "confirm",
         "MorphState",
-        "NoMorphState",
+        "RefState",
+        "UiState",
+        "PrefState",
+        "KeepState",
         "SessionState",
         "ClientState",
         "StoreState",
@@ -62,6 +65,12 @@ BANNED_PUBLIC_NAMES = frozenset(
         "Sealed",
         "SilentState",
         "ScratchState",
+        "NoMorphState",
+        "NoAutoMorphState",
+        "AutoMorphState",
+        "AutoMorph",
+        "NoMorph",
+        "NoAutoMorph",
         "ui_state",
         "pref",
         "persist",
@@ -119,9 +128,7 @@ def scan_banned_tokens(paths: Iterable[Path]) -> list[str]:
                 continue
             for token in BANNED_SOURCE_TOKENS:
                 if token in stripped:
-                    violations.append(
-                        f"{path}:{i}: banned token {token!r}"
-                    )
+                    violations.append(f"{path}:{i}: banned token {token!r}")
     return violations
 
 

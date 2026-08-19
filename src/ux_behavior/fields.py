@@ -1,22 +1,27 @@
-"""Author fields — MorphState vs NoMorphState.
+"""Component field state — MorphState | RefState.
 
-* ``MorphState``   — change + return None → dirty → morph
-* ``NoMorphState`` — instance memory only; never auto-morph
+Industry map:
 
-Storage backend is a parameter on MorphState::
+* ``MorphState`` ≈ ``useState`` — change + return None may auto-morph (SSR paint)
+* ``RefState``   ≈ ``useRef``   — remember across actions; never auto-morph
 
-    MorphState("home")                       # backend="session"
+Storage is a parameter on MorphState only::
+
+    MorphState("home")                              # backend="session"
     MorphState("system", backend="client", key="ui.theme")
     MorphState(1, backend="store")
-    MorphState(0, seal=int)                  # opt-in strict type
+    MorphState(0, seal=int)                         # opt-in exact type
+    RefState(None)
 
-Host-wide backends: ``Behavior.set_plane_backend("session", …)``.
-Field-level custom ``PlaneBackend`` instance also accepted as ``backend=``.
+Host-wide backends: ``Behavior.set_plane_backend(...)``.
+Attach may install Channel session/client defaults for unlocked planes.
+
+RefState is policy (silent memory), not a DOM element ref.
 """
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any
 
 from ux_behavior.planes import MISSING, client_path, field_key
 
@@ -24,7 +29,9 @@ _PLANE_NAMES = frozenset({"session", "client", "store"})
 
 
 class Field:
-    plane: str = "session"  # session|client|store|nomorph
+    """Descriptor: Morph (plane-backed) or Ref (instance-only)."""
+
+    plane: str = "session"  # session | client | store | ref
     seal: Any = None
     custom_backend: Any = None
 
@@ -39,7 +46,7 @@ class Field:
     ) -> None:
         self.default = default
         self.key = key
-        self.name: str = ""
+        self.name = ""
         self.plane = plane
         self.seal = seal
         self.custom_backend = None
@@ -52,10 +59,9 @@ class Field:
                 )
             self.plane = backend
         else:
-            # custom PlaneBackend for this field only
             self.custom_backend = backend
-            if plane == "session":
-                self.plane = "store"  # custom bags act like keep unless set
+            if self.plane not in _PLANE_NAMES:
+                self.plane = "store"
 
     def __set_name__(self, owner: type, name: str) -> None:
         self.name = name
@@ -77,7 +83,7 @@ class Field:
     def __get__(self, obj: Any, owner: type | None = None) -> Any:
         if obj is None:
             return self
-        if self.plane == "nomorph":
+        if self.plane == "ref":
             return obj.__dict__.get(self.name, self.default)
         behavior = getattr(obj, "_behavior", None)
         if behavior is not None:
@@ -88,7 +94,7 @@ class Field:
 
     def __set__(self, obj: Any, value: Any) -> None:
         value = self._check_seal(value)
-        if self.plane == "nomorph":
+        if self.plane == "ref":
             obj.__dict__[self.name] = value
             return
         behavior = getattr(obj, "_behavior", None)
@@ -104,49 +110,55 @@ def MorphState(
     key: str | None = None,
     seal: Any = None,
 ) -> Field:
-    """State that may auto-morph on change + return None.
+    """Reactive field ≈ useState. May auto-morph when changed and action returns None.
 
-    ``backend``: ``"session"`` | ``"client"`` | ``"store"`` | PlaneBackend
-    ``seal``: type (exact) or callable validator — opt-in, no coerce for types
+    backend: "session" | "client" | "store" | PlaneBackend
+    seal: exact type or callable (opt-in)
     """
     if isinstance(backend, str):
         return Field(default, plane=backend, key=key, seal=seal, backend=backend)
     return Field(default, plane="store", key=key, seal=seal, backend=backend)
 
 
-def NoMorphState(default: Any = None, *, seal: Any = None) -> Field:
-    """Instance memory only — never participates in dirty / auto-morph."""
-    return Field(default, plane="nomorph", seal=seal)
+def RefState(default: Any = None, *, seal: Any = None) -> Field:
+    """Silent field ≈ useRef. Never auto-morphs. Not a DOM ref."""
+    return Field(default, plane="ref", seal=seal)
 
 
-# Transparent aliases (storage kind)
-def SessionState(default: Any = None, *, seal: Any = None) -> Field:
+# Intent sugar (same as MorphState with fixed backend)
+def UiState(default: Any = None, *, seal: Any = None) -> Field:
+    """UI chrome — MorphState(backend='session')."""
     return MorphState(default, backend="session", seal=seal)
 
 
-def ClientState(default: Any = None, *, key: str | None = None, seal: Any = None) -> Field:
+def PrefState(default: Any = None, *, key: str | None = None, seal: Any = None) -> Field:
+    """Preference — MorphState(backend='client')."""
     return MorphState(default, backend="client", key=key, seal=seal)
 
 
-def StoreState(default: Any = None, *, seal: Any = None) -> Field:
+def KeepState(default: Any = None, *, seal: Any = None) -> Field:
+    """Component-local keep — MorphState(backend='store')."""
     return MorphState(default, backend="store", seal=seal)
 
 
-# Back-compat name
-def TransientState(default: Any = None, *, seal: Any = None) -> Field:
-    return NoMorphState(default, seal=seal)
+# Migration aliases (same factories)
+SessionState = UiState
+ClientState = PrefState
+StoreState = KeepState
+TransientState = RefState
 
 
-def nomorph_field_names(inst: Any) -> frozenset[str]:
+def ref_field_names(inst: Any) -> frozenset[str]:
     names: set[str] = set()
     for key, val in vars(type(inst)).items():
-        if isinstance(val, Field) and val.plane == "nomorph":
+        if isinstance(val, Field) and val.plane == "ref":
             names.add(key)
     return frozenset(names)
 
 
-# alias used by root
-transient_field_names = nomorph_field_names
+# used by root dirty snapshot
+nomorph_field_names = ref_field_names
+transient_field_names = ref_field_names
 
 
 def plane_storage_key(plane: str, inst: Any, fld: Field) -> str:
