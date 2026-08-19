@@ -9,15 +9,15 @@ import importlib.util
 from typing import Any, Callable, Iterable, Type
 
 from ux_behavior.domains import DomainTable, default_table
-from ux_behavior.fields import transient_field_names
+from ux_behavior.fields import Field, plane_storage_key, transient_field_names
 from ux_behavior.ops import Op, update
+from ux_behavior.planes import MemoryPlanes, PlaneBackend
+
+_MISSING = object()
 
 
 def _public_state(inst: Any) -> dict[str, Any]:
-    """Snapshot for dirty projection.
-
-    Skips private names and TransientState fields (council: claims == code).
-    """
+    """Dirty snapshot: public attrs minus TransientState fields."""
     skip = transient_field_names(inst)
     out: dict[str, Any] = {}
     for key, value in vars(inst).items():
@@ -36,6 +36,8 @@ class Behavior:
         self.title = title
         self._components: dict[str, Any] = {}
         self.domains = domains or default_table()
+        self.planes = MemoryPlanes()
+        self._plane_overrides: dict[str, PlaneBackend] = {}
         self._cores_available: dict[str, bool] = {
             "ux_dom": False,
             "ux_channel": False,
@@ -52,6 +54,37 @@ class Behavior:
             "ux_channel": importlib.util.find_spec("ux_channel") is not None,
         }
         return root
+
+    def set_plane_backend(self, plane: str, backend: PlaneBackend) -> "Behavior":
+        """Host hook: replace session / client / store backend."""
+        if plane not in {"session", "client", "store"}:
+            raise ValueError(f"unknown plane {plane!r}; use session|client|store")
+        self._plane_overrides[plane] = backend
+        return self
+
+    def _backend(self, plane: str) -> PlaneBackend | None:
+        if plane in self._plane_overrides:
+            return self._plane_overrides[plane]
+        return self.planes.backend(plane)
+
+    def plane_get(self, plane: str, inst: Any, fld: Field) -> Any:
+        backend = self._backend(plane)
+        if backend is None:
+            return _MISSING
+        key = plane_storage_key(plane, inst, fld)
+        if key in getattr(backend, "data", {}):
+            return backend.get(key, fld.default)
+        # DictBackend empty: still return default via get
+        if hasattr(backend, "data") and key not in backend.data:
+            return _MISSING
+        return backend.get(key, fld.default)
+
+    def plane_set(self, plane: str, inst: Any, fld: Field, value: Any) -> None:
+        backend = self._backend(plane)
+        if backend is None:
+            return
+        key = plane_storage_key(plane, inst, fld)
+        backend.set(key, value)
 
     @property
     def cores_available(self) -> dict[str, bool]:
@@ -104,6 +137,11 @@ class Behavior:
         cid = str(cid)
         if not cid:
             raise ValueError("component id must be a non-empty string")
+        bind = getattr(inst, "bind_behavior", None)
+        if callable(bind):
+            bind(self)
+        else:
+            setattr(inst, "_behavior", self)
         self._components[cid] = inst
         return inst
 

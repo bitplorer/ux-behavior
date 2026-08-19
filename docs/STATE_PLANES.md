@@ -1,40 +1,33 @@
-# State planes — claims must equal code
+# State planes — claims == code (plane-aware)
 
-**Council binding decision (2026-08-19)**
+## What they mean and do
 
-## Verdict
+| Marker | Plane | Storage key | Read/write |
+|--------|-------|-------------|------------|
+| `SessionState` | `session` | `{component.id}.{field}` | session backend |
+| `ClientState` | `client` | `key=` or field name | client backend |
+| `StoreState` | `store` | `{component.id}.{field}` | store backend |
+| `TransientState` | *(none)* | instance only | `__dict__` only; **no dirty** |
 
-| Option | Decision |
-|--------|----------|
-| A Shrink claims to match code | **Accepted (primary)** |
-| B Full ux-app plane backends in behavior | **Rejected** (re-creates App runtime; Channel/Host own live mirrors) |
-| C Collapse to one marker | **Rejected** (migration + intent labels still useful) |
-| D Hybrid | **Accepted (minimal)** — TransientState skips dirty projection |
+Default backends: in-process ``MemoryPlanes`` on ``Behavior``.
 
-## What the names claim (author intent)
+## Host hooks
 
-| Marker | Intent label |
-|--------|----------------|
-| `SessionState` | UI chrome / screen state |
-| `ClientState` | Browser preference (`key=` reserved) |
-| `StoreState` | Component-local kept value |
-| `TransientState` | Ephemeral |
+```python
+app.set_plane_backend("session", my_backend)  # PlaneBackend: get/set
+app.set_plane_backend("store", my_kv)
+app.set_plane_backend("client", my_prefs)
+```
 
-## What the code does
+## Binding
 
-| Behavior | Session / Client / Store | Transient |
-|----------|--------------------------|-----------|
-| Storage | `instance.__dict__` | same |
-| Dirty projection | **yes** if value changes and action returns `None` | **no** (excluded from snapshot) |
-| Channel draft | no | no |
-| world.kv | no | no |
-| Browser client ops | no | no |
+``Behavior.add`` calls ``component.bind_behavior(app)`` so fields find the root.
 
-## Forbidden claims
+## Local mirror
 
-Docs, READMEs, and harbor pilot text must **not** say offline `SessionState` is Channel session, or that `StoreState` writes kv, or that `ClientState` pushes browser prefs — until a wire/Host implementation exists and tests prove it.
+Writes also update ``instance.__dict__`` so dirty projection and SSR still see values.
 
-## Residual disagreement
+## Not claimed
 
-- Minority: implement real session draft soon for harbor parity.
-- Majority: Host/Channel own that; behavior stays label-accurate and isolation-clean.
+Channel draft / browser client protocol until a Host installs those backends
+(or wire attach soft-installs them with tests).
