@@ -9,14 +9,21 @@ import importlib.util
 from typing import Any, Callable, Iterable, Type
 
 from ux_behavior.domains import DomainTable, default_table
+from ux_behavior.fields import transient_field_names
 from ux_behavior.ops import Op, update
 
 
 def _public_state(inst: Any) -> dict[str, Any]:
-    """Snapshot of author-visible instance fields (not methods / privates)."""
+    """Snapshot for dirty projection.
+
+    Skips private names and TransientState fields (council: claims == code).
+    """
+    skip = transient_field_names(inst)
     out: dict[str, Any] = {}
     for key, value in vars(inst).items():
         if key.startswith("_"):
+            continue
+        if key in skip:
             continue
         out[key] = value
     return out
@@ -39,7 +46,6 @@ class Behavior:
 
     @classmethod
     def boot(cls, title: str = "") -> "Behavior":
-        """Create a root. Soft-detects live cores without importing them."""
         root = cls(title=title)
         root._cores_available = {
             "ux_dom": importlib.util.find_spec("ux_dom") is not None,
@@ -80,13 +86,11 @@ class Behavior:
         return attach_wire(self, asgi, **kwargs)
 
     def control(self, action: Any, **args: Any) -> dict[str, str]:
-        """Mint control attrs (Channel when attached; offline data-action)."""
         from ux_behavior.wire.control import control_attrs
 
         return control_attrs(self, action, **args)
 
     def submit(self, action: str, args: dict[str, Any] | None = None, **kwargs: Any) -> list[Op]:
-        """Alias of dispatch for Hosts migrating from App.submit."""
         payload = dict(args or {})
         payload.update(kwargs)
         return self.dispatch(action, **payload)
