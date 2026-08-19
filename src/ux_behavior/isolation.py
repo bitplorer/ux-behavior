@@ -27,10 +27,10 @@ FROZEN_PUBLIC = frozenset(
         "close",
         "select",
         "confirm",
-        "ui_state",
-        "pref",
-        "persist",
-        "flash",
+        "SessionState",
+        "ClientState",
+        "StoreState",
+        "TransientState",
         "Op",
         "__version__",
     }
@@ -58,7 +58,10 @@ BANNED_PUBLIC_NAMES = frozenset(
         "Store",
         "Transient",
         "Sealed",
-        "SessionState",
+        "ui_state",
+        "pref",
+        "persist",
+        "flash",
     }
 )
 

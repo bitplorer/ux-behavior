@@ -1,17 +1,25 @@
-"""ui_state / pref / persist / flash + control/submit."""
+"""SessionState / ClientState / StoreState / TransientState + control/submit."""
 
 from __future__ import annotations
 
-from ux_behavior import Behavior, Component, action, flash, persist, pref, ui_state
+from ux_behavior import (
+    Behavior,
+    ClientState,
+    Component,
+    SessionState,
+    StoreState,
+    TransientState,
+    action,
+)
 
 
 class Chrome(Component):
     id = "chrome"
-    page = ui_state("home")
-    menu_open = ui_state(False)
-    theme = pref("system", key="ui.theme")
-    draft = persist("")
-    tick = flash(0)
+    page = SessionState("home")
+    menu_open = SessionState(False)
+    theme = ClientState("system", key="ui.theme")
+    draft = StoreState("")
+    tick = TransientState(0)
 
     def render(self):
         return f"<div data-page='{self.page}'></div>"
@@ -28,7 +36,7 @@ class Chrome(Component):
         return None
 
 
-def test_ui_state_dirty_projection():
+def test_session_state_dirty_projection():
     app = Behavior.boot()
     app.add(Chrome)
     ops = app.dispatch("chrome.go", page="shop")
@@ -36,7 +44,7 @@ def test_ui_state_dirty_projection():
     assert ops[0].pair == ("ui.dom", "morph")
 
 
-def test_pref_and_persist():
+def test_client_store_transient():
     app = Behavior.boot()
     inst = app.add(Chrome)
     assert inst.theme == "system"

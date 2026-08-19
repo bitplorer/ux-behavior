@@ -1,11 +1,11 @@
-"""Author state markers — ux-behavior way.
+"""Author field planes — component state, not HTTP/Channel session.
 
-Not HTTP/Channel "session". These are **component field planes**:
+Names keep ux-app plane intent; ``State`` suffix avoids session/client collisions.
 
-* ``ui_state``  — UI chrome / screen state (page, menu_open, promo)
-* ``pref``      — browser preference (optional allowlist key)
-* ``persist``   — component-local value kept across actions
-* ``flash``     — this instance only; not treated as durable
+* ``SessionState``   — UI chrome / screen state (page, menu_open, promo)
+* ``ClientState``    — browser preference (optional allowlist key)
+* ``StoreState``     — component-local value kept across actions
+* ``TransientState`` — this instance only; not treated as durable
 
 Offline: instance ``__dict__``. Live Channel draft mirror stays Host/Channel.
 """
@@ -18,7 +18,7 @@ from typing import Any
 class Field:
     """Descriptor with default; value lives on the instance under the field name."""
 
-    kind: str = "ui_state"
+    plane: str = "session"
 
     def __init__(self, default: Any = None, *, key: str | None = None) -> None:
         self.default = default
@@ -37,29 +37,29 @@ class Field:
         obj.__dict__[self.name] = value
 
 
-def ui_state(default: Any = None) -> Field:
-    """UI chrome / screen state (replaces ux-app Session)."""
+def SessionState(default: Any = None) -> Field:
+    """UI chrome / screen state (ux-app Session + State suffix)."""
     f = Field(default)
-    f.kind = "ui_state"
+    f.plane = "session"
     return f
 
 
-def pref(default: Any = None, *, key: str | None = None) -> Field:
-    """Browser preference field (replaces ux-app Client)."""
+def ClientState(default: Any = None, *, key: str | None = None) -> Field:
+    """Browser preference (ux-app Client + State suffix)."""
     f = Field(default, key=key)
-    f.kind = "pref"
+    f.plane = "client"
     return f
 
 
-def persist(default: Any = None) -> Field:
-    """Component-local value kept across actions (replaces ux-app Store)."""
+def StoreState(default: Any = None) -> Field:
+    """Component-local value kept across actions (ux-app Store + State suffix)."""
     f = Field(default)
-    f.kind = "persist"
+    f.plane = "store"
     return f
 
 
-def flash(default: Any = None) -> Field:
-    """Instance-only; not treated as durable (replaces ux-app Transient)."""
+def TransientState(default: Any = None) -> Field:
+    """Instance-only; not durable (ux-app Transient + State suffix)."""
     f = Field(default)
-    f.kind = "flash"
+    f.plane = "transient"
     return f

@@ -1,48 +1,32 @@
 # Kill ux-app — ownership map
 
-**Goal:** Hosts run on **ux-behavior + ux-channel + ux-dom** only.
+## Field markers
 
-## Field markers (ux-behavior way)
+| ux-app | ux-behavior |
+|--------|-------------|
+| `Session(...)` | **`SessionState(...)`** |
+| `Client(...)` | **`ClientState(...)`** |
+| `Store(...)` | **`StoreState(...)`** |
+| `Transient(...)` | **`TransientState(...)`** |
 
-| ux-app | ux-behavior | Intent |
-|--------|-------------|--------|
-| `Session(...)` | **`ui_state(...)`** | UI chrome / screen state |
-| `Client(...)` | **`pref(...)`** | Browser preference |
-| `Store(...)` | **`persist(...)`** | Component-local kept value |
-| `Transient(...)` | **`flash(...)`** | Instance-only |
-| `Sealed` | ordinary attrs | Dropped |
-
-`Session` is **banned** — collides with HTTP/Channel session.
+Bare `Session` / `Client` / `Store` / `Transient` are **banned** (collision with HTTP/Channel words). The plane names stay; **State** marks them as component fields.
 
 ```python
-from ux_behavior import Component, ui_state, pref, persist, flash
+from ux_behavior import Component, SessionState, ClientState
 
 class Chrome(Component):
     id = "chrome"
-    page = ui_state("home")
-    menu_open = ui_state(False)
-    theme = pref("system", key="ui.theme")
+    page = SessionState("home")
+    theme = ClientState("system", key="ui.theme")
 ```
 
 ## Feature → owner
 
-| ux-app feature | Owner |
-|----------------|--------|
-| `App` | **ux-behavior** `Behavior` |
-| `Component` + `@action` | **ux-behavior** |
-| Ops + overlay helpers | **ux-behavior** |
-| Field markers | **ux-behavior** (`ui_state` / `pref` / `persist` / `flash`) |
-| Domain stamp | **ux-behavior** |
-| Peer drivers | **Channel / Host** |
-| Cap mint / verify | **ux-channel** |
-| `control` | **ux-behavior** → Channel when attached |
-| Markup / Badge | **ux-dom** |
-| Page shell / `finish` / `act` | **Host** |
-
-## Harbor cutover
-
-1. Imports → `ux_behavior`
-2. `Session` → `ui_state`
-3. `App.boot` → `Behavior.boot` + `attach`
-4. Keep Host `finish` / `act` / `wire`
-5. Drop ux-app dependency
+| ux-app | Owner |
+|--------|--------|
+| `App` | `Behavior` |
+| Ops / chrome verbs | ux-behavior |
+| Field planes | ux-behavior (`*State`) |
+| Cap mint / verify | ux-channel |
+| Markup | ux-dom |
+| Page shell / `finish` / `act` | Host |
