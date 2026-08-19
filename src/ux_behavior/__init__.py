@@ -1,8 +1,4 @@
-"""ux-behavior — product behavior becomes verified Ops.
-
-Standard Channel interface for Host product behavior:
-Component + @action + MorphState/RefState, Behavior root, wire door.
-"""
+"""ux-behavior — standard Channel interface for product behavior."""
 
 from ux_behavior._version import __version__
 from ux_behavior.root import Behavior
@@ -14,7 +10,12 @@ from ux_behavior.fields import MorphState, RefState, UiState, PrefState, KeepSta
 from ux_behavior.planes import DictBackend
 from ux_behavior.state_api import StateAPI
 from ux_behavior.events import follow_up, Continuation
-from ux_behavior.errors import BehaviorError, AuthorityError, ContinuationError
+from ux_behavior.errors import (
+    BehaviorError,
+    AuthorityError,
+    ContinuationError,
+    ValidationError,
+)
 
 __all__ = [
     "Behavior",
@@ -40,6 +41,7 @@ __all__ = [
     "BehaviorError",
     "AuthorityError",
     "ContinuationError",
+    "ValidationError",
     "Op",
     "__version__",
 ]

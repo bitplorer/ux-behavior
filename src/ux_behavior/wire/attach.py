@@ -99,6 +99,7 @@ def attach(
 
     @ch.on("ux_behavior.dispatch", refresh=[slot], idempotent=False)
     def dispatch(ctx, ux_action: str = "", **args: Any):
+        # Channel already authenticated the request → trusted product dispatch
         reserved = {UX_ACTION_KEY}
         payload = {k: v for k, v in args.items() if k not in reserved}
         if ctx is not None:
@@ -112,7 +113,7 @@ def attach(
         name = str(ux_action or "")
         if not name:
             return None
-        behavior.dispatch(name, **payload)
+        behavior.dispatch(name, _trusted=True, **payload)
         return None
 
     behavior._wire = ch
@@ -126,5 +127,12 @@ def attach(
             try_install_channel_planes(behavior, ch)
         except Exception:
             pass
+
+    try:
+        from ux_behavior.wire.drivers import try_register_drivers
+
+        try_register_drivers(behavior, ch)
+    except Exception:
+        pass
 
     return ch

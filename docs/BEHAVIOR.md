@@ -1,46 +1,46 @@
 # Behavior — standard product interface
 
-## Who is who
+Dumb Host shape::
 
-| Role | API |
-|------|-----|
-| Unit | `Component` |
-| Verb | `@action` |
-| Root | `Behavior` |
-| Signal | event name + `follow_up` / `emit` |
-| Fields | `MorphState` / `RefState` |
-| Storage | `app.state.use` |
-| Live | `attach` / `control` (wire → Channel) |
+```python
+app = Behavior.boot("Shop")
+app.add(Cart)
+app.use("effects")
+app.attach(asgi)
+# buttons
+button(**app.control(cart.add, sku="x"))
+# server path is Channel → trusted dispatch
+```
 
 ## Caps
 
-```python
-@action(caps=("orders.write",))
- def place(self): ...
+- ``@action(caps=())`` public
+- ``@action(caps=("orders.write",))`` protected
+- Offline: refuse unless ``app.trust()`` / ``_trusted=True`` / attached wire
+- Live wire dispatch is trusted after Channel auth
 
-@action(caps=())   # public
- def open_menu(self): ...
+## Async
+
+```python
+@action(caps=())
+async def save(self): ...
+await app.async_dispatch("cart.save")
 ```
 
-- Offline + `strict_caps=True` (default): protected actions need `_trusted=True` or Channel attach.
-- Live: Cap verified on the wire before dispatch.
+## Validation
+
+Bad / mistyped args → morph targets ``{action}.{field}-error`` (no exception to Host).
+
+## Preview
+
+```python
+with app.preview():
+    # session/store writes refuse; safe for dry-run UI
+```
 
 ## Continuations
 
 ```python
-@action(caps=())
-def start(self):
-    follow_up("paid", "orders.confirm", order_id=1)
-    return [notify("pay now")]
-
-app.emit("paid")   # runs orders.confirm
+follow_up("paid", "orders.confirm", order_id=1)
+app.emit("paid")
 ```
-
-## Domains
-
-```python
-app.use("effects")  # stamps ui.notice.*
-app.use("search")
-```
-
-Drivers still apply on Channel; stamp is the author agreement.

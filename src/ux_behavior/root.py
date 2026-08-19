@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 import importlib.util
-from typing import Any, Callable, Iterable, Type
+from contextlib import contextmanager
+from typing import Any, AsyncIterator, Callable, Iterable, Iterator, Type
 
 from ux_behavior.domains import DomainTable, default_table
-from ux_behavior.errors import AuthorityError, ContinuationError
+from ux_behavior.errors import AuthorityError, ContinuationError, ValidationError
 from ux_behavior.events import Continuation, _begin_follow_ups, _end_follow_ups
 from ux_behavior.fields import Field, plane_storage_key, ref_field_names
 from ux_behavior.ops import Op, update
 from ux_behavior.planes import MISSING
 from ux_behavior.state_api import StateAPI
+from ux_behavior.validate import bind_action_args
 
 
 def _public_state(inst: Any) -> dict[str, Any]:
@@ -27,10 +29,7 @@ def _public_state(inst: Any) -> dict[str, Any]:
 
 
 class Behavior:
-    """Composition root for product behavior.
-
-    Hosts: boot → add components → optional state.use / attach → dispatch.
-    """
+    """Composition root. Dumb Hosts: boot → add → attach → control/dispatch."""
 
     def __init__(
         self,
@@ -45,6 +44,7 @@ class Behavior:
         self.domains = domains or default_table()
         self.state = StateAPI(self)
         self._continuations: dict[str, Continuation] = {}
+        self._preview = False
         self._cores_available: dict[str, bool] = {
             "ux_dom": False,
             "ux_channel": False,
@@ -88,6 +88,10 @@ class Behavior:
         return val
 
     def plane_set(self, plane: str, inst: Any, fld: Field, value: Any) -> None:
+        if self._preview and plane in {"session", "store"}:
+            raise AuthorityError(
+                f"preview cannot write {plane} field {fld.name!r}"
+            )
         backend = self._backend_for(plane, fld)
         if backend is None:
             return
@@ -105,6 +109,30 @@ class Behavior:
     @property
     def continuations(self) -> dict[str, Continuation]:
         return dict(self._continuations)
+
+    @property
+    def is_preview(self) -> bool:
+        return self._preview
+
+    @contextmanager
+    def preview(self) -> Iterator["Behavior"]:
+        """Read-only authority planes (session/store). Client/Ref still writable."""
+        prev = self._preview
+        self._preview = True
+        try:
+            yield self
+        finally:
+            self._preview = prev
+
+    @contextmanager
+    def trust(self) -> Iterator["Behavior"]:
+        """Temporarily allow protected actions without Cap (tests / Host edge)."""
+        prev = self.strict_caps
+        self.strict_caps = False
+        try:
+            yield self
+        finally:
+            self.strict_caps = prev
 
     def use(self, *names: str) -> "Behavior":
         self.domains.use(*names)
@@ -200,23 +228,82 @@ class Behavior:
                     names.append(f"{cid}.{name}")
         return sorted(names)
 
-    def _require_caps(self, fn: Any, action: str, *,
-                      trusted: bool) -> None:
+    def _require_caps(self, fn: Any, action: str, *, trusted: bool) -> None:
         caps = tuple(getattr(fn, "_ux_behavior_caps", ()) or ())
-        if not caps:
-            return
-        if trusted:
-            return
-        # Live Channel path verifies Cap before invoking dispatch from wire.
-        if self._wire is not None:
+        if not caps or trusted or self._wire is not None:
             return
         if self.strict_caps:
             raise AuthorityError(
                 f"{action!r} requires Cap {caps}; "
-                "attach Channel, use control() under wire, or dispatch(..., _trusted=True) in tests"
+                "attach Channel, use app.trust(), or dispatch(..., _trusted=True)"
             )
 
+    def _validation_ops(self, action: str, err: ValidationError) -> list[Op]:
+        ops: list[Op] = []
+        for field, msg in err.fields.items():
+            target = f"{action}.{field}-error" if field != "_" else f"{action}-error"
+            ops.append(update(target, str(msg)))
+        return ops
+
+    def _finish(
+        self,
+        action: str,
+        component_id: str,
+        inst: Any,
+        before: dict[str, Any],
+        result: Any,
+        pending: list[Continuation],
+    ) -> list[Op]:
+        for item in pending:
+            self._continuations[item.event] = item
+
+        if result is None:
+            after = _public_state(inst)
+            ops = self.refresh(component_id) if after != before else []
+        elif isinstance(result, list):
+            ops = result
+        else:
+            raise TypeError(
+                f"{action!r} returned {type(result).__name__}; expected list[Op] | None"
+            )
+        self._check_stamp(ops)
+        return ops
+
     def dispatch(self, action: str, **kwargs: Any) -> list[Op]:
+        if "." not in action:
+            raise ValueError(
+                f"action name must be 'component.method', got {action!r}"
+            )
+        trusted = bool(kwargs.pop("_trusted", False))
+        component_id, method = action.rsplit(".", 1)
+        inst = self.get(component_id)
+        fn = getattr(inst, method, None)
+        if fn is None or not callable(fn):
+            raise AttributeError(f"unknown action {action!r}")
+        if not getattr(fn, "_ux_behavior_action", False):
+            raise TypeError(f"{action!r} is not marked with @action")
+        if getattr(fn, "_ux_behavior_async", False):
+            raise TypeError(
+                f"{action!r} is async; use await app.async_dispatch(...)"
+            )
+
+        self._require_caps(fn, action, trusted=trusted)
+
+        try:
+            clean = bind_action_args(fn, kwargs)
+        except ValidationError as err:
+            return self._validation_ops(action, err)
+
+        token = _begin_follow_ups()
+        before = _public_state(inst)
+        try:
+            result = fn(**clean)
+        finally:
+            pending = _end_follow_ups(token)
+
+        return self._finish(action, component_id, inst, before, result, pending)
+
+    async def async_dispatch(self, action: str, **kwargs: Any) -> list[Op]:
         if "." not in action:
             raise ValueError(
                 f"action name must be 'component.method', got {action!r}"
@@ -232,35 +319,24 @@ class Behavior:
 
         self._require_caps(fn, action, trusted=trusted)
 
+        try:
+            clean = bind_action_args(fn, kwargs)
+        except ValidationError as err:
+            return self._validation_ops(action, err)
+
         token = _begin_follow_ups()
         before = _public_state(inst)
         try:
-            result = fn(**kwargs)
+            if getattr(fn, "_ux_behavior_async", False):
+                result = await fn(**clean)
+            else:
+                result = fn(**clean)
         finally:
             pending = _end_follow_ups(token)
 
-        for item in pending:
-            self._continuations[item.event] = item
-
-        if result is None:
-            after = _public_state(inst)
-            if after != before:
-                ops = self.refresh(component_id)
-            else:
-                ops = []
-        elif isinstance(result, list):
-            ops = result
-        else:
-            raise TypeError(
-                f"{action!r} returned {type(result).__name__}; "
-                "expected list[Op] | None"
-            )
-
-        self._check_stamp(ops)
-        return ops
+        return self._finish(action, component_id, inst, before, result, pending)
 
     def emit(self, event: str, **slots: Any) -> list[Op]:
-        """Fire a continuation registered by follow_up during a prior action."""
         event = str(event or "").strip()
         item = self._continuations.get(event)
         if item is None:
@@ -272,8 +348,6 @@ class Behavior:
         for key, value in slots.items():
             if key not in resolved:
                 resolved[key] = value
-        # Continuation runs with trust: Cap was established when follow_up was recorded
-        # under an authorized action. Live Hosts should still gate emit at the edge.
         return self.dispatch(item.action, _trusted=True, **resolved)
 
     def _check_stamp(self, ops: list[Op]) -> None:

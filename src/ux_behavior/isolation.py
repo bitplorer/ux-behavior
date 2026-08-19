@@ -39,6 +39,7 @@ FROZEN_PUBLIC = frozenset(
         "BehaviorError",
         "AuthorityError",
         "ContinuationError",
+        "ValidationError",
         "Op",
         "__version__",
     }
