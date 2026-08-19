@@ -1,7 +1,4 @@
-"""Composition root.
-
-Behavior is the single place product behavior is registered and turned into Ops.
-"""
+"""Composition root."""
 
 from __future__ import annotations
 
@@ -9,16 +6,19 @@ import importlib.util
 from typing import Any, Callable, Iterable, Type
 
 from ux_behavior.domains import DomainTable, default_table
-from ux_behavior.fields import Field, plane_storage_key, transient_field_names
+from ux_behavior.fields import (
+    Field,
+    client_field_names,
+    plane_storage_key,
+    transient_field_names,
+)
 from ux_behavior.ops import Op, update
-from ux_behavior.planes import MemoryPlanes, PlaneBackend
-
-_MISSING = object()
+from ux_behavior.planes import MISSING, MemoryPlanes, PlaneBackend
 
 
 def _public_state(inst: Any) -> dict[str, Any]:
-    """Dirty snapshot: public attrs minus TransientState fields."""
-    skip = transient_field_names(inst)
+    """Dirty snapshot: skip TransientState and ClientState (ux-app parity)."""
+    skip = transient_field_names(inst) | client_field_names(inst)
     out: dict[str, Any] = {}
     for key, value in vars(inst).items():
         if key.startswith("_"):
@@ -30,14 +30,14 @@ def _public_state(inst: Any) -> dict[str, Any]:
 
 
 class Behavior:
-    """Composition root for product behavior."""
-
     def __init__(self, title: str = "", domains: DomainTable | None = None) -> None:
         self.title = title
         self._components: dict[str, Any] = {}
         self.domains = domains or default_table()
         self.planes = MemoryPlanes()
         self._plane_overrides: dict[str, PlaneBackend] = {}
+        self._plane_host_locked: set[str] = set()
+        self._plane_channel_report: dict[str, str] = {}
         self._cores_available: dict[str, bool] = {
             "ux_dom": False,
             "ux_channel": False,
@@ -55,11 +55,23 @@ class Behavior:
         }
         return root
 
-    def set_plane_backend(self, plane: str, backend: PlaneBackend) -> "Behavior":
-        """Host hook: replace session / client / store backend."""
+    def set_plane_backend(
+        self,
+        plane: str,
+        backend: PlaneBackend,
+        *,
+        host_locked: bool = True,
+    ) -> "Behavior":
+        """Replace session/client/store backend.
+
+        Host calls (default) lock the plane so attach will not overwrite.
+        Wire auto-install uses host_locked=False.
+        """
         if plane not in {"session", "client", "store"}:
             raise ValueError(f"unknown plane {plane!r}; use session|client|store")
         self._plane_overrides[plane] = backend
+        if host_locked:
+            self._plane_host_locked.add(plane)
         return self
 
     def _backend(self, plane: str) -> PlaneBackend | None:
@@ -70,14 +82,20 @@ class Behavior:
     def plane_get(self, plane: str, inst: Any, fld: Field) -> Any:
         backend = self._backend(plane)
         if backend is None:
-            return _MISSING
+            return MISSING
         key = plane_storage_key(plane, inst, fld)
-        if key in getattr(backend, "data", {}):
-            return backend.get(key, fld.default)
-        # DictBackend empty: still return default via get
-        if hasattr(backend, "data") and key not in backend.data:
-            return _MISSING
-        return backend.get(key, fld.default)
+        data = getattr(backend, "data", None)
+        if isinstance(data, dict):
+            if key not in data:
+                return MISSING
+            return data[key]
+        # Channel / custom backends: get may return MISSING
+        val = backend.get(key, fld.default)
+        if val is MISSING:
+            return MISSING
+        # If backend has no has() and returns default for missing keys,
+        # prefer instance mirror when never written — ChannelSession always has get
+        return val
 
     def plane_set(self, plane: str, inst: Any, fld: Field, value: Any) -> None:
         backend = self._backend(plane)

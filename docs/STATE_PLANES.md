@@ -1,33 +1,36 @@
-# State planes — claims == code (plane-aware)
+# State planes
 
-## What they mean and do
+## Offline (always)
 
-| Marker | Plane | Storage key | Read/write |
-|--------|-------|-------------|------------|
-| `SessionState` | `session` | `{component.id}.{field}` | session backend |
-| `ClientState` | `client` | `key=` or field name | client backend |
-| `StoreState` | `store` | `{component.id}.{field}` | store backend |
-| `TransientState` | *(none)* | instance only | `__dict__` only; **no dirty** |
+| Marker | Backend | Dirty |
+|--------|---------|-------|
+| SessionState | MemoryPlanes.session | yes |
+| ClientState | MemoryPlanes.client | **no** |
+| StoreState | MemoryPlanes.store | yes |
+| TransientState | instance only | **no** |
 
-Default backends: in-process ``MemoryPlanes`` on ``Behavior``.
-
-## Host hooks
+## Live attach (opt-in default)
 
 ```python
-app.set_plane_backend("session", my_backend)  # PlaneBackend: get/set
-app.set_plane_backend("store", my_kv)
-app.set_plane_backend("client", my_prefs)
+app.attach(asgi)                      # channel_planes=True by default
+app.attach(asgi, channel_planes=False)  # keep memory only
 ```
 
-## Binding
+On successful Channel boot, **unlocked** planes get sensible defaults:
 
-``Behavior.add`` calls ``component.bind_behavior(app)`` so fields find the root.
+| Plane | Auto backend |
+|-------|----------------|
+| session | Channel `st.session(key)` |
+| client | Channel `st.client.set` + mirror |
+| store | stays memory (Host plugs kv if needed) |
 
-## Local mirror
+**Host wins:**
 
-Writes also update ``instance.__dict__`` so dirty projection and SSR still see values.
+```python
+app.set_plane_backend("session", my_backend)  # locks plane
+app.attach(asgi)  # will not overwrite session
+```
 
-## Not claimed
+**Fail-closed:** import/API errors leave memory bags; never raise into product.
 
-Channel draft / browser client protocol until a Host installs those backends
-(or wire attach soft-installs them with tests).
+See `attach_info(app)["planes"]` for `channel` | `skipped_host` | `skipped_error` | `memory`.

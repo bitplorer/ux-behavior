@@ -1,8 +1,4 @@
-"""Live Channel attach (progressive door).
-
-Soft-loads ux_channel only when attach() is called.
-Product modules never import Channel; Hosts call this door.
-"""
+"""Live Channel attach (progressive door)."""
 
 from __future__ import annotations
 
@@ -15,7 +11,6 @@ UX_ACTION_KEY = "ux_action"
 
 
 def probe() -> dict[str, bool]:
-    """Return which peer cores are importable without importing them."""
     return {
         "ux_dom": importlib.util.find_spec("ux_dom") is not None,
         "ux_channel": importlib.util.find_spec("ux_channel") is not None,
@@ -27,21 +22,23 @@ def present() -> bool:
 
 
 def attach_info(behavior: Any | None = None) -> dict[str, Any]:
-    """Snapshot for Hosts deciding whether to mount live Channel."""
     available = probe()
     stamp: list[str] = []
     title = ""
+    planes: dict[str, str] = {}
     if behavior is not None:
         title = getattr(behavior, "title", "") or ""
         domains = getattr(behavior, "domains", None)
         if domains is not None:
             stamp = sorted(f"{ns}.{name}" for ns, name in domains.stamp)
+        planes = dict(getattr(behavior, "_plane_channel_report", {}) or {})
     return {
         "title": title,
         "cores": available,
         "stamp": stamp,
         "ready_for_live": bool(available.get("ux_channel")),
         "attached": getattr(behavior, "_wire", None) is not None,
+        "planes": planes,
     }
 
 
@@ -53,12 +50,12 @@ def attach(
     path: str = "/ux-channel",
     region: Callable[[], Any] | None = None,
     uid: str | None = None,
+    channel_planes: bool = True,
 ) -> Any:
-    """Boot live Channel behind a Behavior. Returns the wire or None.
+    """Boot live Channel behind Behavior.
 
-    - Idempotent: second call returns the existing wire.
-    - Returns None if asgi is None or ux_channel is not installed.
-    - Registers one multiplexed dispatch that calls ``behavior.dispatch``.
+    ``channel_planes=True`` (default): install Channel session/client backends
+    for planes the Host has not locked. Fail-closed to memory on any error.
     """
     if region is not None:
         behavior._region_render = region
@@ -124,4 +121,17 @@ def attach(
     behavior._wire = ch
     behavior._dispatch = dispatch
     behavior._region_uid = slot_uid
+
+    if channel_planes:
+        try:
+            from ux_behavior.wire.channel_planes import try_install_channel_planes
+
+            try_install_channel_planes(behavior, ch)
+        except Exception:
+            behavior._plane_channel_report = {
+                "session": "skipped_error",
+                "client": "skipped_error",
+                "store": "memory",
+            }
+
     return ch

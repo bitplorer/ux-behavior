@@ -1,16 +1,17 @@
 """Plane-aware storage backends.
 
-Default: in-process MemoryPlanes (session / client / store bags).
-Hosts may replace any plane via ``Behavior.set_plane_backend``.
-Live Channel attach may soft-install session/client adapters (wire door).
-
-Transient is never stored in a plane backend — instance only.
+Default offline: MemoryPlanes.
+After Behavior.attach, wire may install Channel session/client defaults
+unless the Host already called set_plane_backend (Host wins).
+Fail-closed: if Channel state is missing, memory stays.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Protocol
+
+MISSING = object()
 
 
 class PlaneBackend(Protocol):
@@ -20,8 +21,6 @@ class PlaneBackend(Protocol):
 
 @dataclass
 class DictBackend:
-    """Simple key/value plane bag."""
-
     data: dict[str, Any] = field(default_factory=dict)
 
     def get(self, key: str, default: Any = None) -> Any:
@@ -30,11 +29,12 @@ class DictBackend:
     def set(self, key: str, value: Any) -> None:
         self.data[key] = value
 
+    def has(self, key: str) -> bool:
+        return key in self.data
+
 
 @dataclass
 class MemoryPlanes:
-    """Default offline backends — one bag per plane that means storage."""
-
     session: DictBackend = field(default_factory=DictBackend)
     client: DictBackend = field(default_factory=DictBackend)
     store: DictBackend = field(default_factory=DictBackend)
@@ -46,7 +46,7 @@ class MemoryPlanes:
             return self.client
         if plane == "store":
             return self.store
-        return None  # transient has no backend
+        return None
 
 
 def field_key(component_id: str, name: str) -> str:

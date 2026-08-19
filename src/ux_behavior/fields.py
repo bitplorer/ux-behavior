@@ -1,19 +1,10 @@
-"""Author field markers with plane-aware read/write.
-
-* ``SessionState``   — UI chrome → session plane bag (key ``{id}.{field}``)
-* ``ClientState``    — preference → client plane bag (path ``key`` or name)
-* ``StoreState``     — component-local → store plane bag (key ``{id}.{field}``)
-* ``TransientState`` — instance ``__dict__`` only; no plane bag; no dirty
-
-Requires ``component.bind_behavior`` (done automatically by ``Behavior.add``).
-Without a bound Behavior, all planes fall back to instance ``__dict__``.
-"""
+"""Author field markers with plane-aware read/write."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from ux_behavior.planes import client_path, field_key
+from ux_behavior.planes import MISSING, client_path, field_key
 
 
 class Field:
@@ -35,7 +26,7 @@ class Field:
         behavior = getattr(obj, "_behavior", None)
         if behavior is not None:
             val = behavior.plane_get(self.plane, obj, self)
-            if val is not _MISSING:
+            if val is not MISSING:
                 return val
         return obj.__dict__.get(self.name, self.default)
 
@@ -46,10 +37,7 @@ class Field:
         behavior = getattr(obj, "_behavior", None)
         if behavior is not None:
             behavior.plane_set(self.plane, obj, self, value)
-        obj.__dict__[self.name] = value  # local mirror for dirty / SSR
-
-
-_MISSING = object()
+        obj.__dict__[self.name] = value
 
 
 def SessionState(default: Any = None) -> Field:
@@ -80,6 +68,15 @@ def transient_field_names(inst: Any) -> frozenset[str]:
     names: set[str] = set()
     for key, val in vars(type(inst)).items():
         if isinstance(val, Field) and val.plane == "transient":
+            names.add(key)
+    return frozenset(names)
+
+
+def client_field_names(inst: Any) -> frozenset[str]:
+    """ClientState fields — excluded from dirty (match ux-app)."""
+    names: set[str] = set()
+    for key, val in vars(type(inst)).items():
+        if isinstance(val, Field) and val.plane == "client":
             names.add(key)
     return frozenset(names)
 
