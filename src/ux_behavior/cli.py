@@ -88,10 +88,10 @@ def cmd_new_action(args: argparse.Namespace) -> int:
         )
         return 2
     _, method = spec.split(".", 1)
-    out = Path(args.out or "actions_stub.py")
+    out_s = getattr(args, "file", None) or getattr(args, "out", None) or "actions_stub.py"
+    out = Path(out_s)
     try:
         if out.exists() and not args.force:
-            # append
             text = out.read_text(encoding="utf-8")
             if f"def {method}(" in text:
                 print(f"action {method!r} already in {out}", file=sys.stderr)
@@ -131,7 +131,8 @@ def main(argv: list[str] | None = None) -> int:
 
     a = nc_sub.add_parser("action", help="append action stub")
     a.add_argument("spec", help="Component.method")
-    a.add_argument("--out", default=None)
+    a.add_argument("--out", default=None, help="output path")
+    a.add_argument("--file", default=None, help="alias for --out (append into file)")
     a.add_argument("--force", action="store_true")
     a.set_defaults(func=cmd_new_action)
 
