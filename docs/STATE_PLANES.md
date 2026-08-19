@@ -1,41 +1,35 @@
-# State planes
-
-## Dirty policy (ux-behavior)
-
-**Dirty = “re-render this component for SSR morph”** when an action returns `None`.
-
-| Marker | Dirty? | Why |
-|--------|--------|-----|
-| SessionState | **yes** | UI chrome is painted server-side |
-| ClientState | **yes** | Prefs may be baked into SSR HTML (`class`, theme); morph must refresh |
-| StoreState | **yes** | Component data drives render |
-| TransientState | **no** | Ephemeral; must not request morph alone |
-
-> Note: ux-app skipped dirty on client because it leaned on browser client ops.
-> ux-behavior is **SSR-first**, so ClientState stays dirty-able. Live `st.client.set`
-> can still enqueue browser ops in parallel.
-
-## Offline backends
-
-| Marker | Backend |
-|--------|---------|
-| SessionState | MemoryPlanes.session |
-| ClientState | MemoryPlanes.client |
-| StoreState | MemoryPlanes.store |
-| TransientState | instance only |
-
-## Live attach (opt-in default)
+# MorphState vs NoMorphState
 
 ```python
-app.attach(asgi)                       # channel_planes=True
-app.attach(asgi, channel_planes=False) # memory only
-app.set_plane_backend("session", b)    # Host locks; attach will not overwrite
+from ux_behavior import MorphState, NoMorphState
+
+page  = MorphState("home")                              # backend="session"
+step  = MorphState(1, backend="store")
+theme = MorphState("system", backend="client", key="ui.theme")
+n     = MorphState(0, seal=int)                         # opt-in strict
+token = NoMorphState(None)                              # never auto-morph
 ```
 
-| Plane | Auto on attach |
-|-------|----------------|
-| session | Channel `st.session` |
-| client | Channel `st.client` + mirror |
-| store | memory (Host plugs kv) |
+## Effect split
 
-Fail-closed: errors leave memory. See `attach_info(app)["planes"]`.
+| Kind | `return None` after change |
+|------|----------------------------|
+| **MorphState** | dirty → `render()` → morph |
+| **NoMorphState** | no auto-morph |
+
+## `backend=`
+
+| Value | Meaning |
+|-------|---------|
+| `"session"` (default) | UI chrome bag / Channel session after attach |
+| `"client"` | Pref bag / Channel client after attach |
+| `"store"` | Component keep bag |
+| `PlaneBackend` instance | Field-local custom storage |
+
+Host-wide: `app.set_plane_backend("store", kv_backend)` (locks against attach overwrite).
+
+## `seal=`
+
+Opt-in. `seal=int` → exact type, no coerce. Or pass a callable validator.
+
+Aliases: `SessionState` / `ClientState` / `StoreState` / `TransientState` → same factories.

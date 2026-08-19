@@ -1,7 +1,4 @@
-"""ux-behavior — product behavior becomes verified Ops.
-
-Cold import stays clean. Cores are never imported from application code.
-"""
+"""ux-behavior — product behavior becomes verified Ops."""
 
 from ux_behavior._version import __version__
 from ux_behavior.root import Behavior
@@ -10,6 +7,8 @@ from ux_behavior.action import action
 from ux_behavior.ops import Op, update, notify, go, submit_outcome
 from ux_behavior.chrome import open, close, select, confirm
 from ux_behavior.fields import (
+    MorphState,
+    NoMorphState,
     SessionState,
     ClientState,
     StoreState,
@@ -28,6 +27,8 @@ __all__ = [
     "close",
     "select",
     "confirm",
+    "MorphState",
+    "NoMorphState",
     "SessionState",
     "ClientState",
     "StoreState",

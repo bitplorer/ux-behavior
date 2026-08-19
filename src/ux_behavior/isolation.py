@@ -27,6 +27,8 @@ FROZEN_PUBLIC = frozenset(
         "close",
         "select",
         "confirm",
+        "MorphState",
+        "NoMorphState",
         "SessionState",
         "ClientState",
         "StoreState",
@@ -58,6 +60,8 @@ BANNED_PUBLIC_NAMES = frozenset(
         "Store",
         "Transient",
         "Sealed",
+        "SilentState",
+        "ScratchState",
         "ui_state",
         "pref",
         "persist",
@@ -77,8 +81,7 @@ BANNED_SOURCE_TOKENS = frozenset(
 
 
 def _in_wire_door(path: Path) -> bool:
-    text = str(path).replace("\\", "/")
-    return "/wire/" in text
+    return "/wire/" in str(path).replace("\\", "/")
 
 
 def scan_imports(paths: Iterable[Path]) -> list[str]:
@@ -117,7 +120,7 @@ def scan_banned_tokens(paths: Iterable[Path]) -> list[str]:
             for token in BANNED_SOURCE_TOKENS:
                 if token in stripped:
                     violations.append(
-                        f"{path}:{i}: banned token {token!r} (use submit_outcome / wire door)"
+                        f"{path}:{i}: banned token {token!r}"
                     )
     return violations
 
@@ -129,9 +132,7 @@ def check_public_surface(exported: Iterable[str]) -> list[str]:
     missing = FROZEN_PUBLIC - names
     banned = names & BANNED_PUBLIC_NAMES
     if extra:
-        violations.append(
-            f"public surface expanded without DESIGN reopen: {sorted(extra)}"
-        )
+        violations.append(f"public surface expanded without DESIGN reopen: {sorted(extra)}")
     if missing:
         violations.append(f"public surface missing frozen names: {sorted(missing)}")
     if banned:

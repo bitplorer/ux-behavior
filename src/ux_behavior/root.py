@@ -6,20 +6,14 @@ import importlib.util
 from typing import Any, Callable, Iterable, Type
 
 from ux_behavior.domains import DomainTable, default_table
-from ux_behavior.fields import Field, plane_storage_key, transient_field_names
+from ux_behavior.fields import Field, nomorph_field_names, plane_storage_key
 from ux_behavior.ops import Op, update
 from ux_behavior.planes import MISSING, MemoryPlanes, PlaneBackend
 
 
 def _public_state(inst: Any) -> dict[str, Any]:
-    """Dirty snapshot for auto-morph when action returns None.
-
-    Skips only TransientState (ephemeral; must not request re-render alone).
-    ClientState **is** included: SSR may paint prefs into HTML, so a theme
-    change must be able to morph. (ux-app skipped client dirty because it
-    leaned on browser client ops; ux-behavior is SSR-first.)
-    """
-    skip = transient_field_names(inst)
+    """Dirty snapshot: all MorphState fields; skip NoMorphState."""
+    skip = nomorph_field_names(inst)
     out: dict[str, Any] = {}
     for key, value in vars(inst).items():
         if key.startswith("_"):
@@ -70,13 +64,15 @@ class Behavior:
             self._plane_host_locked.add(plane)
         return self
 
-    def _backend(self, plane: str) -> PlaneBackend | None:
+    def _backend(self, plane: str, fld: Field | None = None) -> PlaneBackend | None:
+        if fld is not None and getattr(fld, "custom_backend", None) is not None:
+            return fld.custom_backend
         if plane in self._plane_overrides:
             return self._plane_overrides[plane]
         return self.planes.backend(plane)
 
     def plane_get(self, plane: str, inst: Any, fld: Field) -> Any:
-        backend = self._backend(plane)
+        backend = self._backend(plane, fld)
         if backend is None:
             return MISSING
         key = plane_storage_key(plane, inst, fld)
@@ -91,7 +87,7 @@ class Behavior:
         return val
 
     def plane_set(self, plane: str, inst: Any, fld: Field, value: Any) -> None:
-        backend = self._backend(plane)
+        backend = self._backend(plane, fld)
         if backend is None:
             return
         key = plane_storage_key(plane, inst, fld)
