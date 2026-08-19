@@ -3,11 +3,8 @@
 * ``MorphState`` ≈ useState — may auto-morph on change + return None
 * ``RefState``   ≈ useRef   — never auto-morph
 
-    MorphState("home")
-    MorphState(1, backend="store")
-    MorphState("system", backend="client", key="ui.theme")
-    MorphState(0, type=int)              # exact type, no coerce
-    MorphState("", validate=check_email) # callable guard
+    MorphState(0, type=int)
+    MorphState("", validate=check_email)
     RefState(None)
 
 ``seal=`` is not used on fields (Cap language stays on Channel).
@@ -15,6 +12,7 @@
 
 from __future__ import annotations
 
+import builtins
 from typing import Any, Callable
 
 from ux_behavior.planes import MISSING, client_path, field_key
@@ -45,14 +43,13 @@ class Field:
         self.type_guard = type
         self.validate = validate
         self.custom_backend = None
-        if type is not None and not isinstance(type, type) and callable(type):
-            # accidental validate passed as type=
+        if type is not None and not isinstance(type, builtins.type):
             raise TypeError(
-                f"type= must be a class (e.g. int), not a callable; use validate="
+                "type= must be a class (e.g. int); use validate= for callables"
             )
         if backend is None:
-            return
-        if isinstance(backend, str):
+            pass
+        elif isinstance(backend, str):
             if backend not in _PLANE_NAMES:
                 raise ValueError(
                     f"backend must be session|client|store or a PlaneBackend, got {backend!r}"
@@ -63,21 +60,21 @@ class Field:
             if self.plane not in _PLANE_NAMES:
                 self.plane = "store"
 
-    def __set_name__(self, owner: type, name: str) -> None:
+    def __set_name__(self, owner: builtins.type, name: str) -> None:
         self.name = name
 
     def _guard_write(self, value: Any) -> Any:
         if self.type_guard is not None:
-            if type(value) is not self.type_guard:
+            if builtins.type(value) is not self.type_guard:
                 raise TypeError(
                     f"field {self.name!r} requires {self.type_guard.__name__}, "
-                    f"got {type(value).__name__} (no coerce)"
+                    f"got {builtins.type(value).__name__} (no coerce)"
                 )
         if self.validate is not None:
             value = self.validate(value)
         return value
 
-    def __get__(self, obj: Any, owner: type | None = None) -> Any:
+    def __get__(self, obj: Any, owner: builtins.type | None = None) -> Any:
         if obj is None:
             return self
         if self.plane == "ref":
@@ -164,7 +161,7 @@ TransientState = RefState
 
 def ref_field_names(inst: Any) -> frozenset[str]:
     names: set[str] = set()
-    for key, val in vars(type(inst)).items():
+    for key, val in vars(builtins.type(inst)).items():
         if isinstance(val, Field) and val.plane == "ref":
             names.add(key)
     return frozenset(names)
