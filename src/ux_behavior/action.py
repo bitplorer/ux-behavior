@@ -15,13 +15,25 @@ def _normalize_result(result: Any, qualname: str) -> list[Op] | None:
     if isinstance(result, Op):
         return [result]
     if isinstance(result, list):
-        bad = [item for item in result if not isinstance(item, Op)]
-        if bad:
-            raise TypeError(
-                f"@action {qualname} must return list[Op] | Op | None; "
-                f"list contained {type(bad[0]).__name__}"
-            )
-        return result
+        flat: list[Op] = []
+        for item in result:
+            if isinstance(item, Op):
+                flat.append(item)
+            elif isinstance(item, list):
+                # chrome macros return list[Op]; allow return [open(...), notify(...)]
+                for sub in item:
+                    if not isinstance(sub, Op):
+                        raise TypeError(
+                            f"@action {qualname} must return list[Op] | Op | None; "
+                            f"nested list contained {type(sub).__name__}"
+                        )
+                    flat.append(sub)
+            else:
+                raise TypeError(
+                    f"@action {qualname} must return list[Op] | Op | None; "
+                    f"list contained {type(item).__name__}"
+                )
+        return flat
     raise TypeError(
         f"@action {qualname} must return list[Op] | Op | None, "
         f"got {type(result).__name__}"
@@ -36,6 +48,7 @@ def action(
     """Decorator. Caps required unless ``caps=()`` (public).
 
     Supports sync and async methods. Return: None | Op | list[Op].
+    Nested list[Op] from chrome macros is flattened one level.
     """
 
     def deco(f: Callable[..., Any]) -> Callable[..., Any]:
