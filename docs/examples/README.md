@@ -2,7 +2,12 @@
 
 | Doc | Contents |
 |-----|----------|
-| **[EVERY_MODE.md](EVERY_MODE.md)** | Offline/live · public/protected Caps · trust · emit · control · async · validation · preview |
-| [../patterns/](../patterns/) | UI widgets, complex, nested systems |
+| **[EXAMPLES_MATRIX.md](EXAMPLES_MATRIX.md)** | Mode matrix × **every** pattern family |
+| **[EVERY_MODE.md](EVERY_MODE.md)** | Full truth table on Demo (sync/async × Caps × trust) |
+| [../patterns/](../patterns/) | UI widgets, complex, nested, residuals |
 
-Automated: `pytest tests/test_every_mode.py`
+## Tests
+
+```bash
+pytest tests/test_every_mode.py tests/test_examples_matrix.py -q
+```

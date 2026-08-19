@@ -1,19 +1,17 @@
 # ux-behavior documentation
 
-## Mode matrix (run every way)
+## Mode matrix × all examples
 
-**[examples/EVERY_MODE.md](examples/EVERY_MODE.md)** — offline/live, with/without Caps, trust, `_trusted`, emit, control, async, validation, preview.  
-Tests: `tests/test_every_mode.py`
+| Doc | Role |
+|-----|------|
+| **[examples/EXAMPLES_MATRIX.md](examples/EXAMPLES_MATRIX.md)** | Matrix applied to **every** pattern family |
+| [examples/EVERY_MODE.md](examples/EVERY_MODE.md) | Exhaustive Demo truth table |
+| `tests/test_examples_matrix.py` | Automated coverage |
+| `tests/test_every_mode.py` | Demo modes |
 
 ## Product UI patterns
 
-| Doc | Contents |
-|-----|----------|
-| [patterns/COMPLEX_NESTED.md](patterns/COMPLEX_NESTED.md) | Full nested product systems |
-| [patterns/COMPLEX.md](patterns/COMPLEX.md) | Complex patterns |
-| [patterns/MORE_CASES.md](patterns/MORE_CASES.md) | Residual cases |
-| [patterns/NESTED.md](patterns/NESTED.md) | Nesting rules |
-| [patterns/README.md](patterns/README.md) | Index |
+[patterns/COMPLEX_NESTED.md](patterns/COMPLEX_NESTED.md) · [patterns/COMPLEX.md](patterns/COMPLEX.md) · [patterns/MORE_CASES.md](patterns/MORE_CASES.md) · [patterns/NESTED.md](patterns/NESTED.md) · [patterns/README.md](patterns/README.md)
 
 ## Contracts
 
