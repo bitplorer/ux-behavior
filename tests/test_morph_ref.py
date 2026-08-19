@@ -1,4 +1,4 @@
-"""MorphState + RefState — canonical field API."""
+"""MorphState + RefState — type= / validate=."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ class Box(Component):
     page = MorphState("home")
     step = MorphState(1, backend="store")
     theme = MorphState("system", backend="client", key="ui.theme")
-    n = MorphState(0, seal=int)
+    n = MorphState(0, type=int)
     token = RefState(None)
 
     def render(self):
@@ -63,13 +63,37 @@ def test_backends():
     assert app.planes.client.data["ui.theme"] == "dark"
 
 
-def test_seal():
+def test_type_no_coerce():
     app = Behavior.boot()
     inst = app.add(Box)
-    with pytest.raises(TypeError, match="sealed"):
+    with pytest.raises(TypeError, match="no coerce"):
         inst.n = "1"  # type: ignore[assignment]
     inst.n = 2
     assert inst.n == 2
+
+
+def test_validate():
+    def upper(s: str) -> str:
+        if not isinstance(s, str):
+            raise TypeError("str required")
+        return s.upper()
+
+    class C(Component):
+        id = "c"
+        label = MorphState("", validate=upper)
+
+        def render(self):
+            return self.label
+
+        @action(caps=())
+        def set(self, v: str = ""):
+            self.label = v
+            return None
+
+    app = Behavior.boot()
+    inst = app.add(C)
+    app.dispatch("c.set", v="hi")
+    assert inst.label == "HI"
 
 
 def test_sugar_aliases():
