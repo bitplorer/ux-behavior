@@ -6,9 +6,10 @@ Contract (structural + concrete base)
 provides ``id``, ``render``, ``__render__``, and ``__async_render__``
 satisfies it (``@runtime_checkable``).
 
-``Component`` is the concrete author base: subclass it, set ``id``,
-implement ``render``. The dunder render methods stay abstract here so
-composition layers (e.g. ux-compose) own serialization policy.
+``Component`` is the concrete author base: subclass it, implement
+``render``. ``id`` defaults to ``ClassName.lower()``; set ``id = "..."``
+on the class to override. Composition layers (e.g. ux-compose) own
+serialization (``__render__`` / ``__async_render__``).
 """
 
 from __future__ import annotations
@@ -45,8 +46,13 @@ class ComponentProtocol(Protocol):
 class Component:
     """Base for product behavior components.
 
-    Subclass, set ``id``, implement ``render``. Methods decorated with
-    ``@action`` become the behavior entry points.
+    Subclass and implement ``render``. Methods decorated with ``@action``
+    become the behavior entry points.
+
+    **Identity**
+
+    * Default: ``id = ClassName.lower()`` (e.g. ``Cart`` → ``"cart"``)
+    * Opt-in custom: declare ``id = "bag"`` on the class body
 
     ``bind_behavior`` is called by ``Behavior.add`` so plane-aware fields work.
 
@@ -56,6 +62,12 @@ class Component:
     """
 
     id: str = ""
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        # Auto-id only when this class body did not declare id=...
+        if "id" not in cls.__dict__:
+            cls.id = cls.__name__.lower()
 
     def __init__(self) -> None:
         self._behavior: Any = None
