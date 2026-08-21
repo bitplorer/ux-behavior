@@ -2,14 +2,14 @@
 
 Public surface is intentionally small. Prefer::
 
-    from ux_behavior import Behavior, Component, ComponentProtocol, MorphState, RefState, action
+    from ux_behavior import Behavior, Component, ComponentProtocol, MorphState, RefState, action, bind
 
 Async entry points live on ``Behavior``: ``async_dispatch``, ``async_submit``,
 ``async_emit``. Continuations: ``follow_up`` + ``Behavior.emit``.
 """
 
 from ux_behavior._version import __version__
-from ux_behavior.action import action
+from ux_behavior.action import action, bind
 from ux_behavior.chrome import close, confirm, open, select
 from ux_behavior.component import Component, ComponentProtocol
 from ux_behavior.errors import (
@@ -44,6 +44,7 @@ __all__ = [
     "ValidationError",
     "__version__",
     "action",
+    "bind",
     "close",
     "confirm",
     "follow_up",
