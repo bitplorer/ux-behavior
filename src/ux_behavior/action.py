@@ -53,6 +53,8 @@ def _normalize_result(result: Any, qualname: str) -> list[Op] | None:
 def _is_action(obj: Any) -> bool:
     if obj is None:
         return False
+    if isinstance(obj, (ActionMethod, BoundAction)):
+        return True
     if getattr(obj, "_ux_behavior_action", False):
         return True
     fn = getattr(obj, "__func__", None)
@@ -144,14 +146,10 @@ def action_ui_attrs(
     Fail-closed: non-actions and unknown kwargs raise TypeError.
     Live Channel may later upgrade these attrs; this layer stays wire-free.
     """
-    if not _is_action(action_obj) and not isinstance(
-        action_obj, (ActionMethod, BoundAction)
-    ):
-        # BoundAction/ActionMethod always action; plain callables need marker
-        if not _is_action(action_obj):
-            raise TypeError(
-                f"ui/bind requires an @action method, got {type(action_obj).__name__}"
-            )
+    if not _is_action(action_obj):
+        raise TypeError(
+            f"ui/bind requires an @action method, got {type(action_obj).__name__}"
+        )
     fn = _unwrap_action_fn(action_obj)
     instance = _instance if _instance is not None else _action_instance(action_obj)
     _validate_ui_kwargs(fn, kwargs)
@@ -179,8 +177,8 @@ class BoundAction:
         self._action = action
         self._instance = instance
 
-    def __call__(self, *args: Any, **kwargs: Any) -> list[Op] | None:
-        return self._action(_bound_instance=self._instance, *args, **kwargs)
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        return self._action(*args, _bound_instance=self._instance, **kwargs)
 
     def ui(self, **kwargs: Any) -> dict[str, str]:
         """DOM-ready progressive attrs for this action + args."""
