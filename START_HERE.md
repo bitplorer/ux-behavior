@@ -1,11 +1,11 @@
 # Start here — ux-behavior
 
-**Audience:** engineers new to this package.
+**Audience:** first-time users of this package.
 **Promise:** one Component + action dispatch in five minutes.
 **Time:** ~5 minutes.
 
 Kept short start: [START.md](START.md). Tutorial: [docs/tutorial/](docs/tutorial/README.md).
-Map: [docs/INDEX.md](docs/INDEX.md). Binding design: [DESIGN.md](DESIGN.md).
+**Map:** [docs/INDEX.md](docs/INDEX.md). Binding design: [DESIGN.md](DESIGN.md).
 
 ---
 

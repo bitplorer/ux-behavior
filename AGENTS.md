@@ -2,6 +2,8 @@
 
 Orientation for humans and agents continuing this package.
 
+**First-time:** [START_HERE.md](START_HERE.md). **Map:** [docs/INDEX.md](docs/INDEX.md).
+
 Read [DESIGN.md](DESIGN.md) (binding) then [START_HERE.md](START_HERE.md) then
 [docs/INDEX.md](docs/INDEX.md). Public names: `src/ux_behavior/__init__.py` `__all__`.
 
@@ -11,15 +13,15 @@ The UX stack is a **layered system of specialists**, not a monolith.
 
 | Layer | Owns | Must **not** own |
 |-------|------|------------------|
-| **ux-dom** | HTML/CSS/JS trees, Document, serialize | Intent, Cap, Result, product behavior |
-| **ux-channel** | Intent / Result / Cap / wire / peers | HTML trees, CSS |
-| **ux-behavior** (this repo) | Product behavior, Morph/Ref/session-style state planes, `@action`, validation, chrome verbs | Raw HTML construction, wire codecs, Cap crypto, Document shell, motion IR |
-| **ux-motion** | Presence / transition plans as data | Product behavior, DOM construction |
-| **ux-compose** | Author composition + `uxcompose` | Re-implementing this layer |
+| **ux-dom** | HTML/CSS/JS trees, `Document`, serialize, pure discovery, `uxdom` | Intent, Cap, Result ops, MorphState, motion IR, product CLI |
+| **ux-channel** | Intent / Result / Cap / wire / peers / host runtime | HTML trees, CSS |
+| **ux-behavior** (this repo) | Product behavior, Morph/Ref, `@action`, validation | Raw HTML construction, wire codecs |
+| **ux-motion** | Presence / transition plans as data (IR v1) | Product behavior, DOM construction |
+| **ux-compose** | Author composition + product CLI (`uxcompose`) | Re-implementing any specialist |
 
 One-sentence contract (DESIGN.md): **Product behavior becomes a verified list of Ops. Cores stay pure. Host owns chrome.**
 
-Do not mint a fifth package. Do not resurrect `ux-app` as a product. Do not
+Do not invent a sixth product. Do not resurrect `ux-app` as a product. Do not
 export `compose` / `lower` on top-level `__all__`.
 
 ## Isolation Law
