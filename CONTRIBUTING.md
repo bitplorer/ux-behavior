@@ -45,7 +45,11 @@ See [DESIGN.md](DESIGN.md) and [AGENTS.md](AGENTS.md).
 | `README.md` | Gate | Full API, ADR bodies |
 | `START_HERE.md` | 5-minute first success | Exhaustive pattern catalog |
 | `docs/tutorial/` | Learning narrative | API laundry lists |
-| `docs/API.md` / `docs/REFERENCE.md` | Facts, signatures | Tutorial steps |
+| `docs/guides/` | Goal-oriented recipes | Conceptual essays as primary form |
+| `docs/reference/` | Facts, signatures | Tutorial steps |
+| `docs/internals/` | Why / architecture / C4 | Step lists as primary form |
+| `docs/examples/` | Worked recipes | Law |
+| `docs/adr/` | Architecture decisions | Mixed how-to |
 | `DESIGN.md` | Binding decisions | Mixed how-to |
 
 Map: [docs/INDEX.md](docs/INDEX.md). Keep [START.md](START.md) in sync with

@@ -1,26 +1,9 @@
-# Migration from ux-app
+# Moved (Phase 2 Diátaxis)
 
-## Mapping
+- **Original path:** `docs/MIGRATION_UX_APP.md`
+- **Date:** 2026-08-24
+- **Why:** Phase 2 Diátaxis — MIGRATION_UX_APP.md is how-to, not a flat docs/ file.
+- **Successor:** [docs/guides/MIGRATION_UX_APP.md](guides/MIGRATION_UX_APP.md)
+- **Do not cite this stub as the canonical page.**
 
-| ux-app | ux-behavior |
-|--------|-------------|
-| `App` | `Behavior` |
-| `Component` | `Component` |
-| `@action` | `@action` |
-| `Session`/`Client`/`Store`/`Transient`/`Sealed` | `MorphState(backend=…)` / `RefState` / `type=` |
-| `form_result` | `submit_outcome` |
-| `open_overlay` … | `open` / `close` / `select` / `confirm` |
-| `follow_up` | `follow_up` + `emit` |
-| Cap machine | Channel only |
-| `set_plane_backend` | `app.state.use` |
-
-## Do not port
-
-Badge/html helpers → ux-dom. Peer/LocalRuntime → Channel. Domain tables → Host.
-
-## Residual Host work
-
-1. Install Channel for live Caps.  
-2. Replace plane aliases with Morph/Ref.  
-3. Point buttons at `app.control`.  
-4. Run doctor.  
+Canonical content lives at the successor. This path is kept so existing links resolve.

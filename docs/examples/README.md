@@ -1,5 +1,8 @@
 # Examples
 
+> **Diátaxis:** examples · **Canonical:** `docs/examples/README.md` · **Layer:** ux-behavior  
+> Map: [INDEX.md](../INDEX.md).
+
 | Doc | Contents |
 |-----|----------|
 | **[EXAMPLES_MATRIX.md](EXAMPLES_MATRIX.md)** | Mode matrix × **every** pattern family |
@@ -11,3 +14,5 @@
 ```bash
 pytest tests/test_every_mode.py tests/test_examples_matrix.py -q
 ```
+
+Also: [EXAMPLES.md](EXAMPLES.md) (moved from `docs/EXAMPLES.md`).
