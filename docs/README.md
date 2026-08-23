@@ -1,10 +1,29 @@
 # ux-behavior documentation
 
+**Start here:** [../START_HERE.md](../START_HERE.md) · **Map:** [INDEX.md](INDEX.md)
+**Binding design:** [../DESIGN.md](../DESIGN.md)
+
+This layer owns product behavior → verified `list[Op]`.
+It does **not** own raw HTML construction or wire codecs.
+
+## Audiences
+
+| You are… | Start |
+|----------|--------|
+| **New** | [../START_HERE.md](../START_HERE.md) |
+| **Tutorial** | [tutorial/](tutorial/README.md) |
+| **Patterns** | [patterns/README.md](patterns/README.md) |
+| **Maintainer** | [ARCHITECTURE.md](ARCHITECTURE.md) · [../AGENTS.md](../AGENTS.md) |
+
+Diátaxis grouping: [INDEX.md](INDEX.md).
+
 ## Start here
 
 | Doc | Purpose |
 |-----|---------|
 | [../README.md](../README.md) | Install + mental model |
+| [../START_HERE.md](../START_HERE.md) | 5-minute path |
+| [../START.md](../START.md) | Short start (kept) |
 | [tutorial/](tutorial/README.md) | Progressive onboarding |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System design |
 | [API.md](API.md) | Surface reference |

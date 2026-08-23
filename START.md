@@ -1,5 +1,7 @@
 # Start — first behavior in five minutes
 
+Canonical 5-minute path: **[START_HERE.md](START_HERE.md)**. This file is the short copy.
+
 ## Install
 
 ```bash
