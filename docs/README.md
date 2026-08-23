@@ -16,7 +16,7 @@ It does **not** own raw HTML construction or wire codecs.
 | **New** | [../START_HERE.md](../START_HERE.md) |
 | **Tutorial** | [tutorial/](tutorial/README.md) |
 | **Patterns** | [patterns/README.md](patterns/README.md) |
-| **Maintainer** | [ARCHITECTURE.md](ARCHITECTURE.md) · [../AGENTS.md](../AGENTS.md) |
+| **Maintainer** | [internals/ARCHITECTURE.md](internals/ARCHITECTURE.md) · [../AGENTS.md](../AGENTS.md) |
 
 Diátaxis grouping: [INDEX.md](INDEX.md).
 
@@ -28,8 +28,8 @@ Diátaxis grouping: [INDEX.md](INDEX.md).
 | [../START_HERE.md](../START_HERE.md) | 5-minute path |
 | [../START.md](../START.md) | Short start (kept) |
 | [tutorial/](tutorial/README.md) | Progressive onboarding |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System design |
-| [API.md](API.md) | Surface reference |
+| [internals/ARCHITECTURE.md](internals/ARCHITECTURE.md) | System design |
+| [reference/API.md](reference/API.md) | Surface reference |
 
 ## Product UI
 
@@ -52,4 +52,4 @@ Diátaxis grouping: [INDEX.md](INDEX.md).
 
 ## Contracts
 
-[SECURITY](SECURITY.md) · [STATE_DEEP](STATE_DEEP.md) · [DISPATCH](DISPATCH.md) · [WIRE](WIRE.md) · [ERRORS](ERRORS.md) · [OPERATIONS](OPERATIONS.md)
+[SECURITY](reference/SECURITY.md) · [STATE_DEEP](reference/STATE_DEEP.md) · [DISPATCH](reference/DISPATCH.md) · [WIRE](reference/WIRE.md) · [ERRORS](reference/ERRORS.md) · [OPERATIONS](guides/OPERATIONS.md)

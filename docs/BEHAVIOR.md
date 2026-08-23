@@ -1,47 +1,9 @@
-# Behavior 0.3 — standard product interface
+# Moved (Phase 2 Diátaxis)
 
-## Sync and async (first-class)
+- **Original path:** `docs/BEHAVIOR.md`
+- **Date:** 2026-08-24
+- **Why:** Phase 2 Diátaxis — BEHAVIOR.md is reference, not a flat docs/ file.
+- **Successor:** [docs/reference/BEHAVIOR.md](reference/BEHAVIOR.md)
+- **Do not cite this stub as the canonical page.**
 
-| API | Use |
-|-----|-----|
-| ``dispatch`` / ``submit`` / ``emit`` | **sync** actions only |
-| ``async_dispatch`` / ``async_submit`` / ``async_emit`` | sync **or** async actions |
-
-Wire attach prefers an **async** Channel handler so async ``@action`` works under ASGI.
-
-## Dumb Host
-
-```python
-app = Behavior.boot("Shop")
-app.add(Cart)
-app.use("effects")
-app.attach(asgi)
-button(**app.control(cart.add, sku="x"))
-```
-
-## Caps / trust / preview
-
-```python
-@action(caps=())              # public
-@action(caps=("orders.write",))  # protected offline
-
-with app.trust(): ...
-with app.preview(): ...       # blocks session/store writes
-```
-
-## Continuations
-
-```python
-follow_up("paid", "orders.confirm", args_from={"order_id": "id"})
-app.emit("paid", id=42)
-await app.async_emit("paid", id=42)
-```
-
-## Client risk
-
-Money-shaped client paths (``price``, ``amount``, ``qty``, …) refuse by default.
-``Behavior.boot(client_risk=False)`` to disable.
-
-## Validation
-
-Bad args → morph ``{action}.{field}-error`` (no exception to Host).
+Canonical content lives at the successor. This path is kept so existing links resolve.
