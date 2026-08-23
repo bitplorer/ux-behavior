@@ -1,7 +1,9 @@
 # ux-behavior documentation
 
 **Start here:** [../START_HERE.md](../START_HERE.md) · **Map:** [INDEX.md](INDEX.md)
-GitHub renders this file when you open `docs/`. The Diátaxis audience+mode map is [INDEX.md](INDEX.md).
+
+This file is the GitHub `docs/` landing. It is not the map — [INDEX.md](INDEX.md) is.
+
 **Binding design:** [../DESIGN.md](../DESIGN.md)
 
 This layer owns product behavior → verified `list[Op]`.

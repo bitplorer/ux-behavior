@@ -90,3 +90,6 @@ It does **not** own raw HTML construction or wire codecs.
 | [ux-channel](https://github.com/bitplorer/ux-channel) | Intent → Cap → Result |
 | [ux-motion](https://github.com/bitplorer/ux-motion) | Presence / transition plans |
 | [ux-compose](https://github.com/bitplorer/ux-compose) | Composition + product CLI |
+
+Do not flatten these layers into this repo.
+
