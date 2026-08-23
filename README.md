@@ -57,7 +57,9 @@ MorphState = must repaint · RefState = silent · Ops = result instructions
 
 | Topic | Link |
 |-------|------|
+| **Start (5 min)** | [START.md](START.md) |
 | Tutorial | [docs/tutorial/](docs/tutorial/README.md) |
+| Docs index | [docs/README.md](docs/README.md) |
 | Architecture | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | API | [docs/API.md](docs/API.md) |
 | State | [docs/STATE_DEEP.md](docs/STATE_DEEP.md) |
