@@ -1,0 +1,19 @@
+name: Bug report
+description: Dispatch, state, or Cap Law does not match docs.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes: {label: Version / commit}
+    validations: {required: true}
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options: [offline, online-channel, async]
+    validations: {required: true}
+  - type: textarea
+    id: repro
+    attributes: {label: Minimal reproduction, render: python}
+    validations: {required: true}
