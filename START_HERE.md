@@ -6,6 +6,7 @@
 
 Kept short start: [START.md](START.md). Tutorial: [docs/tutorial/](docs/tutorial/README.md).
 **Map:** [docs/INDEX.md](docs/INDEX.md). Binding design: [DESIGN.md](DESIGN.md).
+**Cookbook:** [docs/guides/SNIPPETS.md](docs/guides/SNIPPETS.md) — Component, @action, Morph/Ref, bind/.ui, planes, continuations.
 
 ---
 
