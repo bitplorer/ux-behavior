@@ -22,7 +22,9 @@ Reserved kwargs: `_trusted` (bool) — stripped before binding to the action sig
 3. Require _ux_behavior_action marker
 4. Sync path: reject _ux_behavior_async
 5. Cap policy (_require_caps)
-6. bind_action_args (signature + annotations)
+6. bind_action_args (product signature of the @action function, not
+      BoundAction.__call__(*args); Channel ``args=dict`` unpacks unless the
+      action declares ``args``; VAR_POSITIONAL/VAR_KEYWORD are not kwargs)
       on ValidationError → return error morph Ops (no raise)
 7. Open follow_up contextvar bucket
 8. Snapshot public state (exclude Ref names)

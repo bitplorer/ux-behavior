@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Fixed
+
+- ``bind_action_args`` binds the @action function, not ``BoundAction.__call__(*args, **kwargs)``.
+  ``apply_defaults`` filling VAR_POSITIONAL as ``args=()`` made ``tick()`` raise
+  ``unexpected keyword argument 'args'``. Channel ``args=dict`` unpacks unless
+  the action declares a product parameter named ``args``.
+
 ### Wire
 
 - `ux_behavior.wire.client_event` — Host-only Channel `{op: "dispatch"}` helper for CustomEvent. Not on the frozen public surface.
