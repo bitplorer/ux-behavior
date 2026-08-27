@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import functools
 import inspect
+import json
 from typing import Any, Callable
 
 from ux_behavior.ops import Op
@@ -144,7 +145,9 @@ def action_ui_attrs(
     """Build progressive control attrs for an @action callable.
 
     Fail-closed: non-actions and unknown kwargs raise TypeError.
-    Live Channel may later upgrade these attrs; this layer stays wire-free.
+    Emits both families: ``data-ux-action`` (progressive) and
+    ``data-channel-action`` (live synthesizer). No ux_channel import —
+    the attr names are the documented triad, not a wire dependency.
     """
     if not _is_action(action_obj):
         raise TypeError(
@@ -154,14 +157,23 @@ def action_ui_attrs(
     instance = _instance if _instance is not None else _action_instance(action_obj)
     _validate_ui_kwargs(fn, kwargs)
     verb = _action_verb_name(fn, instance)
-    attrs: dict[str, str] = {"data-ux-action": verb}
+    attrs: dict[str, str] = {
+        "data-ux-action": verb,
+        "data-channel-action": verb,
+    }
+    if kwargs:
+        attrs["data-channel-args"] = json.dumps(
+            {k: str(v) for k, v in kwargs.items()},
+            separators=(",", ":"),
+            ensure_ascii=True,
+        )
     for k, v in kwargs.items():
         attrs[f"data-ux-arg-{k}"] = str(v)
     return attrs
 
 
 def bind(action_obj: Any, **kwargs: Any) -> dict[str, str]:
-    """Generic helper: ``**bind(self.add, sku="tee")``.
+    """Generic helper: ``**bind(self.add, sku=\"tee\")``.
 
     Same fail-closed rules as ``action.ui``.
     """
