@@ -4,7 +4,7 @@
 
 ## Setup
 
-Python **3.10+**. Layout: `src/ux_behavior`.
+Python **≥ 3.14**. Layout: `src/ux_behavior`.
 
 ```bash
 pip install -e ".[dev]"

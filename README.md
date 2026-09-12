@@ -4,7 +4,7 @@
 `Component` + actions + Morph/Ref state → verified `list[Op]`.
 Optional live Caps via [`ux-channel`](https://github.com/bitplorer/ux-channel).
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-blue.svg)](https://www.python.org/downloads/)
 
 > **New here?** [START_HERE.md](START_HERE.md) (5 minutes). Also: [START.md](START.md).
 > **Map:** [docs/INDEX.md](docs/INDEX.md)
