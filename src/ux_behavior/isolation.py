@@ -82,6 +82,7 @@ BANNED_SOURCE_TOKENS = frozenset(
         "close_overlay",
         "glue.js",
         "lower_morph",
+        "CapMachine",
     }
 )
 

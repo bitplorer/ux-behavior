@@ -11,7 +11,11 @@ import unittest
 
 import ux_behavior
 from ux_behavior.cli import main as cli_main
-from ux_behavior.isolation import BANNED_PUBLIC_NAMES, BANNED_IMPORT_PREFIXES
+from ux_behavior.isolation import (
+    BANNED_IMPORT_PREFIXES,
+    BANNED_PUBLIC_NAMES,
+    BANNED_SOURCE_TOKENS,
+)
 
 
 class TestCliIsScaffoldNotProduct(unittest.TestCase):
@@ -56,3 +60,14 @@ class TestPublicSurfaceOwnership(unittest.TestCase):
         joined = " ".join(BANNED_IMPORT_PREFIXES)
         self.assertIn("ux_channel", joined)
         self.assertTrue(any(p.startswith("cek") for p in BANNED_IMPORT_PREFIXES))
+
+
+class TestCapCryptoStaysChannel(unittest.TestCase):
+    """Cap mint/verify is Channel / cek-host. No local CapMachine clone."""
+
+    def test_wire_caps_capmachine_import_fails_closed(self):
+        with self.assertRaises((ImportError, ModuleNotFoundError)):
+            importlib.import_module("ux_behavior.wire.caps")
+
+    def test_capmachine_token_banned_in_source(self):
+        self.assertIn("CapMachine", BANNED_SOURCE_TOKENS)
