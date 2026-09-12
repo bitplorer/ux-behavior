@@ -36,7 +36,7 @@ Every block is meant to run (or to be the exact fragment you drop into a running
 
 <a id="beh-install"></a>
 
-Python ≥ 3.10. Isolation Law: cold import does not load Channel.
+Python ≥ 3.14. Isolation Law: cold import does not load Channel.
 
 ```bash
 pip install ux-behavior

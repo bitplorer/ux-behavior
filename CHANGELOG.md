@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- Python floor raised to ≥3.14 (matches ux-compose / ux-dom). Classifiers are
+  3.14-only.
+
 ### Removed
 
 - Unused ``wire/caps.py`` ``CapMachine`` (OWNER-WRONG Cap crypto clone; zero
