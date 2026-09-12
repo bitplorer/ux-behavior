@@ -17,7 +17,8 @@ It does **not** own raw HTML construction or wire codecs.
 | `docs/examples/` | examples | Worked recipes / pointers | Law |
 | `docs/adr/` | ADR | Decisions (or an index of them) | Mixed how-to |
 
-Specialized folders (`security/`, `ship/`, `design/`, `tutorial/`, `patterns/`, `archive/`) stay.
+Specialized folders (`security/`, `ship/`, `design/`, `tutorial/`, `patterns/`, `archive/`, `plans/`) stay.
+`plans/` is projection, not law.
 `docs/INDEX.md` is the map. Do not add a second competing map.
 
 ---
@@ -94,6 +95,7 @@ Specialized folders (`security/`, `ship/`, `design/`, `tutorial/`, `patterns/`, 
 | [internals/ARCHITECTURE.md](internals/ARCHITECTURE.md) | System design |
 | [internals/INTERNALS.md](internals/INTERNALS.md) | Internals |
 | [../KILL_UX_APP.md](../KILL_UX_APP.md) | Why ux-app was retired (history; not current API) |
+| [plans/2026-09-12-telos-phase-0-1-tip-793f120.md](plans/2026-09-12-telos-phase-0-1-tip-793f120.md) | PLAN-ONLY TELOS Phase 0–1 (projection) |
 
 ---
 
