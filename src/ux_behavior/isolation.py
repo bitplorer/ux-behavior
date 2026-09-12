@@ -18,7 +18,9 @@ FROZEN_PUBLIC = frozenset(
     {
         "Behavior",
         "Component",
+        "ComponentProtocol",
         "action",
+        "bind",
         "update",
         "notify",
         "go",
