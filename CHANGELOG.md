@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Removed
+
+- Unused ``wire/caps.py`` ``CapMachine`` (OWNER-WRONG Cap crypto clone; zero
+  importers). Cap mint/verify stays Channel. Absence-locked.
+
 ### Fixed
 
 - ``bind_action_args`` binds the @action function, not ``BoundAction.__call__(*args, **kwargs)``.
