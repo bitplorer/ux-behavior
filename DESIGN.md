@@ -3,7 +3,7 @@
 **Status:** Binding  
 **Audience:** Staff+ engineers, architecture review, board-level technical discussion  
 **Date:** 2026-08-18  
-**Version:** 0.3.2 (foundation freeze 0.1; MorphState/RefState joined Day-1)
+**Version:** 0.3.2 (foundation freeze 0.1; MorphState/RefState joined Day-1; bind/ComponentProtocol already Day-1 extras)
 
 ---
 

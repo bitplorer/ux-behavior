@@ -15,6 +15,13 @@ def test_public_surface_matches_freeze():
     assert set(ux_behavior.__all__) == FROZEN_PUBLIC
 
 
+def test_shipped_day1_extras_stay_on_freeze():
+    """bind + ComponentProtocol shipped on __all__; freeze must keep them (no shrink)."""
+    for name in ("bind", "ComponentProtocol"):
+        assert name in FROZEN_PUBLIC
+        assert name in ux_behavior.__all__
+
+
 def test_check_public_surface_clean():
     assert check_public_surface(ux_behavior.__all__) == []
 

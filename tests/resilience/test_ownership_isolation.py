@@ -35,7 +35,16 @@ class TestCliIsScaffoldNotProduct(unittest.TestCase):
 
 class TestPublicSurfaceOwnership(unittest.TestCase):
     def test_core_behavior_symbols_present(self):
-        for core in ("Behavior", "Component", "action", "MorphState", "Op", "update"):
+        for core in (
+            "Behavior",
+            "Component",
+            "ComponentProtocol",
+            "action",
+            "bind",
+            "MorphState",
+            "Op",
+            "update",
+        ):
             self.assertIn(core, ux_behavior.__all__)
             self.assertTrue(hasattr(ux_behavior, core))
 

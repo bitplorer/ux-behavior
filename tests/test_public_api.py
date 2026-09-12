@@ -9,7 +9,9 @@ def test_all_is_frozen_and_small():
     names = set(ux_behavior.__all__)
     assert "Behavior" in names
     assert "Component" in names
+    assert "ComponentProtocol" in names
     assert "action" in names
+    assert "bind" in names
     assert "update" in names
     assert "compose" not in names
     assert "lower" not in names
