@@ -8,6 +8,7 @@ Optional live Caps via [`ux-channel`](https://github.com/bitplorer/ux-channel).
 
 > **New here?** [START_HERE.md](START_HERE.md) (5 minutes). Also: [START.md](START.md).
 > **Map:** [docs/INDEX.md](docs/INDEX.md)
+> **Place in the stack:** [docs/PLACE.md](docs/PLACE.md).
 > **Binding design:** [DESIGN.md](DESIGN.md)
 > **Contributor / agent:** [CONTRIBUTING.md](CONTRIBUTING.md) · [AGENTS.md](AGENTS.md)
 
