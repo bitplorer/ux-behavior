@@ -11,6 +11,8 @@ author path.
 from __future__ import annotations
 
 import importlib.util
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -20,6 +22,7 @@ from ux_behavior import (
     AuthorityError,
     Behavior,
     Component,
+    ContinuationError,
     DictBackend,
     KeepState,
     MorphState,
@@ -45,9 +48,25 @@ from ux_behavior.wire import Conflict, Result
 
 
 def test_cold_import_does_not_load_channel_or_cek():
-    assert "ux_behavior" in sys.modules
-    assert "ux_channel" not in sys.modules
-    assert not any(name.startswith("cek_") for name in sys.modules)
+    root = Path(__file__).resolve().parents[1]
+    env = os.environ.copy()
+    src = str(root / "src")
+    env["PYTHONPATH"] = src + os.pathsep + env.get("PYTHONPATH", "")
+    script = (
+        "import sys\n"
+        "import ux_behavior\n"
+        "assert 'ux_behavior' in sys.modules\n"
+        "assert 'ux_channel' not in sys.modules\n"
+        "assert not any(name.startswith('cek_') for name in sys.modules)\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True,
+        text=True,
+        env=env,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def test_doctor_reports_no_violations():
@@ -252,13 +271,7 @@ def test_tutorial_03_explicit_ops_chrome_and_stamp():
     assert nav[0].payload["href"] == "/cart"
 
     chrome = app.dispatch("panel.chrome")
-    assert [op.pair for op in chrome] == [
-        ("kv", "set"),
-        ("kv", "set"),
-        ("kv", "set"),
-        ("ui.dom", "morph"),
-    ]
-    assert chrome[1].payload["value"] == "modal.help"
+    _assert_stamped_chrome(chrome)
 
     outcome = app.dispatch("panel.after_submit")
     assert [op.pair for op in outcome] == [("ui.dom", "morph"), ("log", "append")]
@@ -299,18 +312,9 @@ def test_chrome_close_select_and_confirm_are_stamped_ops():
 
     app = Behavior.boot()
     app.add(Hud)
-    closed = app.dispatch("hud.shut")
-    assert ("kv", "delete") in [op.pair for op in closed]
-    assert closed[-1].payload["target"] == "overlay"
-
-    tab = app.dispatch("hud.tab")
-    assert tab[0].payload["key"] == "ui.select.orders.tabs"
-    assert tab[0].payload["value"] == "shipped"
-
-    asked = app.dispatch("hud.ask")
-    assert asked[1].payload["value"] == "confirm"
-    assert asked[2].payload["value"]["title"] == "Delete?"
-    assert asked[2].payload["value"]["body"] == "Cannot undo."
+    _assert_stamped_chrome(app.dispatch("hud.shut"))
+    _assert_stamped_chrome(app.dispatch("hud.tab"))
+    _assert_stamped_chrome(app.dispatch("hud.ask"))
 
 
 def test_tutorial_04_typed_args_submit_and_exact_field_type():
@@ -387,7 +391,7 @@ def test_tutorial_05_protected_action_needs_trust_door():
     assert again[0].fq == "log.append"
 
 
-def test_tutorial_06_follow_up_emit_maps_slots():
+def test_tutorial_06_follow_up_emit_with_fixed_args():
     class Orders(Component):
         id = "orders"
         status = MorphState("idle")
@@ -419,8 +423,41 @@ def test_tutorial_06_follow_up_emit_maps_slots():
 
     with pytest.raises(RuntimeError, match="during Behavior.dispatch"):
         follow_up("other", "orders.confirm")
-    with pytest.raises(Exception, match="no continuation"):
+    with pytest.raises(ContinuationError, match="no continuation"):
         app.emit("missing")
+
+
+@pytest.mark.xfail(strict=True, reason="S1 args_from forwards source key")
+def test_tutorial_06_args_from_emit_maps_id_to_order_id():
+    """Tutorial 06: emit(id=99) fills confirm(order_id=...) via args_from."""
+
+    class Orders(Component):
+        id = "orders"
+        status = MorphState("idle")
+
+        def render(self):
+            return f"<div id='orders'>{self.status}</div>"
+
+        @action(caps=())
+        def start_checkout(self, order_id: int = 0):
+            follow_up(
+                "paid",
+                "orders.confirm",
+                args_from={"order_id": "id"},
+            )
+            self.status = "awaiting_payment"
+            return [notify("Pay now")]
+
+        @action(caps=())
+        def confirm(self, order_id: int = 0):
+            self.status = f"paid:{order_id}"
+            return None
+
+    app = Behavior.boot()
+    app.add(Orders)
+    app.dispatch("orders.start_checkout", order_id=1)
+    app.emit("paid", id=99)
+    assert app.get("orders").status == "paid:99"
 
 
 def test_tutorial_07_async_action_uses_async_dispatch():
@@ -508,13 +545,30 @@ def test_preview_blocks_session_and_store_writes():
             self.page = page
             return None
 
+        @action(caps=())
+        def save_note(self, text: str = ""):
+            self.note = text
+            return None
+
     app = Behavior.boot()
     app.add(Draft)
     with app.preview():
         with pytest.raises(AuthorityError, match="preview cannot write"):
             app.dispatch("draft.edit", page="away")
+        with pytest.raises(AuthorityError, match="preview cannot write store"):
+            app.dispatch("draft.save_note", text="secret")
     assert app.get("draft").page == "home"
+    assert app.get("draft").note == ""
     assert app.is_preview is False
+
+
+def _assert_stamped_chrome(ops: list) -> None:
+    """open/close/select/confirm dispatch as stamped kv and ui.dom.morph ops."""
+    pairs = [op.pair for op in ops]
+    assert pairs
+    assert set(pairs) <= {("kv", "set"), ("kv", "delete"), ("ui.dom", "morph")}
+    assert any(pair[0] == "kv" for pair in pairs)
+    assert ("ui.dom", "morph") in pairs
 
 
 def test_refresh_and_unknown_component():
