@@ -10,6 +10,7 @@ Continuation = deferred action bound to that signal for a turn.
 
 from __future__ import annotations
 
+import copy
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from typing import Any
@@ -74,13 +75,32 @@ def follow_up(
     return item
 
 
+def _copy_value(value: Any) -> Any:
+    """Deep copy one mapping value.
+
+    If ``deepcopy`` raises, the original value is returned and stays shared
+    with the source continuation.
+    """
+    try:
+        return copy.deepcopy(value)
+    except Exception:
+        return value
+
+
+def _copy_mapping(mapping: dict[str, Any]) -> dict[str, Any]:
+    return {key: _copy_value(value) for key, value in mapping.items()}
+
+
 def _clone_continuation(item: Continuation) -> Continuation:
-    """New Continuation. ``args`` and ``args_from`` are copied."""
+    """New Continuation. Each ``args`` and ``args_from`` value is deep-copied.
+
+    A value that ``copy.deepcopy`` cannot copy stays shared with ``item``.
+    """
     return Continuation(
         event=item.event,
         action=item.action,
-        args=dict(item.args),
-        args_from=dict(item.args_from),
+        args=_copy_mapping(item.args),
+        args_from=_copy_mapping(item.args_from),
     )
 
 

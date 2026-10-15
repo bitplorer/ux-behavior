@@ -261,3 +261,43 @@ def test_child_continuation_args_mutation_does_not_change_parent():
     child = parent.run(arm_and_copy, "alice")
     assert child.run(mutate) == "hacked"
     assert parent.run(_armed_order, app) == "alice"
+
+
+def test_child_list_append_in_args_leaves_parent_emit_unchanged():
+    """Child appends to a list stored in args. Parent emit still sees the original."""
+
+    class Desk(Component):
+        id = "desk"
+        seen = MorphState("")
+
+        def render(self):
+            return "<div id='desk'></div>"
+
+        @action(caps=())
+        def arm(self):
+            follow_up("paid", "desk.finish", items=["a"])
+            return None
+
+        @action(caps=())
+        def finish(self, items: list | None = None):
+            self.seen = ",".join(str(part) for part in (items or []))
+            return None
+
+    app = Behavior.boot()
+    app.add(Desk)
+
+    def arm_and_copy() -> contextvars.Context:
+        app.dispatch("desk.arm")
+        return contextvars.copy_context()
+
+    def append() -> None:
+        app.continuations["paid"].args["items"].append("b")
+
+    def parent_emit() -> str:
+        app.emit("paid")
+        return str(app.get("desk").seen)
+
+    parent = contextvars.copy_context()
+    child = parent.run(arm_and_copy)
+    child.run(append)
+    assert parent.run(parent_emit) == "a"
