@@ -15,6 +15,7 @@ from __future__ import annotations
 import functools
 import inspect
 import json
+import re
 from typing import Any, Callable
 
 from ux_behavior.ops import Op
@@ -136,6 +137,22 @@ def _validate_ui_kwargs(fn: Callable[..., Any], kwargs: dict[str, Any]) -> None:
         )
 
 
+# ``data-ux-arg-{name}`` is an attribute name. HTML has no escape for it.
+# Same ASCII identifier ux-compose bind() requires.
+_UI_ARG_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*\Z")
+
+
+def _require_ui_arg_names(kwargs: dict[str, Any]) -> None:
+    """Reject argument names that cannot safely be attribute-name suffixes."""
+    for key in kwargs:
+        if isinstance(key, str) and _UI_ARG_NAME.fullmatch(key):
+            continue
+        raise ValueError(
+            f"action argument name {key!r} is not a safe attribute name; "
+            "use an ASCII identifier (letters, digits, underscore)"
+        )
+
+
 def action_ui_attrs(
     action_obj: Any,
     *,
@@ -145,6 +162,7 @@ def action_ui_attrs(
     """Build progressive control attrs for an @action callable.
 
     Fail-closed: non-actions and unknown kwargs raise TypeError.
+    Argument names that are not ASCII identifiers raise ValueError.
     Emits both families: ``data-ux-action`` (progressive) and
     ``data-channel-action`` (live synthesizer). No ux_channel import —
     the attr names are the documented triad, not a wire dependency.
@@ -153,6 +171,7 @@ def action_ui_attrs(
         raise TypeError(
             f"ui/bind requires an @action method, got {type(action_obj).__name__}"
         )
+    _require_ui_arg_names(kwargs)
     fn = _unwrap_action_fn(action_obj)
     instance = _instance if _instance is not None else _action_instance(action_obj)
     _validate_ui_kwargs(fn, kwargs)
