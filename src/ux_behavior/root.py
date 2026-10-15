@@ -17,6 +17,7 @@ from ux_behavior.domains import DomainTable, default_table
 from ux_behavior.errors import AuthorityError, ContinuationError, ValidationError
 from ux_behavior.events import (
     Continuation,
+    _ContinuationScope,
     _arm_continuation,
     _armed_continuations,
     _begin_follow_ups,
@@ -65,7 +66,7 @@ class Behavior:
         self._components: dict[str, Any] = {}
         self.domains = domains or default_table()
         self.state = StateAPI(self)
-        self._continuation_scope = object()
+        self._continuation_scope = _ContinuationScope()
         self._preview = False
         self._cores_available: dict[str, bool] = {
             "ux_dom": False,

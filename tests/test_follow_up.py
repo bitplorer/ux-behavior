@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextvars
+import gc
 
 import pytest
 
@@ -16,6 +17,7 @@ from ux_behavior import (
     follow_up,
     notify,
 )
+from ux_behavior.events import _armed
 
 
 class Orders(Component):
@@ -201,3 +203,61 @@ def test_copied_context_does_not_replace_the_parent_continuation():
 
     assert parent.run(_armed_order, app) == "alice"
     assert child.run(_armed_order, app) == "bob"
+
+
+def _armed_scope_count() -> int:
+    bag = _armed.get()
+    if not bag:
+        return 0
+    return len(list(bag))
+
+
+def test_twenty_collected_behaviors_leave_no_armed_scopes():
+    """boot/follow_up/del/gc twenty times must not retain those scopes."""
+
+    def run() -> int:
+        _armed.set(None)
+        for _ in range(20):
+            app = Behavior.boot()
+            app.add(Orders)
+            app.dispatch("orders.start")
+            del app
+        gc.collect()
+        return _armed_scope_count()
+
+    assert contextvars.copy_context().run(run) == 0
+
+
+def test_child_continuation_args_mutation_does_not_change_parent():
+    """A copied context gets its own Continuation. Mutating args stays there."""
+
+    class Desk(Component):
+        id = "desk"
+
+        def render(self):
+            return "<div id='desk'></div>"
+
+        @action(caps=())
+        def arm(self, order: str = ""):
+            follow_up("paid", "desk.finish", order=order)
+            return None
+
+        @action(caps=())
+        def finish(self, order: str = ""):
+            return None
+
+    app = Behavior.boot()
+    app.add(Desk)
+
+    def arm_and_copy(order: str) -> contextvars.Context:
+        app.dispatch("desk.arm", order=order)
+        return contextvars.copy_context()
+
+    def mutate() -> str:
+        app.continuations["paid"].args["order"] = "hacked"
+        return str(app.continuations["paid"].args["order"])
+
+    parent = contextvars.copy_context()
+    child = parent.run(arm_and_copy, "alice")
+    assert child.run(mutate) == "hacked"
+    assert parent.run(_armed_order, app) == "alice"

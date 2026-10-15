@@ -13,6 +13,7 @@ from ux_behavior import (
     follow_up,
     notify,
 )
+from ux_behavior.wire.control import resolve_action_name
 
 
 class Demo(Component):
@@ -200,6 +201,30 @@ def test_control_offline():
     attrs = app.control(app.get("demo").public_inc)
     assert attrs["data_action"] == "demo.public_inc"
     assert attrs.get("data_cap", "") == ""
+
+
+class _Shelf(Component):
+    """Module-level so an unbound ActionMethod qualname has no ``<locals>``."""
+
+    id = "shelf"
+
+    def render(self):
+        return "<div id='shelf'></div>"
+
+    @action(caps=())
+    def add(self):
+        return None
+
+
+def test_resolve_action_name_keyword_and_unbound_method():
+    """``behavior=`` stays a keyword. Unbound ActionMethod keeps the method name."""
+    app = Behavior.boot()
+    app.add(_Shelf)
+    bound = resolve_action_name(behavior=app, action=app.get("shelf").add)
+    assert bound == "shelf.add"
+    unbound = resolve_action_name(behavior=app, action=_Shelf.add)
+    assert unbound == "add"
+    assert app.control(_Shelf.add)["data_action"] == "add"
 
 
 def test_strict_caps_false_sync():

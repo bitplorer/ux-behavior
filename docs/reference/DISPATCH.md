@@ -58,8 +58,8 @@ follow_up(event, action, *, args_from=None, **args)
 ```
 
 - Must run inside step 7–9 context; otherwise `RuntimeError`.
-- Overwrites prior continuation for the same `event` name on this Behavior.
-- `emit` merges: fixed `args`, then `args_from` mapping from slots, then extra slots.
+- Overwrites prior continuation for the same `event` name on this Behavior in the same `contextvars` context. Callers that share a context overwrite each other. A copied context keeps its own armed event.
+- `emit` merges: fixed `args`, then `args_from` mapping from slots, then extra slots. A source key that was copied onto its destination is consumed and is not forwarded. Slots that were not consumed are still forwarded.
 - Continuation dispatch uses `_trusted=True` (armed under an already authorized action). Hosts that expose raw `emit` on the network must still authenticate the caller.
 
 ## 5. Stamp
@@ -72,4 +72,4 @@ Undeclared `(ns, name)` → `PermissionError` + `STAMP_REJECT`.
 
 - One Behavior instance is **not** claimed thread-safe for concurrent dispatch on shared Component state.
 - ASGI: one request → one dispatch await; avoid sharing mutable Component instances across in-flight requests without external locking.
-- Armed continuations are per Behavior and per `contextvars` context. Callers that share a context still overwrite the same event name. A copied context keeps its own table after the copy.
+- Armed continuations are per Behavior and per `contextvars` context. The scope key is weak, so a collected Behavior does not leave its args in a long-lived context. Copying a context gives the child its own `Continuation` objects, with `args` copied. Same-context callers still overwrite the same event name. Identity is not stored on Behavior.

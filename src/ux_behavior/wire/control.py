@@ -19,15 +19,20 @@ from ux_behavior.action import (
 from ux_behavior.wire.attach import UX_ACTION_KEY
 
 
-def resolve_action_name(_behavior: Any, action: Any) -> str:
+def resolve_action_name(behavior: Any, action: Any) -> str:
     """Name a control target.
 
-    The Behavior argument stays for existing positional callers. The name comes
-    from the action. A bound ``@action`` uses the same verb as ``bind`` / ``.ui``.
+    ``behavior`` is accepted by keyword. A bound ``@action`` uses ``{id}.{method}``,
+    the same verb as ``bind`` / ``.ui``.
+
+    An unbound ``ActionMethod`` keeps its base name: the function ``__name__``
+    (``add``), not ``cart.add``. That is unavoidable here. The method has no
+    instance, and ``behavior`` is not searched for a component id — two mounted
+    components can own the same method.
     """
     if isinstance(action, str):
         return action
-    if _is_action(action):
+    if _is_action(action) and _action_instance(action) is not None:
         return _action_verb_name(
             _unwrap_action_fn(action), _action_instance(action)
         )

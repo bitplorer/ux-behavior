@@ -13,15 +13,23 @@ from __future__ import annotations
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from typing import Any
+from weakref import WeakKeyDictionary
 
 _pending: ContextVar[list["Continuation"] | None] = ContextVar(
     "ux_behavior_follow_ups", default=None
 )
 # Armed continuations, per contextvars context, then per Behavior scope.
-# Copy-on-write: a child context that arms an event does not mutate the parent bag.
-_armed: ContextVar[dict[object, dict[str, "Continuation"]] | None] = ContextVar(
+# Keys are weak. A collected Behavior drops its scope and its args.
+# Each write or read installs a new bag in this context, with new Continuation objects.
+_armed: ContextVar[WeakKeyDictionary | None] = ContextVar(
     "ux_behavior_armed_continuations", default=None
 )
+
+
+class _ContinuationScope:
+    """Identity for one Behavior's armed table. Weak-key, not a bare object()."""
+
+    __slots__ = ("__weakref__",)
 
 
 @dataclass
@@ -66,23 +74,52 @@ def follow_up(
     return item
 
 
+def _clone_continuation(item: Continuation) -> Continuation:
+    """New Continuation. ``args`` and ``args_from`` are copied."""
+    return Continuation(
+        event=item.event,
+        action=item.action,
+        args=dict(item.args),
+        args_from=dict(item.args_from),
+    )
+
+
+def _copy_bag(bag: WeakKeyDictionary | None) -> WeakKeyDictionary:
+    """Weak copy. Each Continuation belongs to the destination bag only."""
+    copied: WeakKeyDictionary = WeakKeyDictionary()
+    if not bag:
+        return copied
+    for key, table in list(bag.items()):
+        copied[key] = {
+            event: _clone_continuation(item) for event, item in table.items()
+        }
+    return copied
+
+
+def _local_bag() -> WeakKeyDictionary | None:
+    """Install this context's own bag so a copied context does not share objects."""
+    bag = _armed.get()
+    if not bag:
+        return None
+    local = _copy_bag(bag)
+    _armed.set(local)
+    return local
+
+
 def _armed_continuations(scope: object) -> dict[str, Continuation]:
     """Continuations armed in this context for one Behavior scope."""
-    bag = _armed.get()
+    bag = _local_bag()
     if not bag:
         return {}
     return dict(bag.get(scope) or {})
 
 
 def _arm_continuation(scope: object, item: Continuation) -> None:
-    """Store ``item`` for this context only. Parent contexts keep their bag."""
-    bag = _armed.get()
-    new_bag: dict[object, dict[str, Continuation]] = {}
-    if bag:
-        for key, table in bag.items():
-            new_bag[key] = dict(table)
-    table = new_bag.setdefault(scope, {})
-    table[item.event] = item
+    """Store a copy of ``item`` for this context only. Parent bags stay put."""
+    new_bag = _copy_bag(_armed.get())
+    table = dict(new_bag.get(scope) or {})
+    table[item.event] = _clone_continuation(item)
+    new_bag[scope] = table
     _armed.set(new_bag)
 
 
