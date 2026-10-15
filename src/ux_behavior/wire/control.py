@@ -10,12 +10,27 @@ import inspect
 import json
 from typing import Any
 
+from ux_behavior.action import (
+    _action_instance,
+    _action_verb_name,
+    _is_action,
+    _unwrap_action_fn,
+)
 from ux_behavior.wire.attach import UX_ACTION_KEY
 
 
-def resolve_action_name(behavior: Any, action: Any) -> str:
+def resolve_action_name(_behavior: Any, action: Any) -> str:
+    """Name a control target.
+
+    The Behavior argument stays for existing positional callers. The name comes
+    from the action. A bound ``@action`` uses the same verb as ``bind`` / ``.ui``.
+    """
     if isinstance(action, str):
         return action
+    if _is_action(action):
+        return _action_verb_name(
+            _unwrap_action_fn(action), _action_instance(action)
+        )
     if not callable(action):
         raise TypeError(f"control target is not callable: {type(action).__name__}")
     if inspect.ismethod(action):

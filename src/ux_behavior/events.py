@@ -17,6 +17,11 @@ from typing import Any
 _pending: ContextVar[list["Continuation"] | None] = ContextVar(
     "ux_behavior_follow_ups", default=None
 )
+# Armed continuations, per contextvars context, then per Behavior scope.
+# Copy-on-write: a child context that arms an event does not mutate the parent bag.
+_armed: ContextVar[dict[object, dict[str, "Continuation"]] | None] = ContextVar(
+    "ux_behavior_armed_continuations", default=None
+)
 
 
 @dataclass
@@ -59,6 +64,26 @@ def follow_up(
         )
     bucket.append(item)
     return item
+
+
+def _armed_continuations(scope: object) -> dict[str, Continuation]:
+    """Continuations armed in this context for one Behavior scope."""
+    bag = _armed.get()
+    if not bag:
+        return {}
+    return dict(bag.get(scope) or {})
+
+
+def _arm_continuation(scope: object, item: Continuation) -> None:
+    """Store ``item`` for this context only. Parent contexts keep their bag."""
+    bag = _armed.get()
+    new_bag: dict[object, dict[str, Continuation]] = {}
+    if bag:
+        for key, table in bag.items():
+            new_bag[key] = dict(table)
+    table = new_bag.setdefault(scope, {})
+    table[item.event] = item
+    _armed.set(new_bag)
 
 
 def _begin_follow_ups() -> Any:

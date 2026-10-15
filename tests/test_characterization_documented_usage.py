@@ -427,7 +427,6 @@ def test_tutorial_06_follow_up_emit_with_fixed_args():
         app.emit("missing")
 
 
-@pytest.mark.xfail(strict=True, reason="S1 args_from forwards source key")
 def test_tutorial_06_args_from_emit_maps_id_to_order_id():
     """Tutorial 06: emit(id=99) fills confirm(order_id=...) via args_from."""
 

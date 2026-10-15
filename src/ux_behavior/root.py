@@ -15,7 +15,13 @@ from ux_behavior.client_risk import check_client_write
 from ux_behavior.diagnostics import Diagnostics
 from ux_behavior.domains import DomainTable, default_table
 from ux_behavior.errors import AuthorityError, ContinuationError, ValidationError
-from ux_behavior.events import Continuation, _begin_follow_ups, _end_follow_ups
+from ux_behavior.events import (
+    Continuation,
+    _arm_continuation,
+    _armed_continuations,
+    _begin_follow_ups,
+    _end_follow_ups,
+)
 from ux_behavior.fields import Field, plane_storage_key, ref_field_names
 from ux_behavior.ops import Op, update
 from ux_behavior.planes import MISSING
@@ -59,7 +65,7 @@ class Behavior:
         self._components: dict[str, Any] = {}
         self.domains = domains or default_table()
         self.state = StateAPI(self)
-        self._continuations: dict[str, Continuation] = {}
+        self._continuation_scope = object()
         self._preview = False
         self._cores_available: dict[str, bool] = {
             "ux_dom": False,
@@ -148,7 +154,7 @@ class Behavior:
 
     @property
     def continuations(self) -> dict[str, Continuation]:
-        return dict(self._continuations)
+        return _armed_continuations(self._continuation_scope)
 
     @property
     def is_preview(self) -> bool:
@@ -309,7 +315,7 @@ class Behavior:
         pending: list[Continuation],
     ) -> list[Op]:
         for item in pending:
-            self._continuations[item.event] = item
+            _arm_continuation(self._continuation_scope, item)
             self.diagnostics.info(
                 "CONTINUATION_ARMED",
                 f"follow_up {item.event!r} → {item.action}",
@@ -347,7 +353,7 @@ class Behavior:
         self, event: str, slots: dict[str, Any]
     ) -> tuple[str, dict[str, Any]]:
         event = str(event or "").strip()
-        item = self._continuations.get(event)
+        item = _armed_continuations(self._continuation_scope).get(event)
         if item is None:
             self.diagnostics.error(
                 "CONTINUATION_MISSING",
@@ -356,12 +362,15 @@ class Behavior:
             )
             raise ContinuationError(f"no continuation for event {event!r}")
         resolved = dict(item.args)
+        consumed: set[str] = set()
         for dest, src in item.args_from.items():
             if src in slots:
                 resolved[dest] = slots[src]
+                consumed.add(src)
         for key, value in slots.items():
-            if key not in resolved:
-                resolved[key] = value
+            if key in consumed or key in resolved:
+                continue
+            resolved[key] = value
         return item.action, resolved
 
     def dispatch(self, action: str, **kwargs: Any) -> list[Op]:

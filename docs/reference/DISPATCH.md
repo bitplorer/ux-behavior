@@ -72,4 +72,4 @@ Undeclared `(ns, name)` → `PermissionError` + `STAMP_REJECT`.
 
 - One Behavior instance is **not** claimed thread-safe for concurrent dispatch on shared Component state.
 - ASGI: one request → one dispatch await; avoid sharing mutable Component instances across in-flight requests without external locking.
-- Continuations dict is per Behavior instance.
+- Armed continuations are per Behavior and per `contextvars` context. Callers that share a context still overwrite the same event name. A copied context keeps its own table after the copy.

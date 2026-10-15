@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextvars
+
 import pytest
 
 from ux_behavior import (
@@ -74,3 +76,128 @@ def test_strict_caps_off():
     app = Behavior.boot(strict_caps=False)
     app.add(Orders)
     assert app.dispatch("orders.secure")
+
+
+def test_emit_keeps_unmapped_slots_when_args_from_is_empty():
+    """emit(order_id=...) still binds when follow_up stored no args_from map."""
+
+    class Desk(Component):
+        id = "desk"
+        last = MorphState("")
+
+        def render(self):
+            return f"<div>{self.last}</div>"
+
+        @action(caps=())
+        def arm(self):
+            follow_up("paid", "desk.finish")
+            return None
+
+        @action(caps=())
+        def finish(self, order_id: int = 0, note: str = ""):
+            self.last = f"{order_id}:{note}"
+            return None
+
+    app = Behavior.boot()
+    app.add(Desk)
+    app.dispatch("desk.arm")
+    app.emit("paid", order_id=7, note="rush")
+    assert app.get("desk").last == "7:rush"
+
+
+def test_args_from_drops_consumed_source_and_keeps_other_slots():
+    """Mapped emit keys are not forwarded. Unmapped emit keys still bind."""
+
+    class Desk(Component):
+        id = "desk"
+        last = MorphState("")
+
+        def render(self):
+            return f"<div>{self.last}</div>"
+
+        @action(caps=())
+        def arm(self):
+            follow_up("paid", "desk.finish", args_from={"order_id": "id"})
+            return None
+
+        @action(caps=())
+        def finish(self, order_id: int = 0, note: str = ""):
+            self.last = f"{order_id}:{note}"
+            return None
+
+    app = Behavior.boot()
+    app.add(Desk)
+    app.dispatch("desk.arm")
+    app.emit("paid", id=99, note="rush")
+    assert app.get("desk").last == "99:rush"
+
+
+def _armed_order(app: Behavior) -> str:
+    return str(app.continuations["paid"].args["order"])
+
+
+def test_armed_continuation_stays_in_the_context_that_armed_it():
+    """Two contexts on one Behavior must not see each other's emit target."""
+
+    class Desk(Component):
+        id = "desk"
+
+        def render(self):
+            return "<div id='desk'></div>"
+
+        @action(caps=())
+        def arm(self, order: str = ""):
+            follow_up("paid", "desk.finish", order=order)
+            return None
+
+        @action(caps=())
+        def finish(self, order: str = ""):
+            return None
+
+    app = Behavior.boot()
+    app.add(Desk)
+
+    def arm(order: str) -> None:
+        app.dispatch("desk.arm", order=order)
+
+    ctx_a = contextvars.copy_context()
+    ctx_b = contextvars.copy_context()
+    ctx_a.run(arm, "alice")
+    ctx_b.run(arm, "bob")
+
+    assert ctx_a.run(_armed_order, app) == "alice"
+    assert ctx_b.run(_armed_order, app) == "bob"
+    assert "paid" not in app.continuations
+
+
+def test_copied_context_does_not_replace_the_parent_continuation():
+    """A write in a copied context must not change the parent's armed event."""
+
+    class Desk(Component):
+        id = "desk"
+
+        def render(self):
+            return "<div id='desk'></div>"
+
+        @action(caps=())
+        def arm(self, order: str = ""):
+            follow_up("paid", "desk.finish", order=order)
+            return None
+
+        @action(caps=())
+        def finish(self, order: str = ""):
+            return None
+
+    app = Behavior.boot()
+    app.add(Desk)
+
+    def arm_and_copy(order: str) -> contextvars.Context:
+        app.dispatch("desk.arm", order=order)
+        return contextvars.copy_context()
+
+    parent = contextvars.copy_context()
+    child = parent.run(arm_and_copy, "alice")
+    child.run(app.dispatch, "desk.arm", order="bob")
+
+    assert parent.run(_armed_order, app) == "alice"
+    assert child.run(_armed_order, app) == "bob"
