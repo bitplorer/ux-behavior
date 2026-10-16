@@ -11,7 +11,7 @@ For **each** pattern family in the repo, the same axes apply:
 
 - **UI chrome** (tabs, menu, modal open, carousel, toasts queue) → almost always `caps=()`; matrix = sync + async entry both work; protected rarely used.
 - **Domain mutations** (place order, bulk delete, pay finish, restore version) → `caps=("…",)`; matrix = refuse offline, allow trust/_trusted/live.
-- **Mixed flows** (checkout start public + finish protected via emit) → public arm + trusted continuation.
+- **Mixed flows** (checkout start public + finish protected via emit) → public arm; the trusted host emits the protected finish inside `app.trust()`.
 
 Automated: `tests/test_examples_matrix.py`.
 
