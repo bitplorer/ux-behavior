@@ -7,6 +7,9 @@ bypass recipes (trust / _trusted) in exception text or diagnostics.
 
 from __future__ import annotations
 
+from contextvars import ContextVar
+from dataclasses import replace
+
 import importlib.util
 from contextlib import contextmanager
 from typing import Any, Callable, Iterable, Iterator, Type
@@ -19,6 +22,7 @@ from ux_behavior.events import (
     Continuation,
     _ContinuationScope,
     _arm_continuation,
+    _disarm_continuation,
     _armed_continuations,
     _begin_follow_ups,
     _end_follow_ups,
@@ -40,6 +44,9 @@ def _public_state(inst: Any) -> dict[str, Any]:
             continue
         out[key] = value
     return out
+
+
+_TRUST_SCOPE: ContextVar[frozenset] = ContextVar("ux_behavior_trust_scope", default=frozenset())
 
 
 class Behavior:
@@ -73,6 +80,7 @@ class Behavior:
             "ux_channel": False,
         }
         self._wire: Any = None
+        self._trust_key = object()
         self._region_render: Callable[[], Any] | None = None
         self._region_uid: str | None = None
 
@@ -174,14 +182,20 @@ class Behavior:
 
     @contextmanager
     def trust(self) -> Iterator["Behavior"]:
-        prev = self.strict_caps
-        self.strict_caps = False
-        self.diagnostics.warn("TRUST_ON", "strict_caps disabled in trust() context")
+        """Trust calls made in this context only (contextvar, per task/thread).
+
+        ``strict_caps`` is not touched, so concurrent requests stay checked.
+        """
+        token = _TRUST_SCOPE.set(_TRUST_SCOPE.get() | {self._trust_key})
+        self.diagnostics.warn("TRUST_ON", "Cap checks skipped in this trust() context")
         try:
             yield self
         finally:
-            self.strict_caps = prev
-            self.diagnostics.info("TRUST_OFF", "strict_caps restored")
+            _TRUST_SCOPE.reset(token)
+            self.diagnostics.info("TRUST_OFF", "trust() context closed")
+
+    def _is_trusted(self, trusted: bool) -> bool:
+        return bool(trusted) or self._trust_key in _TRUST_SCOPE.get()
 
     def use(self, *names: str) -> "Behavior":
         self.domains.use(*names)
@@ -275,7 +289,7 @@ class Behavior:
 
     def _require_caps(self, fn: Any, action: str, *, trusted: bool) -> None:
         caps = tuple(getattr(fn, "_ux_behavior_caps", ()) or ())
-        if not caps or trusted or self._wire is not None:
+        if not caps or trusted:
             return
         if self.strict_caps:
             self.diagnostics.error(
@@ -314,9 +328,11 @@ class Behavior:
         before: dict[str, Any],
         result: Any,
         pending: list[Continuation],
+        *,
+        trusted: bool = False,
     ) -> list[Op]:
         for item in pending:
-            _arm_continuation(self._continuation_scope, item)
+            _arm_continuation(self._continuation_scope, replace(item, trusted=trusted))
             self.diagnostics.info(
                 "CONTINUATION_ARMED",
                 f"follow_up {item.event!r} → {item.action}",
@@ -375,7 +391,7 @@ class Behavior:
         return item.action, resolved
 
     def dispatch(self, action: str, **kwargs: Any) -> list[Op]:
-        trusted = bool(kwargs.pop("_trusted", False))
+        trusted = self._is_trusted(kwargs.pop("_trusted", False))
         component_id, inst, fn = self._resolve(action)
         if getattr(fn, "_ux_behavior_async", False):
             raise TypeError(
@@ -393,10 +409,10 @@ class Behavior:
             result = fn(**clean)
         finally:
             pending = _end_follow_ups(token)
-        return self._finish(action, component_id, inst, before, result, pending)
+        return self._finish(action, component_id, inst, before, result, pending, trusted=trusted)
 
     async def async_dispatch(self, action: str, **kwargs: Any) -> list[Op]:
-        trusted = bool(kwargs.pop("_trusted", False))
+        trusted = self._is_trusted(kwargs.pop("_trusted", False))
         component_id, inst, fn = self._resolve(action)
         self._require_caps(fn, action, trusted=trusted)
         try:
@@ -413,7 +429,7 @@ class Behavior:
                 result = fn(**clean)
         finally:
             pending = _end_follow_ups(token)
-        return self._finish(action, component_id, inst, before, result, pending)
+        return self._finish(action, component_id, inst, before, result, pending, trusted=trusted)
 
     def submit(
         self,
@@ -435,13 +451,21 @@ class Behavior:
         payload.update(kwargs)
         return await self.async_dispatch(action, **payload)
 
+    def _armed_trust(self, event: str) -> bool:
+        item = _armed_continuations(self._continuation_scope).get(str(event or "").strip())
+        return bool(getattr(item, "trusted", False))
+
     def emit(self, event: str, **slots: Any) -> list[Op]:
+        trusted = self._armed_trust(event)
         action, resolved = self._continuation_args(event, slots)
-        return self.dispatch(action, _trusted=True, **resolved)
+        _disarm_continuation(self._continuation_scope, str(event or "").strip())  # single use
+        return self.dispatch(action, _trusted=trusted, **resolved)
 
     async def async_emit(self, event: str, **slots: Any) -> list[Op]:
+        trusted = self._armed_trust(event)
         action, resolved = self._continuation_args(event, slots)
-        return await self.async_dispatch(action, _trusted=True, **resolved)
+        _disarm_continuation(self._continuation_scope, str(event or "").strip())  # single use
+        return await self.async_dispatch(action, _trusted=trusted, **resolved)
 
     def _check_stamp(self, ops: list[Op]) -> None:
         for op in ops:
