@@ -97,7 +97,9 @@ def test_sync_protected_trust_and_trusted():
 def test_sync_emit_protected_continuation():
     app = _app(strict_caps=True)
     app.dispatch("demo.start_flow")
-    app.emit("done")
+    # 0.4.0: emit inherits the arming caller's trust; the trusted host (webhook) emits.
+    with app.trust():
+        app.emit("done")
     assert app.get("demo").n == 9
 
 
@@ -147,7 +149,9 @@ async def test_async_entry_sync_protected_trusted():
 async def test_async_emit_sync_protected_continuation():
     app = _app(strict_caps=True)
     app.dispatch("demo.start_flow")
-    await app.async_emit("done")
+    # 0.4.0: emit inherits the arming caller's trust; the trusted host (webhook) emits.
+    with app.trust():
+        await app.async_emit("done")
     assert app.get("demo").n == 9
 
 
@@ -183,7 +187,9 @@ async def test_async_entry_async_protected_trusted_and_trust():
 async def test_async_emit_async_protected_continuation():
     app = _app(strict_caps=True)
     app.dispatch("demo.start_async_flow")
-    await app.async_emit("adone")
+    # 0.4.0: emit inherits the arming caller's trust; the trusted host (webhook) emits.
+    with app.trust():
+        await app.async_emit("adone")
     assert app.get("demo").n == 11
 
 

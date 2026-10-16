@@ -389,6 +389,8 @@ class _Server:
                             },
                         )
                     if path == "/emit":
+                        # Test edge only. A real Host exposes emit to trusted code
+                        # (verified webhook) only; continuations are single-use.
                         ops = outer.app.emit(str(data.get("event") or ""))
                         return self._json(
                             200,
@@ -527,9 +529,10 @@ def test_online_checkout_emit(online):
     app, srv = online
     code, body = srv.post("/dispatch", {"action": "checkout.start", "args": {}})
     assert code == 200 and body["ok"]
+    # 0.4.0: anonymous /emit must not complete a protected follow-up.
     code, body = srv.post("/emit", {"event": "paid"})
-    assert code == 200 and body["ok"]
-    assert app.get("checkout").status == "paid"
+    assert code == 403 and not body["ok"]
+    assert app.get("checkout").status != "paid"
 
 
 def test_online_state_after_public(online):

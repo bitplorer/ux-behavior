@@ -23,7 +23,7 @@ Action:  sync def  |  async def
 | `()` public | allow | allow | allow |
 | `("dom.write",)` | **AuthorityError** | allow | allow if Cap verifies |
 
-`emit` / `async_emit` always dispatch the continuation with `_trusted=True`.
+`emit` / `async_emit` dispatch the continuation with the arming caller's trust (0.4.0), or the emitter's own `app.trust()` context. They never grant trust.
 
 ---
 
@@ -127,7 +127,7 @@ For **every protected** action:
 | X4 | offline + `with trust(): async_dispatch` | success |
 | X5 | offline + `dispatch(..., _trusted=True)` | success |
 | X6 | offline + `async_dispatch(..., _trusted=True)` | success |
-| X7 | if continuation: `emit` / `async_emit` | success (trusted) |
+| X7 | if continuation: `emit` / `async_emit` | success if the arming caller or emitter is trusted; else AuthorityError |
 
 Optional live (Channel installed):
 

@@ -441,7 +441,9 @@ async def test_protected_async_action_trusted(action, kwargs):
 def test_checkout_emit_sync():
     app = build()
     app.dispatch("checkout.start")
-    app.emit("paid")
+    # 0.4.0: emit inherits the arming caller's trust; the trusted host (webhook) emits.
+    with app.trust():
+        app.emit("paid")
     assert app.get("checkout").status == "paid"
 
 
@@ -449,7 +451,9 @@ def test_checkout_emit_sync():
 async def test_checkout_async_emit_sync_finish():
     app = build()
     app.dispatch("checkout.start")
-    await app.async_emit("paid")
+    # 0.4.0: emit inherits the arming caller's trust; the trusted host (webhook) emits.
+    with app.trust():
+        await app.async_emit("paid")
     assert app.get("checkout").status == "paid"
 
 
@@ -457,7 +461,9 @@ async def test_checkout_async_emit_sync_finish():
 async def test_checkout_async_emit_async_finish():
     app = build()
     app.dispatch("checkout.start_async_finish")
-    await app.async_emit("apaid")
+    # 0.4.0: emit inherits the arming caller's trust; the trusted host (webhook) emits.
+    with app.trust():
+        await app.async_emit("apaid")
     assert app.get("checkout").status == "paid"
 
 

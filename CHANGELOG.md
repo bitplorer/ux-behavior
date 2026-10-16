@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+## 0.4.0
+
+### Security (breaking)
+
+- Attaching a Channel no longer disables the in-process Cap check.
+  ``Behavior._require_caps`` used to return early whenever ``_wire`` was set, so
+  any host code calling ``dispatch()`` on a capped action, for example an HTTP
+  ``/act`` fall-through, ran it with no authority. Now only ``_trusted=True`` or
+  ``strict_caps=False`` skips the check. The Channel handlers in
+  ``wire/attach.py`` already pass ``_trusted=True`` after the Channel has
+  verified the Cap, so the live path is unchanged. Migration: host code that
+  dispatches a capped action after attach must go through the Channel
+  (``submit_intent`` with a minted Cap) or pass ``_trusted=True`` on purpose.
+- ``emit`` / ``async_emit`` no longer dispatch as trusted. A follow-up
+  inherits the trust of the dispatch that armed it (stored on
+  ``Continuation.trusted``), or the emitter's own ``app.trust()`` context.
+  Migration: a public action that arms a protected finish needs the trusted
+  host (e.g. a verified webhook) to emit inside ``app.trust()``.
+- ``trust()`` is per context (contextvar), not a flip of the shared
+  ``strict_caps``. Concurrent async requests outside the block stay checked,
+  and ``strict_caps`` reads the same inside and outside.
+- Continuations are single-use per context: the first ``emit`` disarms the
+  event, and a second ``emit`` in that context raises ``ContinuationError``.
+  Tasks forked after arming each hold their own copy, and separate requests
+  cannot replay each other's follow-ups. Delivery is at-most-once: the event is
+  removed before its action runs, so it is lost if the action fails or is
+  refused. This is intentional, so a refund never runs twice. Only trusted host code may
+  expose ``emit`` (see docs/reference/SECURITY.md).
+
 ### Changed
 
 - Python floor raised to ≥3.14 (matches ux-compose / ux-dom). Classifiers are

@@ -94,7 +94,7 @@ class Demo(Component):
 | protected | yes | yes | **runs** |
 | protected | `strict_caps=False` | no | **runs** (dev) |
 
-Same rows for **`submit`**. Same Cap rules for **`emit`** target action (emit always passes `_trusted=True`).
+Same rows for **`submit`**. Same Cap rules for **`emit`** target action (emit inherits the arming caller's trust; it never grants it).
 
 ---
 
@@ -147,7 +147,8 @@ app.dispatch("demo.protected_set", n=4, _trusted=True)
 
 ```python
 app.dispatch("demo.start_flow")
-app.emit("done")  # protected_set via _trusted
+with app.trust():  # trusted host emits
+    app.emit("done")  # protected_set
 assert app.get("demo").n == 9
 ```
 

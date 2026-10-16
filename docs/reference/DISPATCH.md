@@ -60,7 +60,7 @@ follow_up(event, action, *, args_from=None, **args)
 - Must run inside step 7–9 context; otherwise `RuntimeError`.
 - Overwrites prior continuation for the same `event` name on this Behavior in the same `contextvars` context. Callers that share a context overwrite each other. A copied context keeps its own armed event.
 - `emit` merges: fixed `args`, then `args_from` mapping from slots, then extra slots. A source key that was copied onto its destination is consumed and is not forwarded. Slots that were not consumed are still forwarded.
-- Continuation dispatch uses `_trusted=True` (armed under an already authorized action). Hosts that expose raw `emit` on the network must still authenticate the caller.
+- Continuation dispatch inherits the trust of the dispatch that armed it (0.4.0). A follow-up armed by an anonymous public action is checked like any untrusted call. A trusted host (e.g. a verified payment webhook) emits inside `app.trust()` or arms from a `_trusted=True` dispatch.
 
 ## 5. Stamp
 

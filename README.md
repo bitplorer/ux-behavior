@@ -19,7 +19,7 @@ Optional live Caps via [`ux-channel`](https://github.com/bitplorer/ux-channel).
 | **PyPI / pip** | `ux-behavior` |
 | **Import** | `ux_behavior` |
 | **CLI** | **`uxbehavior`** |
-| **Version** | `0.3.2` |
+| **Version** | `0.4.0` |
 
 This layer **owns product behavior**. It does not own raw HTML construction or
 wire codecs. Markup stays in ux-dom. Caps/wire stay in ux-channel.

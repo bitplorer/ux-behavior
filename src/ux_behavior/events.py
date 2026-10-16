@@ -39,6 +39,9 @@ class Continuation:
     action: str
     args: dict[str, Any] = field(default_factory=dict)
     args_from: dict[str, str] = field(default_factory=dict)
+    # Trust of the dispatch that armed this follow-up. emit() inherits it;
+    # it never grants trust on its own.
+    trusted: bool = field(default=False, compare=False)
 
 
 def follow_up(
@@ -101,6 +104,7 @@ def _clone_continuation(item: Continuation) -> Continuation:
         action=item.action,
         args=_copy_mapping(item.args),
         args_from=_copy_mapping(item.args_from),
+        trusted=item.trusted,
     )
 
 
@@ -139,6 +143,15 @@ def _arm_continuation(scope: object, item: Continuation) -> None:
     new_bag = _copy_bag(_armed.get())
     table = dict(new_bag.get(scope) or {})
     table[item.event] = _clone_continuation(item)
+    new_bag[scope] = table
+    _armed.set(new_bag)
+
+
+def _disarm_continuation(scope: object, event: str) -> None:
+    """Drop ``event`` for this context: a continuation fires at most once."""
+    new_bag = _copy_bag(_armed.get())
+    table = dict(new_bag.get(scope) or {})
+    table.pop(event, None)
     new_bag[scope] = table
     _armed.set(new_bag)
 
