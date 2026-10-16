@@ -33,7 +33,8 @@ Protected action runs only if one of:
 
 1. `dispatch(..., _trusted=True)`
 2. `with app.trust():`
-3. `app._wire is not None` (attached)
+
+Attaching a Channel does **not** skip this check (0.4.0). The Channel's own handler passes `_trusted=True` only after it has verified the Cap.
 
 Otherwise: `AuthorityError` + diagnostic `CAP_REQUIRED` + **hint**.
 
@@ -54,7 +55,28 @@ with app.trust():
     ...
 ```
 
-Emits diagnostic `TRUST_ON` / `TRUST_OFF`. Intended for **tests** and controlled Host admin tooling. Not for ordinary request handlers.
+Scoped to the current context (contextvar, 0.4.0): other tasks and threads stay checked, and `strict_caps` is not changed. Emits diagnostic `TRUST_ON` / `TRUST_OFF`. Intended for **tests** and controlled Host admin tooling. Not for ordinary request handlers.
+
+> **Warning:** trust is carried by the current context. Tasks created inside the
+> block (`asyncio.create_task`, `TaskGroup`, `loop.run_in_executor` with a copied
+> context) copy that context and **inherit trust**, even after the block
+> exits. Do not spawn background work inside `trust()` unless that work is
+> itself trusted.
+
+### Follow-ups (`follow_up` / `emit`)
+
+- A continuation fires **once per context**. After the first `emit`, a second
+  `emit` of the same event in that context raises `ContinuationError`.
+  Continuations live in a contextvar: tasks forked after arming each get their
+  own copy, and separate requests cannot see or replay each other's follow-ups.
+- Delivery is **at-most-once**. The continuation is removed *before* its action
+  runs, so it is lost if that action fails or is refused (re-arm it to retry).
+  This is intentional: a refund or payment step never runs twice.
+- The continuation runs with the trust of the dispatch that armed it, or the
+  emitter's own `trust()` context. `emit` never grants trust.
+- Only trusted host code may expose `emit` (for example, a webhook that has
+  verified the provider's signature). Never route an unauthenticated request to
+  `emit`: a continuation armed by trusted code would run with that trust.
 
 ## 3. control() and Cap mint
 
