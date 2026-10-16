@@ -216,7 +216,9 @@ async def test_offline_extra_protected_async():
 def test_offline_extra_emit():
     app = _offline_app()
     app.dispatch("sec.start")
-    app.emit("sec.done")
+    # 0.4.0: emit inherits the arming caller's trust; the trusted host (webhook) emits.
+    with app.trust():
+        app.emit("sec.done")
     assert app.get("sec").n == 9
 
 
@@ -385,6 +387,7 @@ def test_online_async_dispatch_protected_trusted(edge):
 def test_online_async_emit(edge):
     app, e = edge
     e.post("/dispatch", {"action": "pay.start", "args": {}})
+    # 0.4.0: an anonymous edge emit no longer inherits a grant it never had.
     code, body = e.post("/async_emit", {"event": "paid"})
-    assert code == 200 and body["ok"]
-    assert app.get("pay").status == "paid"
+    assert code == 403 and not body["ok"]
+    assert app.get("pay").status != "paid"
