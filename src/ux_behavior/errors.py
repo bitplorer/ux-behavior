@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 
-
 class BehaviorError(Exception):
     """Base. ``hint`` is the natural next step for Hosts/developers."""
 
