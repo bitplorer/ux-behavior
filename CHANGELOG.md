@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 0.4.1
+
+### Removed — dead imports (no API change)
+
+- Unused imports: `typing.Any` (`errors.py`), `typing.Mapping` and
+  `planes.DictBackend` (`state_api.py`), `wire.compose.Conflict`
+  (`wire/result.py`), plus unused imports and placeholder-less f-strings in tests.
+- `tests/test_no_unused_imports.py` (stdlib only) keeps them gone.
+
+### Kept on purpose
+
+- `ComponentProtocol.__render__(pretty=False, **kw)` / `__async_render__` and the
+  `Component` stubs keep `pretty` / `**kw`: they are the cross-library render
+  protocol that ux-dom and ux-compose implement and call with `pretty=False`.
+- `ActionMethod.__get__(obj, objtype=None)`: Python's descriptor protocol
+  passes `objtype`; removing it would break class-level attribute access.
+
 ## 0.4.0
 
 ### Security (breaking)

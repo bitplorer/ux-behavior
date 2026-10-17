@@ -33,7 +33,7 @@ class Accordion(Component):
     open_id = MorphState("")
 
     def render(self):
-        return f"<div id='accordion'></div>"
+        return "<div id='accordion'></div>"
 
     @action(caps=())
     def toggle(self, id: str = ""):
@@ -50,7 +50,7 @@ class Drawer(Component):
     open_flag = MorphState(False)
 
     def render(self):
-        return f"<div id='drawer'></div>"
+        return "<div id='drawer'></div>"
 
     @action(caps=())
     def show(self):
@@ -68,7 +68,7 @@ class Filters(Component):
     q = MorphState("")
 
     def render(self):
-        return f"<div id='filters'></div>"
+        return "<div id='filters'></div>"
 
     @action(caps=())
     def apply(self, q: str = ""):
@@ -87,7 +87,7 @@ class Typeahead(Component):
     hits = MorphState(())
 
     def render(self):
-        return f"<div id='typeahead'></div>"
+        return "<div id='typeahead'></div>"
 
     @action(caps=())
     def type(self, q: str = ""):
@@ -106,7 +106,7 @@ class Menu(Component):
     value = MorphState("")
 
     def render(self):
-        return f"<div id='menu'></div>"
+        return "<div id='menu'></div>"
 
     @action(caps=())
     def toggle(self):
@@ -124,7 +124,7 @@ class Sec(Component):
     n = MorphState(0)
 
     def render(self):
-        return f"<div id='sec'></div>"
+        return "<div id='sec'></div>"
 
     @action(caps=("sec.write",))
     def write(self, n: int = 0):
@@ -227,7 +227,7 @@ class Pub(Component):
     n = MorphState(0)
 
     def render(self):
-        return f"<div id='pub'></div>"
+        return "<div id='pub'></div>"
 
     @action(caps=())
     def inc(self):
@@ -245,7 +245,7 @@ class Pay(Component):
     status = MorphState("idle")
 
     def render(self):
-        return f"<div id='pay'></div>"
+        return "<div id='pay'></div>"
 
     @action(caps=())
     def start(self):
