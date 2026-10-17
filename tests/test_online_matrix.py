@@ -59,7 +59,7 @@ class Toasts(Component):
     _seq = RefState(0)
 
     def render(self):
-        return f"<div id='toasts'></div>"
+        return "<div id='toasts'></div>"
 
     @action(caps=())
     def push(self, message: str = ""):
@@ -74,7 +74,7 @@ class Modal(Component):
     open_flag = MorphState(False)
 
     def render(self):
-        return f"<div id='modal'></div>"
+        return "<div id='modal'></div>"
 
     @action(caps=())
     def show(self):
@@ -101,7 +101,7 @@ class Confirm(Component):
     target = RefState("")
 
     def render(self):
-        return f"<div id='confirm'></div>"
+        return "<div id='confirm'></div>"
 
     @action(caps=())
     def ask(self, id: str = ""):
@@ -121,7 +121,7 @@ class Grid(Component):
     _req = RefState(0)
 
     def render(self):
-        return f"<div id='grid'></div>"
+        return "<div id='grid'></div>"
 
     @action(caps=())
     def more(self):
@@ -144,7 +144,7 @@ class Like(Component):
     count = MorphState(0)
 
     def render(self):
-        return f"<div id='like'></div>"
+        return "<div id='like'></div>"
 
     @action(caps=())
     def toggle(self):
@@ -158,7 +158,7 @@ class Table(Component):
     selected = MorphState(())
 
     def render(self):
-        return f"<div id='table'></div>"
+        return "<div id='table'></div>"
 
     @action(caps=())
     def toggle(self, id: str = ""):
@@ -178,7 +178,7 @@ class Checkout(Component):
     status = MorphState("idle")
 
     def render(self):
-        return f"<div id='checkout'></div>"
+        return "<div id='checkout'></div>"
 
     @action(caps=())
     def start(self):
@@ -197,7 +197,7 @@ class Form(Component):
     name = MorphState("")
 
     def render(self):
-        return f"<form id='form'></form>"
+        return "<form id='form'></form>"
 
     @action(caps=())
     def save(self, name: str = ""):
@@ -212,7 +212,7 @@ class Versions(Component):
     selected = MorphState("")
 
     def render(self):
-        return f"<div id='versions'></div>"
+        return "<div id='versions'></div>"
 
     @action(caps=())
     def select(self, id: str = ""):
@@ -229,7 +229,7 @@ class Tree(Component):
     expanded = MorphState(())
 
     def render(self):
-        return f"<div id='tree'></div>"
+        return "<div id='tree'></div>"
 
     @action(caps=())
     def toggle(self, id: str = ""):
@@ -247,7 +247,7 @@ class Accordion(Component):
     open_id = MorphState("")
 
     def render(self):
-        return f"<div id='accordion'></div>"
+        return "<div id='accordion'></div>"
 
     @action(caps=())
     def toggle(self, id: str = ""):
@@ -260,7 +260,7 @@ class Drawer(Component):
     open_flag = MorphState(False)
 
     def render(self):
-        return f"<div id='drawer'></div>"
+        return "<div id='drawer'></div>"
 
     @action(caps=())
     def show(self):
@@ -273,7 +273,7 @@ class Filters(Component):
     q = MorphState("")
 
     def render(self):
-        return f"<div id='filters'></div>"
+        return "<div id='filters'></div>"
 
     @action(caps=())
     def apply(self, q: str = ""):
@@ -287,7 +287,7 @@ class Typeahead(Component):
     hits = MorphState(())
 
     def render(self):
-        return f"<div id='typeahead'></div>"
+        return "<div id='typeahead'></div>"
 
     @action(caps=())
     def type(self, q: str = ""):
@@ -302,7 +302,7 @@ class Menu(Component):
     value = MorphState("")
 
     def render(self):
-        return f"<div id='menu'></div>"
+        return "<div id='menu'></div>"
 
     @action(caps=())
     def toggle(self):

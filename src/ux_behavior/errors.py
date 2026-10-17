@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 
 class BehaviorError(Exception):
     """Base. ``hint`` is the natural next step for Hosts/developers."""

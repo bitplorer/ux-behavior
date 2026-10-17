@@ -13,9 +13,9 @@ No shims. Channel attach calls ``use(..., lock=False)`` for unlocked planes.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any
 
-from ux_behavior.planes import DictBackend, MemoryPlanes, PlaneBackend
+from ux_behavior.planes import MemoryPlanes, PlaneBackend
 
 _PLANES = frozenset({"session", "client", "store"})
 
