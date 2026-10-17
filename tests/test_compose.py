@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 
 from ux_behavior.wire import Conflict, compose, lower
-from ux_behavior.ops import update
 
 
 class _Scene:

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ux_behavior.wire.compose import Conflict, compose, lower
+from ux_behavior.wire.compose import compose, lower
 
 
 class Result:
