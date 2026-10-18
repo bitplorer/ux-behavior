@@ -22,6 +22,8 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
+# Peer: render layer. Pin to ux-dom main after F-16 (F-14 alignment).
+ux-dom = ["ux-dom @ git+https://github.com/bitplorer/ux-dom.git@19af869ecbb108f3cf779111838e3359b33a8131"]
 dev = ["pytest>=8", "pytest-asyncio>=0.23"]
 channel = ["ux-channel>=0.1"]
 
