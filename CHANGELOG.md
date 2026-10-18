@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Deps:** optional ``ux-dom`` peer pinned to ``19af869`` (F-14).
+
 ## 0.4.1
 
 ### Removed — dead imports (no API change)
