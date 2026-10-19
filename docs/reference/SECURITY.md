@@ -56,6 +56,8 @@ with app.trust():
 
 Scoped to the current context (contextvar, 0.4.0): other tasks and threads stay checked, and `strict_caps` is not changed. Emits diagnostic `TRUST_ON` / `TRUST_OFF`. Intended for **tests** and controlled Host admin tooling. Not for ordinary request handlers.
 
+A task started inside `with app.trust()` keeps trust after the block ends.
+
 > **Warning:** trust is carried by the current context. Tasks created inside the
 > block (`asyncio.create_task`, `TaskGroup`, `loop.run_in_executor` with a copied
 > context) copy that context and **inherit trust**, even after the block
