@@ -26,6 +26,23 @@ class Demo(Component):
         return []
 
 
+def test_explicit_none_for_box_default_is_rejected():
+    """``2ae5c3d`` type-checks a passed ``b=None`` for ``b: Box = None``.
+
+    The call is rejected and the action does not run. Omitting ``b`` is a
+    different case and stays accepted.
+    """
+    app = Behavior.boot()
+    app.add(Demo)
+    app.dispatch("demo.go", b=None)
+    assert app.get("demo").seen == "unset"
+
+    omitted = Behavior.boot()
+    omitted.add(Demo)
+    omitted.dispatch("demo.go")
+    assert omitted.get("demo").seen is None
+
+
 def test_omitted_default_is_not_type_checked():
     app = Behavior.boot()
     app.add(Demo)
