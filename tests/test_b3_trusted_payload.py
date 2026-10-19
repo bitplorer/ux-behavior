@@ -146,6 +146,53 @@ async def test_async_emit_slot_trusted_does_not_grant_trust(
     assert any("ignoring _trusted" in record.message for record in caplog.records)
 
 
+def test_payload_from_args_trusted_is_logged(caplog: pytest.LogCaptureFixture):
+    class Ctx:
+        form: dict[str, object] = {}
+
+    with caplog.at_level(logging.WARNING, logger="ux_behavior"):
+        payload = _payload_from(Ctx(), {"_trusted": True, "sku": "tee"})
+    assert payload == {"sku": "tee"}
+    assert any("ignoring _trusted" in record.message for record in caplog.records)
+
+
+def test_payload_from_form_trusted_is_logged(caplog: pytest.LogCaptureFixture):
+    class Ctx:
+        form = {"_trusted": True, "name": "Ada"}
+
+    with caplog.at_level(logging.WARNING, logger="ux_behavior"):
+        payload = _payload_from(Ctx(), {"sku": "tee"})
+    assert payload == {"sku": "tee", "name": "Ada"}
+    assert any("ignoring _trusted" in record.message for record in caplog.records)
+
+
+async def test_async_plain_emit_logs_nothing(caplog: pytest.LogCaptureFixture):
+    class Quiet(Component):
+        id = "quiet"
+        n = 0
+
+        def render(self):
+            return "<div id='quiet'></div>"
+
+        @action(caps=())
+        def arm(self):
+            follow_up("go", "quiet.ping")
+            return []
+
+        @action(caps=())
+        def ping(self):
+            self.n = 1
+            return []
+
+    app = Behavior.boot()
+    app.add(Quiet)
+    app.dispatch("quiet.arm")
+    with caplog.at_level(logging.DEBUG, logger="ux_behavior"):
+        await app.async_emit("go")
+    assert app.get("quiet").n == 1
+    assert caplog.records == []
+
+
 def test_plain_emit_logs_nothing(caplog: pytest.LogCaptureFixture):
     """A continuation slot with no ``_trusted`` key does not warn."""
 
