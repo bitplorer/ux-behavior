@@ -79,12 +79,10 @@ def bind_action_args(fn: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
     errors: dict[str, str] = {}
 
     for name, param in sig.parameters.items():
-        if param.kind is inspect.Parameter.VAR_POSITIONAL:
-            continue
-        if param.kind is inspect.Parameter.VAR_KEYWORD:
-            extra = bound.arguments.get(name) or {}
-            if isinstance(extra, dict):
-                out.update(extra)
+        if param.kind in (
+            inspect.Parameter.VAR_POSITIONAL,
+            inspect.Parameter.VAR_KEYWORD,
+        ):
             continue
         if name not in bound.arguments:
             if param.default is inspect.Parameter.empty:
