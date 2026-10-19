@@ -192,14 +192,16 @@ A future change is legal only if it still satisfies the one-sentence contract **
 |--------------|------------|
 | Export wire helpers on top-level `__all__` | Evidence that day-1 authors need the wire more often than `update`/`notify`/`go` |
 | Add a public name | It does not create a synonym and has a clear seat |
-
-`dispatch_verified` / `async_dispatch_verified` take that seat. A second wire
-calls them with `(name, payload)` after Channel, or an equivalent check, has
-verified the Cap. The grant is the private sentinel on that one call. Tasks
-spawned inside the action do not inherit it. The sentinel stays off `__all__`.
 | Promote Host chrome into the library | 3+ independent Hosts share the exact policy |
 | Teach Channel about motion | Never under this contract |
 | Mint a fifth package | Never under this contract |
+
+`app.dispatch_verified(name, payload)` and
+`await app.async_dispatch_verified(name, payload)` take that seat. A second
+wire calls those methods after Channel, or an equivalent check, has verified
+the Cap. The grant is the private sentinel on that one call. Tasks spawned
+inside the action do not inherit it. The methods are not package-level
+exports, and the sentinel stays off `__all__`.
 
 ---
 

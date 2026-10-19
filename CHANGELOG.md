@@ -7,18 +7,24 @@
 - `_trusted=True` no longer grants trust. A payload `_trusted` value is
   dropped, and the trust argument accepts only the private sentinel.
   `dispatch(action, **body)` does not grant trust. After a Cap check, call
-  `dispatch_verified(name, payload)` or `async_dispatch_verified(name, payload)`.
+  `app.dispatch_verified(name, payload)` or
+  `await app.async_dispatch_verified(name, payload)`.
   `app.trust()` is unchanged, and a task started inside it keeps trust for
   its whole life.
 - `attach()` requires `UX_CHANNEL_SECRET` or `UX_BEHAVIOR_SECRET` outside
   dev. The published dev constant is refused even when passed explicitly.
+- `dispatch`, `async_dispatch`, `submit`, `async_submit`, `emit`,
+  `async_emit`, `dispatch_verified`, and `async_dispatch_verified` take
+  their method parameters positionally. A payload key named `action` or
+  `self` is caller data.
 
 ### Added
 
-- `dispatch_verified(name, payload)` and `async_dispatch_verified(name, payload)`
-  grant trust for that one call after a Cap check. A task started inside the
-  action does not inherit the grant. The private sentinel stays off the
-  public surface.
+- `app.dispatch_verified(name, payload)` and
+  `await app.async_dispatch_verified(name, payload)` grant trust for that
+  one call after a Cap check. A task started inside the action does not
+  inherit the grant. The private sentinel stays off the public surface.
+  The helpers are methods on the app, not package-level exports.
 
 ### Security
 

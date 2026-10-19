@@ -34,9 +34,11 @@ export `compose` / `lower` on top-level `__all__`.
 
 Day-1 (top-level `__all__`): `Behavior`, `Component`, `ComponentProtocol`,
 `MorphState`, `RefState`, `action`, `bind`, `update`, `notify`, `go`,
-`open`, `close`, `select`, `confirm`, `Op`, `follow_up`,
-`dispatch_verified`, `async_dispatch_verified`, plus error types
+`open`, `close`, `select`, `confirm`, `Op`, `follow_up`, plus error types
 and extra field types already on `__all__`.
+`app.dispatch_verified(name, payload)` and
+`await app.async_dispatch_verified(name, payload)` are methods on
+`Behavior`. They are not package-level exports.
 
 Progressive door (not on top-level `__all__`):
 

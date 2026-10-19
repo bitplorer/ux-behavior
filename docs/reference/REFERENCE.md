@@ -43,7 +43,7 @@ Behavior.boot(
 
 ### dispatch kwargs reserved
 
-- `_trusted` — private sentinel only. A bool or a spread body does not skip the Cap check. Hosts use `trust()`; the wire passes the sentinel after Channel auth.
+- `_trusted` — private sentinel only. A bool or a spread body does not skip the Cap check. A protected action runs via `app.trust()`, the wire sentinel, or `app.dispatch_verified(name, payload)` / `await app.async_dispatch_verified(name, payload)` after a Cap check.
 
 ## Component
 

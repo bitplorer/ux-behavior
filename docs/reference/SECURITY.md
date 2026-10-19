@@ -34,6 +34,7 @@ Protected action runs only if one of:
 
 1. the wire passed the private trust sentinel after Channel accepted the Cap
 2. `with app.trust():`
+3. `app.dispatch_verified(name, payload)` or `await app.async_dispatch_verified(name, payload)` after Channel, or an equivalent check, has verified the Cap
 
 Attaching a Channel does **not** skip this check (0.4.0). The Channel's own handler passes the sentinel only after it has verified the Cap. `True`, `"yes"`, and `1` are not that sentinel.
 
@@ -75,6 +76,9 @@ A task started inside `with app.trust()` keeps trust after the block ends.
   This is intentional: a refund or payment step never runs twice.
 - The continuation runs with the trust of the dispatch that armed it, or the
   emitter's own `trust()` context. `emit` never grants trust.
+- A follow-up armed by an uncapped wire call is trusted by design. The wire
+  grant is on the call, not on the action's `caps`. A public action invoked
+  through that path arms its continuation as trusted.
 - Only trusted host code may expose `emit` (for example, a webhook that has
   verified the provider's signature). Never route an unauthenticated request to
   `emit`: a continuation armed by trusted code would run with that trust.

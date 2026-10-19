@@ -11,8 +11,9 @@
 | `async_dispatch` | yes | yes |
 | `submit` / `async_submit` | same as above | merges `args` dict |
 | `emit` / `async_emit` | via dispatch family | resolves continuation first |
+| `dispatch_verified` / `async_dispatch_verified` | same as dispatch / async_dispatch | one trusted call after a Cap check |
 
-Reserved kwargs: `_trusted`. Only the module-private sentinel grants trust, and only the wire passes it, after Channel has accepted the Cap. `True`, `"yes"`, `1`, and any other value are ignored and logged. A `_trusted` entry in `submit` / `async_submit` args, a Channel form or args payload, continuation slots, or `dispatch(action, **body)` is posted data and does not grant trust. The key is stripped before binding. Hosts use `app.trust()` for tests and admin paths.
+Reserved kwargs: `_trusted`. Only the module-private sentinel grants trust. The wire passes it after Channel has accepted the Cap, and so does `app.dispatch_verified(name, payload)` / `await app.async_dispatch_verified(name, payload)`. `True`, `"yes"`, `1`, and any other value are ignored and logged. A `_trusted` entry in `submit` / `async_submit` args, a Channel form or args payload, continuation slots, or `dispatch(action, **body)` is posted data and does not grant trust. The key is stripped before binding. Hosts use `app.trust()` for tests and admin paths. `action` and `self` in a payload are caller data. The parameters of `dispatch`, `async_dispatch`, `submit`, `async_submit`, `emit`, `async_emit`, `dispatch_verified`, and `async_dispatch_verified` are positional-only, so those keys are not the method's own parameters. They bind to the action. A normal method already receives its instance as `self`, so a payload key of that name is not passed a second time.
 
 ## 2. Pipeline (ordered)
 
