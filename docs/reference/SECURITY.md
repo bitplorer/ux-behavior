@@ -47,7 +47,7 @@ Channel verifies the Cap on the request **before** the wire handler runs. The wi
 
 Do not spread request JSON into `dispatch` or `submit`. A body that contains `_trusted` is caller data. Pass a payload dict to `submit(name, payload)` / `async_submit(name, payload)`, or pass the fields you mean as explicit keywords.
 
-### trust() context
+### trust() context <a id="trust-context"></a>
 
 ```python
 with app.trust():

@@ -87,6 +87,12 @@ async def cart_add(ctx, sku: str):
     )
 ```
 
+`with app.trust()` lends trust to a task created inside the block, and that
+task keeps it for its whole life. See the
+[spawned-task warning](SECURITY.md#trust-context). A second wire that has
+already verified the Cap can call `async_dispatch_verified(name, payload)`
+instead. That grant is one call and does not spread to spawned tasks.
+
 Wire shape: `{op: "dispatch", name, target?, detail?, bubbles?}`.
 `target` is a CSS selector; omit → classic `ux-channel.js` fires on `document.body`.
 Components still return `list[Op] | None`. Stock `attach()` still `return None`.
