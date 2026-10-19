@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import importlib.util
+import logging
 import os
 import secrets
 import threading
 from typing import Any, Callable, NoReturn
+
+from ux_behavior.root import _FRAMEWORK_TRUST, _IGNORED_TRUST_LOG
 
 DEFAULT_REGION_UID = "app.root"
 UX_ACTION_KEY = "ux_action"
@@ -18,6 +21,7 @@ _PUBLIC_DEV_SECRET = "dev-secret-key-32chars-minimum!!!!"
 _DEBUG_TRUTHY = frozenset({"1", "true", "yes", "on"})
 _process_dev_secret: str | None = None
 _process_dev_secret_lock = threading.Lock()
+log = logging.getLogger("ux_behavior")
 
 
 def probe() -> dict[str, bool]:
@@ -106,12 +110,16 @@ def _resolve_attach_secret(explicit: str | None, diag: Any) -> str:
 
 def _payload_from(ctx: Any, args: dict[str, Any]) -> dict[str, Any]:
     reserved = {UX_ACTION_KEY, "_trusted"}
+    if "_trusted" in args:
+        log.warning(_IGNORED_TRUST_LOG)
     payload = {k: v for k, v in args.items() if k not in reserved}
     if ctx is not None:
         form = getattr(ctx, "form", None) or getattr(ctx, "data", None) or {}
         if isinstance(form, dict):
             for key, value in form.items():
                 if key in reserved:
+                    if key == "_trusted":
+                        log.warning(_IGNORED_TRUST_LOG)
                     continue
                 if key not in payload:
                     payload[str(key)] = value
@@ -203,7 +211,7 @@ def attach(
             return
         try:
             await behavior.async_dispatch(
-                name, _trusted=True, **_payload_from(ctx, args)
+                name, _trusted=_FRAMEWORK_TRUST, **_payload_from(ctx, args)
             )
         except Exception as exc:
             if diag is not None:
@@ -241,7 +249,7 @@ def attach(
                     diag.warn("DISPATCH_EMPTY_ACTION", "inbound event missing ux_action")
                 return None
             try:
-                behavior.dispatch(name, _trusted=True, **_payload_from(ctx, args))
+                behavior.dispatch(name, _trusted=_FRAMEWORK_TRUST, **_payload_from(ctx, args))
             except Exception as err:
                 if diag is not None:
                     diag.error(

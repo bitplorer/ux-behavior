@@ -107,7 +107,7 @@ RefState changes never trigger auto-morph.
 ## Caps in one paragraph
 
 - `@action(caps=())` — public; runs offline.
-- `@action(caps=("orders.write",))` — protected offline unless `app.trust()`, `_trusted=True`, or Channel is attached.
+- `@action(caps=("orders.write",))` — protected offline unless `app.trust()` or the wire has accepted a Cap. Attaching Channel does not skip the check by itself.
 - Cap **crypto** is only in **ux-channel**. Behavior only enforces **policy**.
 - Live: Channel authenticates the request; wire calls dispatch with trust.
 

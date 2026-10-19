@@ -18,7 +18,7 @@ boot → add → region → attach(asgi)
   → Channel boot
   → optional channel planes + drivers
 button: control(action) → Cap attrs (if mint OK)
-inbound: Channel auth → async_dispatch(..., _trusted=True)
+inbound: Channel auth → async_dispatch with the private trust sentinel
 ```
 
 ## Caps matrix
@@ -26,7 +26,7 @@ inbound: Channel auth → async_dispatch(..., _trusted=True)
 | Action caps | Offline | Attached wire |
 |-------------|---------|---------------|
 | `()` | runs | runs |
-| non-empty | **AuthorityError** unless trust/`_trusted` | runs (Channel already gated) |
+| non-empty | **AuthorityError** unless `trust()` or the wire sentinel | runs (Channel already gated) |
 
 ## Validation
 

@@ -13,6 +13,7 @@ from ux_behavior import (
     follow_up,
     notify,
 )
+from ux_behavior.root import _FRAMEWORK_TRUST
 from ux_behavior.wire.control import resolve_action_name
 
 
@@ -88,9 +89,9 @@ def test_sync_protected_trust_and_trusted():
     with app.trust():
         app.dispatch("demo.protected_set", n=3)
     assert app.get("demo").n == 3
-    app.dispatch("demo.protected_set", n=4, _trusted=True)
+    app.dispatch("demo.protected_set", n=4, _trusted=_FRAMEWORK_TRUST)
     assert app.get("demo").n == 4
-    app.submit("demo.protected_set", {"n": 5}, _trusted=True)
+    app.submit("demo.protected_set", {"n": 5}, _trusted=_FRAMEWORK_TRUST)
     assert app.get("demo").n == 5
 
 
@@ -138,7 +139,7 @@ async def test_async_entry_sync_protected_refuses():
 @pytest.mark.asyncio
 async def test_async_entry_sync_protected_trusted():
     app = _app(strict_caps=True)
-    await app.async_dispatch("demo.protected_set", n=6, _trusted=True)
+    await app.async_dispatch("demo.protected_set", n=6, _trusted=_FRAMEWORK_TRUST)
     assert app.get("demo").n == 6
     with app.trust():
         await app.async_dispatch("demo.protected_set", n=7)
@@ -176,7 +177,7 @@ async def test_async_entry_async_protected_refuses():
 @pytest.mark.asyncio
 async def test_async_entry_async_protected_trusted_and_trust():
     app = _app(strict_caps=True)
-    await app.async_dispatch("demo.protected_async_set", n=7, _trusted=True)
+    await app.async_dispatch("demo.protected_async_set", n=7, _trusted=_FRAMEWORK_TRUST)
     assert app.get("demo").n == 7
     with app.trust():
         await app.async_dispatch("demo.protected_async_set", n=8)

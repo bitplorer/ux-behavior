@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import pytest
 
+from ux_behavior.root import _FRAMEWORK_TRUST
 from ux_behavior import (
     AuthorityError,
     Behavior,
@@ -394,7 +395,7 @@ def test_protected_sync_trust(action, kwargs):
 @pytest.mark.parametrize("action,kwargs", PROTECTED_SYNC)
 def test_protected_sync_trusted_kwarg(action, kwargs):
     app = build()
-    ops = app.dispatch(action, _trusted=True, **kwargs)
+    ops = app.dispatch(action, _trusted=_FRAMEWORK_TRUST, **kwargs)
     assert ops is not None
 
 
@@ -410,7 +411,7 @@ async def test_protected_async_entry_sync_action_refuses(action, kwargs):
 @pytest.mark.asyncio
 async def test_protected_async_entry_sync_action_trusted(action, kwargs):
     app = build()
-    ops = await app.async_dispatch(action, _trusted=True, **kwargs)
+    ops = await app.async_dispatch(action, _trusted=_FRAMEWORK_TRUST, **kwargs)
     assert ops is not None
 
 
@@ -433,7 +434,7 @@ async def test_protected_async_action_refuses_offline(action, kwargs):
 @pytest.mark.asyncio
 async def test_protected_async_action_trusted(action, kwargs):
     app = build()
-    ops = await app.async_dispatch(action, _trusted=True, **kwargs)
+    ops = await app.async_dispatch(action, _trusted=_FRAMEWORK_TRUST, **kwargs)
     assert ops is not None
 
 

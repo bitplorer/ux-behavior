@@ -5,7 +5,7 @@
 ```text
 Entry:   dispatch | async_dispatch | submit | async_submit | emit | async_emit
 Caps:    public caps=()  |  protected caps=("…",)
-Auth:    offline  |  trust()  |  _trusted=True  |  live Channel attach
+Auth:    offline  |  trust()  |  wire sentinel  |  live Channel attach
 Action:  sync def  |  async def
 ```
 
@@ -125,8 +125,8 @@ For **every protected** action:
 | X2 | offline + `async_dispatch` | `AuthorityError` |
 | X3 | offline + `with trust(): dispatch` | success |
 | X4 | offline + `with trust(): async_dispatch` | success |
-| X5 | offline + `dispatch(..., _trusted=True)` | success |
-| X6 | offline + `async_dispatch(..., _trusted=True)` | success |
+| X5 | offline + `dispatch` with the private sentinel | success |
+| X6 | offline + `async_dispatch` with the private sentinel | success |
 | X7 | if continuation: `emit` / `async_emit` | success if the arming caller or emitter is trusted; else AuthorityError |
 
 Optional live (Channel installed):

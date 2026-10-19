@@ -43,7 +43,7 @@ Behavior.boot(
 
 ### dispatch kwargs reserved
 
-- `_trusted=True` — skip offline Cap check (tests / wire after Channel auth)
+- `_trusted` — private sentinel only. A bool or a spread body does not skip the Cap check. Hosts use `trust()`; the wire passes the sentinel after Channel auth.
 
 ## Component
 

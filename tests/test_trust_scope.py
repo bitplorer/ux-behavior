@@ -6,6 +6,7 @@ import asyncio
 import pytest
 
 from ux_behavior import AuthorityError, Behavior, Component, action, follow_up
+from ux_behavior.root import _FRAMEWORK_TRUST
 
 
 class Shop(Component):
@@ -49,7 +50,7 @@ async def test_async_emit_does_not_grant_trust():
 
 def test_emit_inherits_trust_from_trusted_arming():
     app = _app()
-    app.dispatch("shop.ask_refund", _trusted=True)
+    app.dispatch("shop.ask_refund", _trusted=_FRAMEWORK_TRUST)
     app.emit("approved")
     assert app.get("shop").refunded == 1
 
@@ -98,7 +99,7 @@ def test_continuation_is_single_use():
     from ux_behavior import ContinuationError
 
     app = _app()
-    app.dispatch("shop.ask_refund", _trusted=True)
+    app.dispatch("shop.ask_refund", _trusted=_FRAMEWORK_TRUST)
     app.emit("approved")
     with pytest.raises(ContinuationError):
         app.emit("approved")
@@ -111,7 +112,7 @@ async def test_async_continuation_is_single_use():
     from ux_behavior import ContinuationError
 
     app = _app()
-    app.dispatch("shop.ask_refund", _trusted=True)
+    app.dispatch("shop.ask_refund", _trusted=_FRAMEWORK_TRUST)
     await app.async_emit("approved")
     with pytest.raises(ContinuationError):
         await app.async_emit("approved")

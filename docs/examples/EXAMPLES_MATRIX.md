@@ -93,8 +93,8 @@ Full truth table for a single Demo component (sync/async × public/protected × 
   → app.dispatch("confirm.confirm")
   → AuthorityError
 
-"Confirm confirm / async / protected / _trusted"
-  → await app.async_dispatch("confirm.confirm", _trusted=True)
+"Confirm confirm / async / protected / trust"
+  → with app.trust(): await app.async_dispatch("confirm.confirm")
   → runs
 ```
 
@@ -105,7 +105,7 @@ Full truth table for a single Demo component (sync/async × public/protected × 
 For every protected cell, **live** means:
 
 ```text
-attach(Channel) → inbound async_dispatch(..., _trusted=True)
+attach(Channel) → inbound async_dispatch with the private trust sentinel
 control() may mint Cap for buttons
 ```
 

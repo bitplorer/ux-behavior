@@ -57,7 +57,8 @@ HINTS: dict[str, str] = {
     "CONTROL_MINTED": "Button attrs include a Cap token.",
     "CAP_REQUIRED": (
         "Attach Channel for live Caps. "
-        "app.trust() / _trusted=True are for tests and wire-after-verify only."
+        "app.trust() is for tests and host admin paths. "
+        "The wire grants trust only after Channel accepts the Cap."
     ),
     "VALIDATION_FAILED": (
         "Fix the posted args or show the returned {action}.{field}-error morphs."

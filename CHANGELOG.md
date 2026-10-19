@@ -14,14 +14,18 @@
   `UX_BEHAVIOR_SECRET` and `ChannelConfig.production` when `REDIS_URL` is
   set. Reason: a Cap signed with that constant was accepted on a stock
   `attach()` that had no secret.
-- `submit()` / `async_submit()` no longer treat a `_trusted` key in the
-  args dict as authority. The same key is dropped from Channel payloads
-  and from continuation slots so it cannot collide with the framework
-  flag. `dispatch(..., _trusted=True)`, `submit(..., _trusted=True)`, and
-  `app.trust()` are unchanged. `wire/attach.py` still passes the keyword
-  only after Channel accepts the Cap. Reason: the documented
-  `submit(action, body)` helper ran a capped action when the body was
-  `{"_trusted": true}`.
+- `attach()` raises without a secret outside dev, so `UX_CHANNEL_SECRET`
+  (or `UX_BEHAVIOR_SECRET`) must be set.
+- The public constant is refused even when passed explicitly.
+- Dev Caps don't survive a restart. The per-process secret is minted once
+  in that process and is not written anywhere.
+- `_trusted` in payloads is dropped, and the trust argument now takes the
+  sentinel. `dispatch(action, **body)`, `submit(action, body)`, and an
+  explicit `_trusted=True` / `"yes"` / `1` do not grant trust. A ignored
+  body value is logged. `app.trust()` is unchanged. `wire/attach.py`
+  passes the private sentinel only after Channel accepts the Cap. Reason:
+  a host that spread request JSON into `dispatch` ran a capped action
+  when the body contained `_trusted`.
 
 ### Fixed
 

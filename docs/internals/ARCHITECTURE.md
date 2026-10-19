@@ -68,7 +68,7 @@ It is **not** a general web framework, not a Cap cryptosystem, and not a design 
 4. Inbound event (live):
      Channel verifies Cap / session
        → wire handler
-       → async_dispatch(name, _trusted=True, **payload)
+       → async_dispatch(name, <private trust sentinel>, **payload)
 5. Dispatch pipeline (see DISPATCH.md)
 6. list[Op] returned to Channel/Host for apply (morph, log, nav, …)
 ```

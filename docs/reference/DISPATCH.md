@@ -12,7 +12,7 @@
 | `submit` / `async_submit` | same as above | merges `args` dict |
 | `emit` / `async_emit` | via dispatch family | resolves continuation first |
 
-Reserved kwargs: `_trusted` (bool). The explicit keyword is the host/framework trust flag. `wire/attach.py` passes `_trusted=True` only after Channel has accepted the Cap. A `_trusted` entry in `submit` / `async_submit` args, a Channel form or args payload, or continuation slots is posted data and does not grant trust. The key is stripped before binding.
+Reserved kwargs: `_trusted`. Only the module-private sentinel grants trust, and only the wire passes it, after Channel has accepted the Cap. `True`, `"yes"`, `1`, and any other value are ignored and logged. A `_trusted` entry in `submit` / `async_submit` args, a Channel form or args payload, continuation slots, or `dispatch(action, **body)` is posted data and does not grant trust. The key is stripped before binding. Hosts use `app.trust()` for tests and admin paths.
 
 ## 2. Pipeline (ordered)
 
@@ -61,7 +61,7 @@ follow_up(event, action, *, args_from=None, **args)
 - Must run inside step 7–9 context; otherwise `RuntimeError`.
 - Overwrites prior continuation for the same `event` name on this Behavior in the same `contextvars` context. Callers that share a context overwrite each other. A copied context keeps its own armed event.
 - `emit` merges: fixed `args`, then `args_from` mapping from slots, then extra slots. A source key that was copied onto its destination is consumed and is not forwarded. Slots that were not consumed are still forwarded.
-- Continuation dispatch inherits the trust of the dispatch that armed it (0.4.0). A follow-up armed by an anonymous public action is checked like any untrusted call. A trusted host (e.g. a verified payment webhook) emits inside `app.trust()` or arms from a `_trusted=True` dispatch.
+- Continuation dispatch inherits the trust of the dispatch that armed it (0.4.0). A follow-up armed by an anonymous public action is checked like any untrusted call. A trusted host (e.g. a verified payment webhook) emits inside `app.trust()` or arms from a dispatch the wire already marked trusted.
 
 ## 5. Stamp
 

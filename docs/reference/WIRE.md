@@ -37,7 +37,7 @@ app.attach(asgi, *, secret=None, path="/ux-channel", region=None, uid=None, chan
 - Reads `ux_action` + args/form.
 - Empty action → warn, no-op.
 - On exception: `DISPATCH_FAILED` + **re-raise** (not swallowed).
-- Always `_trusted=True` after Channel acceptance.
+- Always the private trust sentinel after Channel acceptance. A payload `_trusted` value is dropped.
 
 ## 4. control path
 
@@ -75,7 +75,8 @@ from ux_channel.protocol.types import Result
 
 @ch.on("cart.add")
 async def cart_add(ctx, sku: str):
-    await app.async_dispatch("cart.add", _trusted=True, sku=sku)
+    with app.trust():
+        await app.async_dispatch("cart.add", sku=sku)
     return Result.success(
         client_event("cart:added", target="#cart", detail={"sku": sku}),
     )

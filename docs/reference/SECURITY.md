@@ -31,24 +31,20 @@ Semantics of the *strings* inside `caps` are **Host/Channel conventions**. Behav
 
 Protected action runs only if one of:
 
-1. `dispatch(..., _trusted=True)`
+1. the wire passed the private trust sentinel after Channel accepted the Cap
 2. `with app.trust():`
 
-Attaching a Channel does **not** skip this check (0.4.0). The Channel's own handler passes `_trusted=True` only after it has verified the Cap.
+Attaching a Channel does **not** skip this check (0.4.0). The Channel's own handler passes the sentinel only after it has verified the Cap. `True`, `"yes"`, and `1` are not that sentinel.
 
-A `_trusted` key inside `submit(action, body)` or `async_submit(action, body)` does not grant trust. That dict is posted data. The same key is dropped from Channel payloads and from continuation slots so it cannot stand in for the keyword.
+A `_trusted` key inside `submit(action, body)` or `async_submit(action, body)` does not grant trust. That dict is posted data. The same key is dropped from Channel payloads and from continuation slots. `dispatch(action, **body)` with `"_trusted"` in the body is ignored and logged.
 
 Otherwise: `AuthorityError` + diagnostic `CAP_REQUIRED` + **hint**.
 
 ### Live gate
 
-Channel verifies the Cap on the request **before** the wire handler runs. Wire then calls:
+Channel verifies the Cap on the request **before** the wire handler runs. The wire then dispatches with the private sentinel. Behavior trusts the edge only after Channel has accepted the request.
 
-```python
-await behavior.async_dispatch(name, _trusted=True, **payload)
-```
-
-Behavior trusts the edge only after Channel has accepted the request. **Do not** expose `_trusted=True` on public HTTP handlers without Channel.
+Do not spread request JSON into `dispatch` or `submit`. A body that contains `_trusted` is caller data. Pass a payload dict to `submit(name, payload)` / `async_submit(name, payload)`, or pass the fields you mean as explicit keywords.
 
 ### trust() context
 

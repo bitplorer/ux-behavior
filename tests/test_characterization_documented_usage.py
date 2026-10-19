@@ -18,6 +18,7 @@ from pathlib import Path
 
 import pytest
 
+from ux_behavior.root import _FRAMEWORK_TRUST
 from ux_behavior import (
     AuthorityError,
     Behavior,
@@ -387,7 +388,7 @@ def test_tutorial_05_protected_action_needs_trust_door():
     assert trusted[0].payload["message"] == "placed"
     assert app.strict_caps is True
 
-    again = app.dispatch("orders.place", sku="y", _trusted=True)
+    again = app.dispatch("orders.place", sku="y", _trusted=_FRAMEWORK_TRUST)
     assert again[0].fq == "log.append"
 
 

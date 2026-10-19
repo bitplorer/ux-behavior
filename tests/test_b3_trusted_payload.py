@@ -1,9 +1,10 @@
 """B3: a ``_trusted`` key in payload data must not pass the Cap gate.
 
-Live script item3_behavior_b3_trusted_kwarg.py. The explicit keyword
-``dispatch(..., _trusted=True)`` is the framework flag (wire/attach.py sets
-it only after Channel accepts the Cap) and stays. ``submit(action, body)``
-must not treat a body field of that name as the flag.
+Live script item3_behavior_b3_trusted_kwarg.py. Trust is the private
+sentinel ``_FRAMEWORK_TRUST`` (wire/attach.py passes it only after Channel
+accepts the Cap). A bool, string, or int — including ``dispatch(**body)`` —
+does not grant trust. ``submit(action, body)`` must not treat a body field
+of that name as the flag.
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ import logging
 import pytest
 
 from ux_behavior import AuthorityError, Behavior, Component, action, follow_up
+from ux_behavior.root import _FRAMEWORK_TRUST
 from ux_behavior.wire.attach import _payload_from
 
 
@@ -76,21 +78,21 @@ async def test_async_submit_body_trusted_raises():
 
 
 def test_explicit_trusted_kwarg_still_runs():
-    """Internal / host path: the keyword the framework passes after Cap acceptance."""
+    """Internal path: the sentinel the framework passes after Cap acceptance."""
     app = _app()
-    app.dispatch("vault.wipe", _trusted=True)
+    app.dispatch("vault.wipe", _trusted=_FRAMEWORK_TRUST)
     assert app.get("vault").wiped is True
 
 
 def test_submit_explicit_trusted_kwarg_still_runs():
     app = _app()
-    app.submit("vault.wipe", {}, _trusted=True)
+    app.submit("vault.wipe", {}, _trusted=_FRAMEWORK_TRUST)
     assert app.get("vault").wiped is True
 
 
 async def test_async_dispatch_explicit_trusted_kwarg_still_runs():
     app = _app()
-    await app.async_dispatch("vault.wipe", _trusted=True)
+    await app.async_dispatch("vault.wipe", _trusted=_FRAMEWORK_TRUST)
     assert app.get("vault").wiped is True
 
 
@@ -140,6 +142,6 @@ async def test_async_emit_slot_trusted_does_not_grant_trust():
 
 def test_emit_keeps_trust_armed_by_framework_flag():
     app = _app()
-    app.dispatch("vault.ask", _trusted=True)
+    app.dispatch("vault.ask", _trusted=_FRAMEWORK_TRUST)
     app.emit("go", _trusted=False)
     assert app.get("vault").wiped is True
