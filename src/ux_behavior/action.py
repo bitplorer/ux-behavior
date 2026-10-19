@@ -199,22 +199,6 @@ def bind(action_obj: Any, **kwargs: Any) -> dict[str, str]:
     return action_ui_attrs(action_obj, **kwargs)
 
 
-def _without_colliding_self(fn: Callable[..., Any], kwargs: dict[str, Any]) -> dict[str, Any]:
-    """A payload key ``self`` is data. A normal method already binds ``self``."""
-    if "self" not in kwargs:
-        return kwargs
-    params = list(inspect.signature(fn).parameters.values())
-    if (
-        params
-        and params[0].name == "self"
-        and params[0].kind is not inspect.Parameter.POSITIONAL_ONLY
-    ):
-        cleaned = dict(kwargs)
-        cleaned.pop("self", None)
-        return cleaned
-    return kwargs
-
-
 class BoundAction:
     """Instance-bound @action: callable + ``.ui(**kwargs)``."""
 
@@ -275,16 +259,15 @@ class ActionMethod:
         return BoundAction(self, obj)
 
     def __call__(self, instance: Any, /, *args: Any, **kwargs: Any) -> Any:
-        call_kwargs = _without_colliding_self(self._fn, kwargs)
         if self._is_async:
 
             async def _run() -> list[Op] | None:
-                result = await self._fn(instance, *args, **call_kwargs)
+                result = await self._fn(instance, *args, **kwargs)
                 return _normalize_result(result, self._qualname)
 
             return _run()
 
-        result = self._fn(instance, *args, **call_kwargs)
+        result = self._fn(instance, *args, **kwargs)
         return _normalize_result(result, self._qualname)
 
     def ui(self, **kwargs: Any) -> dict[str, str]:
