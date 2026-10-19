@@ -162,6 +162,15 @@ def test_behavior_secret_env_public_constant_rejected(clean_env: pytest.MonkeyPa
         Behavior.boot().attach(object())
 
 
+def test_redis_url_in_dev_without_secret_raises(clean_env: pytest.MonkeyPatch):
+    """REDIS_URL means more than one process, so DEBUG=1 is not a secret."""
+    clean_env.setenv("DEBUG", "1")
+    clean_env.setenv("REDIS_URL", "redis://127.0.0.1:9/0")
+    with pytest.raises(RuntimeError, match="UX_CHANNEL_SECRET") as caught:
+        Behavior.boot().attach(object())
+    assert "REDIS_URL" in str(caught.value)
+
+
 def test_redis_url_without_secret_outside_dev_raises(clean_env: pytest.MonkeyPatch):
     """REDIS_URL must not fall through to ChannelConfig.production(<constant>)."""
     clean_env.setenv("REDIS_URL", "redis://127.0.0.1:9/0")
