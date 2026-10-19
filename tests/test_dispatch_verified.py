@@ -112,6 +112,19 @@ def test_verified_docstring_is_for_framework_after_cap_check():
     assert phrase in Behavior.async_dispatch_verified.__doc__
 
 
+def test_verified_call_is_the_bound_method():
+    """Package-level dispatch_verified is an unbound function, not the API."""
+    import ux_behavior
+
+    app = _app()
+    app.dispatch_verified("vault.wipe", {})
+    assert app.get("vault").wiped is True
+    assert "dispatch_verified" not in ux_behavior.__all__
+    assert "async_dispatch_verified" not in ux_behavior.__all__
+    assert not hasattr(ux_behavior, "dispatch_verified")
+    assert not hasattr(ux_behavior, "async_dispatch_verified")
+
+
 def test_sentinel_stays_private():
     import ux_behavior
 
