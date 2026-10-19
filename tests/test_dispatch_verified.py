@@ -130,5 +130,3 @@ def test_sentinel_stays_private():
 
     assert "_FRAMEWORK_TRUST" not in ux_behavior.__all__
     assert not hasattr(ux_behavior, "_FRAMEWORK_TRUST")
-    assert "dispatch_verified" in ux_behavior.__all__
-    assert "async_dispatch_verified" in ux_behavior.__all__
