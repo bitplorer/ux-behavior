@@ -34,7 +34,8 @@ export `compose` / `lower` on top-level `__all__`.
 
 Day-1 (top-level `__all__`): `Behavior`, `Component`, `ComponentProtocol`,
 `MorphState`, `RefState`, `action`, `bind`, `update`, `notify`, `go`,
-`open`, `close`, `select`, `confirm`, `Op`, `follow_up`, plus error types
+`open`, `close`, `select`, `confirm`, `Op`, `follow_up`,
+`dispatch_verified`, `async_dispatch_verified`, plus error types
 and extra field types already on `__all__`.
 
 Progressive door (not on top-level `__all__`):

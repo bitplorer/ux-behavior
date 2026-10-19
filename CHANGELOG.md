@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Breaking
+
+- `_trusted=True` no longer grants trust. A payload `_trusted` value is
+  dropped, and the trust argument accepts only the private sentinel.
+  `dispatch(action, **body)` does not grant trust. After a Cap check, call
+  `dispatch_verified(name, payload)` or `async_dispatch_verified(name, payload)`.
+  `app.trust()` is unchanged, and a task started inside it keeps trust for
+  its whole life.
+- `attach()` requires `UX_CHANNEL_SECRET` or `UX_BEHAVIOR_SECRET` outside
+  dev. The published dev constant is refused even when passed explicitly.
+
 ### Added
 
 - `dispatch_verified(name, payload)` and `async_dispatch_verified(name, payload)`
@@ -33,7 +44,7 @@
   `DEBUG=1`, because that store is shared by more than one process.
 - `_trusted` in payloads is dropped, and the trust argument now takes the
   sentinel. `dispatch(action, **body)`, `submit(action, body)`, and an
-  explicit `_trusted=True` / `"yes"` / `1` do not grant trust. A ignored
+  explicit `_trusted=True` / `"yes"` / `1` do not grant trust. An ignored
   body value is logged. `app.trust()` is unchanged. `wire/attach.py`
   passes the private sentinel only after Channel accepts the Cap. Reason:
   a host that spread request JSON into `dispatch` ran a capped action
