@@ -145,18 +145,18 @@ def test_dev_secret_is_per_process_and_not_the_public_constant(
     assert len(first.config.secret) >= 32
 
 
-def test_redis_url_in_dev_does_not_install_the_public_constant(
+def test_redis_url_in_dev_without_secret_raises(
     monkeypatch: pytest.MonkeyPatch,
 ):
+    """A shared Redis store is several processes. DEBUG=1 is not a secret."""
     _clear(monkeypatch)
     monkeypatch.setenv("DEBUG", "1")
     monkeypatch.setenv("REDIS_URL", "redis://127.0.0.1:9/0")
     app = Behavior.boot()
     app.region(lambda: "<div id='app.root'></div>", uid="app.root")
-    wire = app.attach(FastAPI())
-    assert wire is not None
-    assert wire.config.secret != PUBLIC_DEV_SECRET
-    assert not wire.config.secret.startswith("dev-secret-key")
+    with pytest.raises(RuntimeError, match="UX_CHANNEL_SECRET") as caught:
+        app.attach(FastAPI())
+    assert "REDIS_URL" in str(caught.value)
 
 
 def test_explicit_secret_rejects_forged_public_constant(

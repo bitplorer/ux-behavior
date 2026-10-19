@@ -24,7 +24,11 @@ app.attach(asgi, *, secret=None, path="/ux-channel", region=None, uid=None, chan
    secret is one random per-process value, same shape as
    ChannelConfig.development() (ATTACH_DEV_SECRET warn). The public
    constant is never accepted, including ChannelConfig.production when
-   REDIS_URL is set.
+   REDIS_URL is set. `REDIS_URL` with no configured secret raises even
+   when `DEBUG=1`, because that store is shared by more than one process.
+   Set `UX_CHANNEL_SECRET` even in dev when using `--workers` greater
+   than 1, `--reload`, or `REDIS_URL`. A per-process secret does not
+   survive a restart, and Caps minted with it fail on the next process.
 5. Channel.boot → on failure: error; raise if strict_attach
 6. Register region paint callable
 7. Register ux_behavior.dispatch handler (prefer async)

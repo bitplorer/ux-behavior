@@ -162,6 +162,17 @@ def test_behavior_secret_env_public_constant_rejected(clean_env: pytest.MonkeyPa
         Behavior.boot().attach(object())
 
 
+def test_redis_url_with_explicit_secret_is_accepted(clean_env: pytest.MonkeyPatch):
+    """A configured secret still boots the Redis path. DEBUG does not matter."""
+    clean_env.setenv("DEBUG", "1")
+    clean_env.setenv("REDIS_URL", "redis://127.0.0.1:9/0")
+    try:
+        Behavior.boot().attach(object(), secret="s" * 40)
+    except RuntimeError as exc:
+        assert "REDIS_URL" not in str(exc)
+        assert "public dev secret" not in str(exc)
+
+
 def test_redis_url_in_dev_without_secret_raises(clean_env: pytest.MonkeyPatch):
     """REDIS_URL means more than one process, so DEBUG=1 is not a secret."""
     clean_env.setenv("DEBUG", "1")

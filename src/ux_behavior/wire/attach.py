@@ -92,6 +92,12 @@ def _resolve_attach_secret(explicit: str | None, diag: Any) -> str:
     )
     if chosen == _PUBLIC_DEV_SECRET:
         _refuse_attach_secret(diag, "the public dev secret is not accepted")
+    if not chosen and os.environ.get("REDIS_URL"):
+        _refuse_attach_secret(
+            diag,
+            "attach() requires UX_CHANNEL_SECRET or UX_BEHAVIOR_SECRET when "
+            "REDIS_URL is set; a per-process dev secret is not shared across processes",
+        )
     if chosen:
         return chosen
     if _debug_requests_dev():

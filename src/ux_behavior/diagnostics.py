@@ -26,7 +26,7 @@ HINTS: dict[str, str] = {
     "ATTACH_NO_ASGI": "Pass a real ASGI app: app.attach(asgi).",
     "ATTACH_DEV_SECRET": (
         "DEBUG is on, so attach() minted a per-process secret. "
-        "Set UX_CHANNEL_SECRET (or UX_BEHAVIOR_SECRET) before any production boot."
+        "Set UX_CHANNEL_SECRET even in dev for --workers > 1, --reload, or REDIS_URL."
     ),
     "ATTACH_SECRET_REQUIRED": (
         "Set UX_CHANNEL_SECRET or UX_BEHAVIOR_SECRET. "

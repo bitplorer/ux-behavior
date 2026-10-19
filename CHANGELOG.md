@@ -20,7 +20,10 @@
   package is reported before the secret check.
 - The public constant is refused even when passed explicitly.
 - Dev Caps don't survive a restart. The per-process secret is minted once
-  in that process and is not written anywhere.
+  in that process and is not written anywhere. Set `UX_CHANNEL_SECRET`
+  even in dev when using `--workers` greater than 1, `--reload`, or
+  `REDIS_URL`. `REDIS_URL` with no configured secret raises even when
+  `DEBUG=1`, because that store is shared by more than one process.
 - `_trusted` in payloads is dropped, and the trust argument now takes the
   sentinel. `dispatch(action, **body)`, `submit(action, body)`, and an
   explicit `_trusted=True` / `"yes"` / `1` do not grant trust. A ignored
