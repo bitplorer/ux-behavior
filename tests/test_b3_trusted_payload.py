@@ -100,6 +100,20 @@ def test_emit_slot_trusted_does_not_grant_trust():
     assert app.get("vault").wiped is False
 
 
+async def test_async_emit_slot_trusted_does_not_grant_trust():
+    """Twin of the sync emit test. Guards the async_emit payload strip.
+
+    Deleting ``resolved = _without_payload_trust(resolved)`` in
+    ``async_emit`` makes this raise TypeError (two values for ``_trusted``)
+    instead of AuthorityError.
+    """
+    app = _app()
+    app.dispatch("vault.ask")
+    with pytest.raises(AuthorityError):
+        await app.async_emit("go", _trusted=True)
+    assert app.get("vault").wiped is False
+
+
 def test_emit_keeps_trust_armed_by_framework_flag():
     app = _app()
     app.dispatch("vault.ask", _trusted=True)
