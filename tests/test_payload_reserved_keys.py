@@ -51,10 +51,23 @@ def test_submit_payload_action_and_self_keys_reach_the_action():
     assert app.get("boxy").got == ("keep", "me")
 
 
+async def test_async_submit_payload_action_and_self_keys_reach_the_action():
+    app = _app()
+    await app.async_submit("boxy.save", {"action": "keep", "self": "me"})
+    assert app.get("boxy").got == ("keep", "me")
+
+
 def test_emit_slots_action_and_self_keys_reach_the_action():
     app = _app()
     app.dispatch("boxy.arm")
     app.emit("go", **{"action": "keep", "self": "me"})
+    assert app.get("boxy").got == ("keep", "me")
+
+
+async def test_async_emit_slots_action_and_self_keys_reach_the_action():
+    app = _app()
+    app.dispatch("boxy.arm")
+    await app.async_emit("go", **{"action": "keep", "self": "me"})
     assert app.get("boxy").got == ("keep", "me")
 
 
