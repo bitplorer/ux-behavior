@@ -61,8 +61,8 @@ A task started inside `with app.trust()` keeps trust after the block ends.
 > **Warning:** trust is carried by the current context. Tasks created inside the
 > block (`asyncio.create_task`, `TaskGroup`, `loop.run_in_executor` with a copied
 > context) copy that context and **inherit trust**, even after the block
-> exits. Do not spawn background work inside `trust()` unless that work is
-> itself trusted.
+> exits. Never start a long-lived worker, queue consumer, or background task
+> inside `trust()`, because such a task keeps trust for its whole life.
 
 ### Follow-ups (`follow_up` / `emit`)
 

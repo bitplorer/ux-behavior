@@ -207,6 +207,9 @@ class Behavior:
         """Trust calls made in this context only (contextvar, per task/thread).
 
         ``strict_caps`` is not touched, so concurrent requests stay checked.
+        A task started inside this block keeps trust after the block ends.
+        Never start a long-lived worker, queue consumer, or background task
+        inside ``trust()``: that task keeps trust for its whole life.
         """
         token = _TRUST_SCOPE.set(_TRUST_SCOPE.get() | {self._trust_key})
         self.diagnostics.warn("TRUST_ON", "Cap checks skipped in this trust() context")
