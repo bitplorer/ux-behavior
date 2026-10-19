@@ -34,6 +34,20 @@ from ux_behavior.state_api import StateAPI
 from ux_behavior.validate import bind_action_args
 
 
+def _without_payload_trust(data: dict[str, Any]) -> dict[str, Any]:
+    """Drop a ``_trusted`` key that arrived in posted data.
+
+    The explicit ``_trusted=`` keyword on dispatch/submit is the framework
+    flag. A field of the same name inside a body, form, or continuation
+    slot is not.
+    """
+    if "_trusted" not in data:
+        return data
+    cleaned = dict(data)
+    cleaned.pop("_trusted", None)
+    return cleaned
+
+
 def _public_state(inst: Any) -> dict[str, Any]:
     skip = ref_field_names(inst)
     out: dict[str, Any] = {}
@@ -437,7 +451,7 @@ class Behavior:
         args: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> list[Op]:
-        payload = dict(args or {})
+        payload = _without_payload_trust(dict(args or {}))
         payload.update(kwargs)
         return self.dispatch(action, **payload)
 
@@ -447,7 +461,7 @@ class Behavior:
         args: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> list[Op]:
-        payload = dict(args or {})
+        payload = _without_payload_trust(dict(args or {}))
         payload.update(kwargs)
         return await self.async_dispatch(action, **payload)
 
@@ -459,12 +473,14 @@ class Behavior:
         trusted = self._armed_trust(event)
         action, resolved = self._continuation_args(event, slots)
         _disarm_continuation(self._continuation_scope, str(event or "").strip())  # single use
+        resolved = _without_payload_trust(resolved)
         return self.dispatch(action, _trusted=trusted, **resolved)
 
     async def async_emit(self, event: str, **slots: Any) -> list[Op]:
         trusted = self._armed_trust(event)
         action, resolved = self._continuation_args(event, slots)
         _disarm_continuation(self._continuation_scope, str(event or "").strip())  # single use
+        resolved = _without_payload_trust(resolved)
         return await self.async_dispatch(action, _trusted=trusted, **resolved)
 
     def _check_stamp(self, ops: list[Op]) -> None:

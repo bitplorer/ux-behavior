@@ -105,7 +105,7 @@ def _resolve_attach_secret(explicit: str | None, diag: Any) -> str:
 
 
 def _payload_from(ctx: Any, args: dict[str, Any]) -> dict[str, Any]:
-    reserved = {UX_ACTION_KEY}
+    reserved = {UX_ACTION_KEY, "_trusted"}
     payload = {k: v for k, v in args.items() if k not in reserved}
     if ctx is not None:
         form = getattr(ctx, "form", None) or getattr(ctx, "data", None) or {}

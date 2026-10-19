@@ -36,6 +36,8 @@ Protected action runs only if one of:
 
 Attaching a Channel does **not** skip this check (0.4.0). The Channel's own handler passes `_trusted=True` only after it has verified the Cap.
 
+A `_trusted` key inside `submit(action, body)` or `async_submit(action, body)` does not grant trust. That dict is posted data. The same key is dropped from Channel payloads and from continuation slots so it cannot stand in for the keyword.
+
 Otherwise: `AuthorityError` + diagnostic `CAP_REQUIRED` + **hint**.
 
 ### Live gate

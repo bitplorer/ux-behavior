@@ -14,6 +14,14 @@
   `UX_BEHAVIOR_SECRET` and `ChannelConfig.production` when `REDIS_URL` is
   set. Reason: a Cap signed with that constant was accepted on a stock
   `attach()` that had no secret.
+- `submit()` / `async_submit()` no longer treat a `_trusted` key in the
+  args dict as authority. The same key is dropped from Channel payloads
+  and from continuation slots so it cannot collide with the framework
+  flag. `dispatch(..., _trusted=True)`, `submit(..., _trusted=True)`, and
+  `app.trust()` are unchanged. `wire/attach.py` still passes the keyword
+  only after Channel accepts the Cap. Reason: the documented
+  `submit(action, body)` helper ran a capped action when the body was
+  `{"_trusted": true}`.
 
 ## 0.4.1
 

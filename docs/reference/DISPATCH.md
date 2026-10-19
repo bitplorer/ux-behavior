@@ -12,7 +12,7 @@
 | `submit` / `async_submit` | same as above | merges `args` dict |
 | `emit` / `async_emit` | via dispatch family | resolves continuation first |
 
-Reserved kwargs: `_trusted` (bool) — stripped before binding to the action signature.
+Reserved kwargs: `_trusted` (bool). The explicit keyword is the host/framework trust flag. `wire/attach.py` passes `_trusted=True` only after Channel has accepted the Cap. A `_trusted` entry in `submit` / `async_submit` args, a Channel form or args payload, or continuation slots is posted data and does not grant trust. The key is stripped before binding.
 
 ## 2. Pipeline (ordered)
 
