@@ -42,12 +42,13 @@ Reserved kwargs: `_trusted` (bool). The explicit keyword is the host/framework t
 
 ## 3. Validation behavior
 
-Uses `inspect.signature` + `typing.get_type_hints` (resolves `from __future__ import annotations`).
+Uses `inspect.signature` and resolves each parameter annotation on its own (including `from __future__ import annotations`).
 
 - Missing required params → field error.
 - Simple type mismatch → field error.
 - Union/Optional: None allowed when present in union; other branches lightly checked.
-- Complex generics: treated as pass-through (not a full type checker).
+- Complex generics: treated as pass-through (not a full type checker). `list[int]` does not check its elements.
+- An annotation that cannot be resolved is skipped for that parameter only. It does not turn off checks on the other parameters.
 
 Error morph target: `{action}.{field}-error` or `{action}-error` for `_`.
 

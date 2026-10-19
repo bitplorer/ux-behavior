@@ -23,6 +23,15 @@
   `submit(action, body)` helper ran a capped action when the body was
   `{"_trusted": true}`.
 
+### Fixed
+
+- Action argument checks resolve each parameter annotation on its own.
+  `list[int]` stays a pass-through. One annotation that cannot be
+  resolved no longer skips the other parameters, so `n: int` is still
+  checked beside an unresolvable sibling. Reason: `get_type_hints()` on
+  the whole callable raised for that one annotation, and the handler
+  then dropped every hint.
+
 ## 0.4.1
 
 ### Removed — dead imports (no API change)
