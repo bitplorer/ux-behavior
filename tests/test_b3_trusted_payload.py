@@ -8,6 +8,8 @@ must not treat a body field of that name as the flag.
 
 from __future__ import annotations
 
+import logging
+
 import pytest
 
 from ux_behavior import AuthorityError, Behavior, Component, action, follow_up
@@ -35,6 +37,28 @@ def _app() -> Behavior:
     app = Behavior.boot()
     app.add(Vault)
     return app
+
+
+def test_spread_body_trusted_bool_raises_and_warns(caplog: pytest.LogCaptureFixture):
+    """dispatch(action, **request_body) must not treat a _trusted bool as trust."""
+    app = _app()
+    with caplog.at_level(logging.WARNING, logger="ux_behavior"):
+        with pytest.raises(AuthorityError):
+            app.dispatch("vault.wipe", **{"_trusted": True})
+    assert app.get("vault").wiped is False
+    assert any("ignoring _trusted" in record.message for record in caplog.records)
+
+
+@pytest.mark.parametrize("flag", ["yes", 1])
+def test_spread_body_trusted_truthy_values_do_not_grant_trust(
+    caplog: pytest.LogCaptureFixture, flag: object
+):
+    app = _app()
+    with caplog.at_level(logging.WARNING, logger="ux_behavior"):
+        with pytest.raises(AuthorityError):
+            app.dispatch("vault.wipe", **{"_trusted": flag})
+    assert app.get("vault").wiped is False
+    assert any("ignoring _trusted" in record.message for record in caplog.records)
 
 
 def test_submit_body_trusted_raises():
