@@ -17,6 +17,9 @@
   `async_emit`, `dispatch_verified`, and `async_dispatch_verified` take
   their method parameters positionally. A payload key named `action` or
   `self` is caller data.
+- An unnamed posted key sent to an action that does not declare
+  `**kwargs` is a validation error. The action does not run. Keys such
+  as `is_admin` and `role` do not reach it.
 
 ### Added
 
