@@ -431,7 +431,7 @@ class Behavior:
             resolved[key] = value
         return item.action, resolved
 
-    def dispatch(self, action: str, **kwargs: Any) -> list[Op]:
+    def dispatch(self, action: str, /, **kwargs: Any) -> list[Op]:
         trusted = self._take_trust(kwargs)
         component_id, inst, fn = self._resolve(action)
         if getattr(fn, "_ux_behavior_async", False):
@@ -452,7 +452,7 @@ class Behavior:
             pending = _end_follow_ups(token)
         return self._finish(action, component_id, inst, before, result, pending, trusted=trusted)
 
-    async def async_dispatch(self, action: str, **kwargs: Any) -> list[Op]:
+    async def async_dispatch(self, action: str, /, **kwargs: Any) -> list[Op]:
         trusted = self._take_trust(kwargs)
         component_id, inst, fn = self._resolve(action)
         self._require_caps(fn, action, trusted=trusted)
@@ -478,7 +478,7 @@ class Behavior:
         return clean
 
     def dispatch_verified(
-        self, name: str, payload: dict[str, Any] | None = None
+        self, name: str, payload: dict[str, Any] | None = None, /
     ) -> list[Op]:
         """only for framework code after Channel or an equivalent check has verified the Cap.
 
@@ -488,7 +488,7 @@ class Behavior:
         return self.dispatch(name, **self._verified_payload(payload))
 
     async def async_dispatch_verified(
-        self, name: str, payload: dict[str, Any] | None = None
+        self, name: str, payload: dict[str, Any] | None = None, /
     ) -> list[Op]:
         """only for framework code after Channel or an equivalent check has verified the Cap.
 
@@ -501,6 +501,7 @@ class Behavior:
         self,
         action: str,
         args: dict[str, Any] | None = None,
+        /,
         **kwargs: Any,
     ) -> list[Op]:
         payload = _without_payload_trust(dict(args or {}))
@@ -511,6 +512,7 @@ class Behavior:
         self,
         action: str,
         args: dict[str, Any] | None = None,
+        /,
         **kwargs: Any,
     ) -> list[Op]:
         payload = _without_payload_trust(dict(args or {}))
@@ -521,7 +523,7 @@ class Behavior:
         item = _armed_continuations(self._continuation_scope).get(str(event or "").strip())
         return bool(getattr(item, "trusted", False))
 
-    def emit(self, event: str, **slots: Any) -> list[Op]:
+    def emit(self, event: str, /, **slots: Any) -> list[Op]:
         trusted = self._armed_trust(event)
         action, resolved = self._continuation_args(event, slots)
         _disarm_continuation(self._continuation_scope, str(event or "").strip())  # single use
@@ -529,7 +531,7 @@ class Behavior:
         flag = _FRAMEWORK_TRUST if trusted else _TRUST_NOT_GRANTED
         return self.dispatch(action, _trusted=flag, **resolved)
 
-    async def async_emit(self, event: str, **slots: Any) -> list[Op]:
+    async def async_emit(self, event: str, /, **slots: Any) -> list[Op]:
         trusted = self._armed_trust(event)
         action, resolved = self._continuation_args(event, slots)
         _disarm_continuation(self._continuation_scope, str(event or "").strip())  # single use

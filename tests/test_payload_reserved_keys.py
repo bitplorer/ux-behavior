@@ -17,7 +17,7 @@ class Boxy(Component):
         return "<div id='boxy'></div>"
 
     @action(caps=())
-    def save(self, action: str = "", **extra):
+    def save(self, /, action: str = "", **extra):
         self.got = (action, extra.get("self"))
         return []
 
@@ -81,3 +81,24 @@ async def test_async_dispatch_verified_payload_action_and_self_keys():
     app = _app()
     await app.async_dispatch_verified("boxy.save", {"action": "keep", "self": "me"})
     assert app.get("boxy").got == ("keep", "me")
+
+
+class Plain(Component):
+    id = "plain"
+    got = None
+
+    def render(self):
+        return "<div id='plain'></div>"
+
+    @action(caps=())
+    def save(self, action: str = "", **extra):
+        self.got = (action, extra.get("self", "absent"))
+        return []
+
+
+def test_normal_method_does_not_500_on_payload_self():
+    """A normal ``self`` is the instance. The payload key must not TypeError."""
+    app = Behavior.boot()
+    app.add(Plain)
+    app.dispatch("plain.save", **{"action": "keep", "self": "me"})
+    assert app.get("plain").got == ("keep", "absent")

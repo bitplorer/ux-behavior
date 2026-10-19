@@ -199,6 +199,22 @@ def bind(action_obj: Any, **kwargs: Any) -> dict[str, str]:
     return action_ui_attrs(action_obj, **kwargs)
 
 
+def _without_colliding_self(fn: Callable[..., Any], kwargs: dict[str, Any]) -> dict[str, Any]:
+    """A payload key ``self`` is data. A normal method already binds ``self``."""
+    if "self" not in kwargs:
+        return kwargs
+    params = list(inspect.signature(fn).parameters.values())
+    if (
+        params
+        and params[0].name == "self"
+        and params[0].kind is not inspect.Parameter.POSITIONAL_ONLY
+    ):
+        cleaned = dict(kwargs)
+        cleaned.pop("self", None)
+        return cleaned
+    return kwargs
+
+
 class BoundAction:
     """Instance-bound @action: callable + ``.ui(**kwargs)``."""
 
@@ -208,7 +224,7 @@ class BoundAction:
         self._action = action
         self._instance = instance
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+    def __call__(self, /, *args: Any, **kwargs: Any) -> Any:
         return self._action(*args, _bound_instance=self._instance, **kwargs)
 
     def ui(self, **kwargs: Any) -> dict[str, str]:
@@ -259,23 +275,25 @@ class ActionMethod:
         return BoundAction(self, obj)
 
     def __call__(
-        self, *args: Any, _bound_instance: Any | None = None, **kwargs: Any
+        self, /, *args: Any, _bound_instance: Any | None = None, **kwargs: Any
     ) -> Any:
         if self._is_async:
 
             async def _run() -> list[Op] | None:
+                call_kwargs = _without_colliding_self(self._fn, kwargs)
                 if _bound_instance is not None:
-                    result = await self._fn(_bound_instance, *args, **kwargs)
+                    result = await self._fn(_bound_instance, *args, **call_kwargs)
                 else:
-                    result = await self._fn(*args, **kwargs)
+                    result = await self._fn(*args, **call_kwargs)
                 return _normalize_result(result, self._qualname)
 
             return _run()
 
+        call_kwargs = _without_colliding_self(self._fn, kwargs)
         if _bound_instance is not None:
-            result = self._fn(_bound_instance, *args, **kwargs)
+            result = self._fn(_bound_instance, *args, **call_kwargs)
         else:
-            result = self._fn(*args, **kwargs)
+            result = self._fn(*args, **call_kwargs)
         return _normalize_result(result, self._qualname)
 
     def ui(self, **kwargs: Any) -> dict[str, str]:
