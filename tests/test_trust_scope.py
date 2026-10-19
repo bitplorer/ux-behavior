@@ -72,6 +72,26 @@ def test_trust_does_not_flip_shared_strict_caps():
 
 
 @pytest.mark.asyncio
+async def test_task_created_inside_trust_stays_trusted_after_block():
+    """Intended: a task started inside trust() keeps trust after the block exits."""
+    app = _app()
+    entered = asyncio.Event()
+    release = asyncio.Event()
+
+    async def worker():
+        entered.set()
+        await release.wait()
+        await app.async_dispatch("shop.refund")
+
+    with app.trust():
+        task = asyncio.create_task(worker())
+        await entered.wait()
+    release.set()
+    await task
+    assert app.get("shop").refunded == 1
+
+
+@pytest.mark.asyncio
 async def test_trust_is_per_task_under_concurrency():
     app = _app()
     inside = asyncio.Event()
