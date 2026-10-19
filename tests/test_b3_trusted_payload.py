@@ -118,15 +118,19 @@ def test_channel_payload_drops_trusted():
     assert payload == {"sku": "tee", "name": "Ada"}
 
 
-def test_emit_slot_trusted_does_not_grant_trust():
+def test_emit_slot_trusted_does_not_grant_trust(caplog: pytest.LogCaptureFixture):
     app = _app()
     app.dispatch("vault.ask")
-    with pytest.raises(AuthorityError):
-        app.emit("go", _trusted=True)
+    with caplog.at_level(logging.WARNING, logger="ux_behavior"):
+        with pytest.raises(AuthorityError):
+            app.emit("go", _trusted=True)
     assert app.get("vault").wiped is False
+    assert any("ignoring _trusted" in record.message for record in caplog.records)
 
 
-async def test_async_emit_slot_trusted_does_not_grant_trust():
+async def test_async_emit_slot_trusted_does_not_grant_trust(
+    caplog: pytest.LogCaptureFixture,
+):
     """Twin of the sync emit test. Guards the async_emit payload strip.
 
     Deleting ``resolved = _without_payload_trust(resolved)`` in
@@ -135,9 +139,40 @@ async def test_async_emit_slot_trusted_does_not_grant_trust():
     """
     app = _app()
     app.dispatch("vault.ask")
-    with pytest.raises(AuthorityError):
-        await app.async_emit("go", _trusted=True)
+    with caplog.at_level(logging.WARNING, logger="ux_behavior"):
+        with pytest.raises(AuthorityError):
+            await app.async_emit("go", _trusted=True)
     assert app.get("vault").wiped is False
+    assert any("ignoring _trusted" in record.message for record in caplog.records)
+
+
+def test_plain_emit_logs_nothing(caplog: pytest.LogCaptureFixture):
+    """A continuation slot with no ``_trusted`` key does not warn."""
+
+    class Quiet(Component):
+        id = "quiet"
+        n = 0
+
+        def render(self):
+            return "<div id='quiet'></div>"
+
+        @action(caps=())
+        def arm(self):
+            follow_up("go", "quiet.ping")
+            return []
+
+        @action(caps=())
+        def ping(self):
+            self.n = 1
+            return []
+
+    app = Behavior.boot()
+    app.add(Quiet)
+    app.dispatch("quiet.arm")
+    with caplog.at_level(logging.DEBUG, logger="ux_behavior"):
+        app.emit("go")
+    assert app.get("quiet").n == 1
+    assert caplog.records == []
 
 
 def test_emit_keeps_trust_armed_by_framework_flag():
