@@ -1,0 +1,70 @@
+"""Payload keys must not collide with dispatch's own parameters.
+
+``action`` and ``self`` are caller data. They reach the action instead of
+raising TypeError from the entry point.
+"""
+
+from __future__ import annotations
+
+from ux_behavior import Behavior, Component, action, follow_up
+
+
+class Boxy(Component):
+    id = "boxy"
+    got = None
+
+    def render(self):
+        return "<div id='boxy'></div>"
+
+    @action(caps=())
+    def save(self, action: str = "", **extra):
+        self.got = (action, extra.get("self"))
+        return []
+
+    @action(caps=())
+    def arm(self):
+        follow_up("go", "boxy.save")
+        return []
+
+
+def _app() -> Behavior:
+    app = Behavior.boot()
+    app.add(Boxy)
+    return app
+
+
+def test_dispatch_payload_action_and_self_keys_reach_the_action():
+    app = _app()
+    app.dispatch("boxy.save", **{"action": "keep", "self": "me"})
+    assert app.get("boxy").got == ("keep", "me")
+
+
+async def test_async_dispatch_payload_action_and_self_keys_reach_the_action():
+    app = _app()
+    await app.async_dispatch("boxy.save", **{"action": "keep", "self": "me"})
+    assert app.get("boxy").got == ("keep", "me")
+
+
+def test_submit_payload_action_and_self_keys_reach_the_action():
+    app = _app()
+    app.submit("boxy.save", {"action": "keep", "self": "me"})
+    assert app.get("boxy").got == ("keep", "me")
+
+
+def test_emit_slots_action_and_self_keys_reach_the_action():
+    app = _app()
+    app.dispatch("boxy.arm")
+    app.emit("go", **{"action": "keep", "self": "me"})
+    assert app.get("boxy").got == ("keep", "me")
+
+
+def test_dispatch_verified_payload_action_and_self_keys_reach_the_action():
+    app = _app()
+    app.dispatch_verified("boxy.save", {"action": "keep", "self": "me"})
+    assert app.get("boxy").got == ("keep", "me")
+
+
+async def test_async_dispatch_verified_payload_action_and_self_keys():
+    app = _app()
+    await app.async_dispatch_verified("boxy.save", {"action": "keep", "self": "me"})
+    assert app.get("boxy").got == ("keep", "me")
