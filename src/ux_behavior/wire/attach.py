@@ -154,8 +154,6 @@ def attach(
             diag.warn("ATTACH_NO_ASGI", "attach(asgi=None) — not live")
         return None
 
-    secret = _resolve_attach_secret(secret, diag)
-
     try:
         from ux_channel import Channel, ChannelConfig
     except ImportError as exc:
@@ -168,6 +166,8 @@ def attach(
         if getattr(behavior, "strict_attach", False):
             raise
         return None
+
+    secret = _resolve_attach_secret(secret, diag)
 
     try:
         if os.environ.get("REDIS_URL"):

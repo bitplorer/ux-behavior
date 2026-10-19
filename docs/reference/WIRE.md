@@ -16,14 +16,15 @@ app.attach(asgi, *, secret=None, path="/ux-channel", region=None, uid=None, chan
 ```text
 1. Idempotent if _wire already set
 2. asgi is None → warn, return None
-3. Resolve secret. Outside dev, a missing secret or the public dev constant
+3. Import Channel → else CHANNEL_MISSING, return None (raise if strict_attach).
+   A host without ux-channel gets None even when no secret is configured.
+4. Resolve secret. Outside dev, a missing secret or the public dev constant
    raises (ATTACH_SECRET_REQUIRED). Dev is DEBUG in 1/true/yes/on after
    strip + lower (this package has no other dev switch). In dev, a missing
    secret is one random per-process value, same shape as
    ChannelConfig.development() (ATTACH_DEV_SECRET warn). The public
    constant is never accepted, including ChannelConfig.production when
    REDIS_URL is set.
-4. Import Channel → else CHANNEL_MISSING, return None (raise if strict_attach)
 5. Channel.boot → on failure: error; raise if strict_attach
 6. Register region paint callable
 7. Register ux_behavior.dispatch handler (prefer async)

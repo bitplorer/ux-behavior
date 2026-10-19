@@ -15,7 +15,9 @@
   set. Reason: a Cap signed with that constant was accepted on a stock
   `attach()` that had no secret.
 - `attach()` raises without a secret outside dev, so `UX_CHANNEL_SECRET`
-  (or `UX_BEHAVIOR_SECRET`) must be set.
+  (or `UX_BEHAVIOR_SECRET`) must be set. A host without ux-channel still
+  gets `None` from `attach()` when no secret is configured: the missing
+  package is reported before the secret check.
 - The public constant is refused even when passed explicitly.
 - Dev Caps don't survive a restart. The per-process secret is minted once
   in that process and is not written anywhere.

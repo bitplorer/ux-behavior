@@ -8,7 +8,10 @@ Live script item3_behavior_b2_dev_secret.py. Part 2 (control() offline, empty
 from __future__ import annotations
 
 import builtins
+import importlib.machinery
+import importlib.util
 import sys
+import types
 
 import pytest
 
@@ -35,6 +38,51 @@ def clean_env(monkeypatch: pytest.MonkeyPatch) -> pytest.MonkeyPatch:
     for key in _SECRET_ENV:
         monkeypatch.delenv(key, raising=False)
     return monkeypatch
+
+
+def _channel_stub() -> types.ModuleType:
+    """Stand-in so secret checks still run when ux-channel is not installed."""
+    module = types.ModuleType("ux_channel")
+    module.__spec__ = importlib.machinery.ModuleSpec("ux_channel", loader=None)
+
+    class _Config:
+        def __init__(self, secret: str) -> None:
+            self.secret = secret
+
+        def with_redis(self, url: str) -> "_Config":
+            return self
+
+    class ChannelConfig:
+        @staticmethod
+        def development(secret: str = "", allow_memory_stores: bool = True) -> _Config:
+            return _Config(secret)
+
+        @staticmethod
+        def production(secret: str) -> _Config:
+            return _Config(secret)
+
+    class Channel:
+        @staticmethod
+        def boot(asgi: object, config: object = None, path: str = "/ux-channel") -> object:
+            raise RuntimeError("channel boot reached")
+
+    module.Channel = Channel
+    module.ChannelConfig = ChannelConfig
+    return module
+
+
+@pytest.fixture(autouse=True)
+def _stub_channel_when_absent(monkeypatch: pytest.MonkeyPatch):
+    """Secret-refusal tests import Channel before they raise.
+
+    Without a package on the path that import returns None and never
+    reaches the secret check. A present install is left alone.
+    """
+    if importlib.util.find_spec("ux_channel") is not None:
+        yield
+        return
+    monkeypatch.setitem(sys.modules, "ux_channel", _channel_stub())
+    yield
 
 
 def test_control_offline_door_stays_open():
@@ -65,7 +113,7 @@ def test_missing_channel_without_secret_returns_none(clean_env: pytest.MonkeyPat
         return real_import(name, *args, **kwargs)
 
     clean_env.setattr(builtins, "__import__", _block_channel)
-    sys.modules.pop("ux_channel", None)
+    clean_env.delitem(sys.modules, "ux_channel", raising=False)
     assert Behavior.boot().attach(object()) is None
 
 
