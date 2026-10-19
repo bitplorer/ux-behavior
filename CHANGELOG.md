@@ -31,6 +31,10 @@
 
 ### Fixed
 
+- An omitted default is not type-checked. `b: Box = None` with `b` left
+  out stays accepted, and the default is still passed to the action.
+  Only values the caller actually passed are checked. Reason: resolving
+  hints per parameter started rejecting defaults the caller never sent.
 - Action argument checks resolve each parameter annotation on its own.
   `list[int]` stays a pass-through. One annotation that cannot be
   resolved no longer skips the other parameters, so `n: int` is still

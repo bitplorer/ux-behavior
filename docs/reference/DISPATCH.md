@@ -45,6 +45,7 @@ Reserved kwargs: `_trusted`. Only the module-private sentinel grants trust, and 
 Uses `inspect.signature` and resolves each parameter annotation on its own (including `from __future__ import annotations`).
 
 - Missing required params → field error.
+- A default the caller did not pass is filled in and not type-checked. `b: Box = None` with `b` omitted stays accepted. A value the caller passed, including an explicit `None`, is checked.
 - Simple type mismatch → field error.
 - Union/Optional: None allowed when present in union; other branches lightly checked.
 - Complex generics: treated as pass-through (not a full type checker). `list[int]` does not check its elements.

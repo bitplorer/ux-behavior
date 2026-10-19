@@ -68,6 +68,7 @@ def bind_action_args(fn: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
     target = _bind_target(fn)
     sig = _product_signature(target)
     kwargs = _unpack_intent_args(sig, dict(kwargs))
+    provided = set(kwargs)
     try:
         bound = sig.bind_partial(**kwargs)
         bound.apply_defaults()
@@ -88,6 +89,8 @@ def bind_action_args(fn: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
                 errors[name] = "required"
             continue
         out[name] = bound.arguments[name]
+        if name not in provided:
+            continue
         ann = _resolve_annotation(target, param.annotation)
         if ann is inspect.Parameter.empty:
             continue
