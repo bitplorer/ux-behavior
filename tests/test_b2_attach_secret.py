@@ -7,6 +7,9 @@ Live script item3_behavior_b2_dev_secret.py. Part 2 (control() offline, empty
 
 from __future__ import annotations
 
+import builtins
+import sys
+
 import pytest
 
 from ux_behavior import Behavior, Component, action
@@ -46,6 +49,24 @@ def test_control_offline_door_stays_open():
 
 def test_attach_without_asgi_still_returns_none(clean_env: pytest.MonkeyPatch):
     assert Behavior.boot().attach(None) is None
+
+
+def test_missing_channel_without_secret_returns_none(clean_env: pytest.MonkeyPatch):
+    """A host with no ux-channel and no secret gets None, not a boot crash.
+
+    The channel-import check has to run before secret resolution. Deleting
+    that order makes this raise RuntimeError.
+    """
+    real_import = builtins.__import__
+
+    def _block_channel(name, *args, **kwargs):
+        if name == "ux_channel" or name.startswith("ux_channel."):
+            raise ImportError("ux_channel blocked")
+        return real_import(name, *args, **kwargs)
+
+    clean_env.setattr(builtins, "__import__", _block_channel)
+    sys.modules.pop("ux_channel", None)
+    assert Behavior.boot().attach(object()) is None
 
 
 def test_explicit_real_secret_is_not_refused(clean_env: pytest.MonkeyPatch):
