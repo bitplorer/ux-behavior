@@ -82,7 +82,7 @@ def test_live_attach_asgi():
     app.add(Counter)
     app.region(lambda: "<div id='app.root'>ok</div>", uid="app.root")
     asgi = FastAPI()
-    wire = app.attach(asgi)
+    wire = app.attach(asgi, secret="s" * 40)
     assert wire is not None
     assert type(wire).__name__ == "Channel"
     info = attach_info(app)
@@ -155,7 +155,7 @@ def test_live_channel_dispatch_handler_registered():
     app.add(Counter)
     app.region(lambda: app.get("counter").render())
     asgi = FastAPI()
-    wire = app.attach(asgi)
+    wire = app.attach(asgi, secret="s" * 40)
     assert wire is not None
     assert getattr(app, "_dispatch", None) is not None
     ops = app.dispatch("counter.inc", by=1)

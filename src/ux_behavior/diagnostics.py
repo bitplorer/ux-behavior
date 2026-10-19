@@ -25,7 +25,13 @@ HINTS: dict[str, str] = {
     "ATTACH_FAILED": "Inspect Channel ASGI factory; check version compatibility.",
     "ATTACH_NO_ASGI": "Pass a real ASGI app: app.attach(asgi).",
     "ATTACH_DEV_SECRET": (
-        "Set env UX_CHANNEL_SECRET (or UX_BEHAVIOR_SECRET) before production attach."
+        "DEBUG is on, so attach() minted a per-process secret. "
+        "Set UX_CHANNEL_SECRET (or UX_BEHAVIOR_SECRET) before any production boot."
+    ),
+    "ATTACH_SECRET_REQUIRED": (
+        "Set UX_CHANNEL_SECRET or UX_BEHAVIOR_SECRET. "
+        "The published dev secret is not accepted. "
+        "DEBUG=1 (true/yes/on) is the local per-process secret only."
     ),
     "ATTACH_BOOT_FAILED": (
         "Check Channel config, secret length, and Redis URL; retry attach."

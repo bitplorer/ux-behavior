@@ -73,6 +73,7 @@ Each event: `level`, `code`, `message`, **`hint`** (next step), `context`, `at`.
 | VALIDATION_FAILED | Fix args or render error morph targets |
 | STAMP_REJECT | `app.use` / `app.domain` |
 | CONTINUATION_MISSING | `follow_up` before `emit` |
-| ATTACH_DEV_SECRET | Set UX_CHANNEL_SECRET |
+| ATTACH_SECRET_REQUIRED | Set UX_CHANNEL_SECRET; the public dev secret is refused |
+| ATTACH_DEV_SECRET | DEBUG boot is using a per-process secret; set UX_CHANNEL_SECRET before production |
 
 Full map: `ux_behavior.diagnostics.HINTS`.

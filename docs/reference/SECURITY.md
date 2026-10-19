@@ -11,7 +11,7 @@
 | Client-writable bag holds prices/qty | `client_risk` path refuse | Channel ClientSafety |
 | Preview/dry-run mutates authority state | `preview()` blocks session/store writes | Host |
 | Stamp allows undeclared ops | `_check_stamp` PermissionError | Host agrees domains |
-| Dev secret in production | `ATTACH_DEV_SECRET` diagnostic | Host env |
+| Public dev secret in production | `attach()` raises `ATTACH_SECRET_REQUIRED` | Host env `UX_CHANNEL_SECRET` |
 | Silent Cap-less controls in prod | `strict_control=True` | Host boot profile |
 
 Behavior does **not** replace Channel. If Channel is absent, protected actions **do not run** (default).
@@ -119,9 +119,10 @@ Blocks **session** and **store** plane writes. Client and Ref remain writable so
 |----------|------|
 | `UX_CHANNEL_SECRET` | Preferred Channel secret |
 | `UX_BEHAVIOR_SECRET` | Fallback |
-| built-in dev string | Only if both unset → `ATTACH_DEV_SECRET` warn |
+| `DEBUG` | `1` / `true` / `yes` / `on` (strip + lower) selects one random per-process secret when both secrets above are unset |
+| public dev string | Never accepted, in production or dev, including `ChannelConfig.production` when `REDIS_URL` is set |
 
-Production: set a strong secret via environment or process secrets manager **before** attach.
+Outside dev, `attach()` with no secret raises. It does not sign with a built-in constant. Production: set a strong secret via the environment or a process secrets manager **before** attach.
 
 ## 7. Recommended production boot flags
 

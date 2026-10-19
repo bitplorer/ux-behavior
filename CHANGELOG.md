@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Security
+
+- `attach()` no longer signs Caps with the published constant
+  `dev-secret-key-32chars-minimum!!!!`. Outside dev that call raises
+  (`ATTACH_SECRET_REQUIRED`) when no secret is configured. Dev is `DEBUG`
+  in `1` / `true` / `yes` / `on` after strip + lower; this package has no
+  other dev switch. In dev, a missing secret is one random per-process
+  value with the same shape as `ChannelConfig.development()`. The constant
+  is refused in every mode, including `UX_CHANNEL_SECRET` /
+  `UX_BEHAVIOR_SECRET` and `ChannelConfig.production` when `REDIS_URL` is
+  set. Reason: a Cap signed with that constant was accepted on a stock
+  `attach()` that had no secret.
+
 ## 0.4.1
 
 ### Removed — dead imports (no API change)

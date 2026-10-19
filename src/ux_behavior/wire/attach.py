@@ -4,10 +4,20 @@ from __future__ import annotations
 
 import importlib.util
 import os
-from typing import Any, Callable
+import secrets
+import threading
+from typing import Any, Callable, NoReturn
 
 DEFAULT_REGION_UID = "app.root"
 UX_ACTION_KEY = "ux_action"
+
+# Older builds signed every secret-less attach() with this published string.
+# It is a denylist now, not a fallback.
+_PUBLIC_DEV_SECRET = "dev-secret-key-32chars-minimum!!!!"
+# This package has no other dev switch. Same truthy allowlist as ux-dom #35.
+_DEBUG_TRUTHY = frozenset({"1", "true", "yes", "on"})
+_process_dev_secret: str | None = None
+_process_dev_secret_lock = threading.Lock()
 
 
 def probe() -> dict[str, bool]:
@@ -47,6 +57,51 @@ def attach_info(behavior: Any | None = None) -> dict[str, Any]:
         "planes": planes,
         "diagnostics": diag,
     }
+
+
+def _debug_requests_dev() -> bool:
+    return os.environ.get("DEBUG", "").strip().lower() in _DEBUG_TRUTHY
+
+
+def _per_process_dev_secret() -> str:
+    """One random secret for this process, same shape as ChannelConfig.development()."""
+    global _process_dev_secret
+    with _process_dev_secret_lock:
+        if _process_dev_secret is None:
+            _process_dev_secret = "dev-" + secrets.token_urlsafe(24)
+        return _process_dev_secret
+
+
+def _refuse_attach_secret(diag: Any, message: str) -> NoReturn:
+    if diag is not None:
+        diag.error("ATTACH_SECRET_REQUIRED", message)
+    raise RuntimeError(message)
+
+
+def _resolve_attach_secret(explicit: str | None, diag: Any) -> str:
+    """Secret for Channel.boot. The public dev constant is never returned."""
+    chosen = (
+        explicit
+        or os.environ.get("UX_CHANNEL_SECRET")
+        or os.environ.get("UX_BEHAVIOR_SECRET")
+        or ""
+    )
+    if chosen == _PUBLIC_DEV_SECRET:
+        _refuse_attach_secret(diag, "the public dev secret is not accepted")
+    if chosen:
+        return chosen
+    if _debug_requests_dev():
+        if diag is not None:
+            diag.warn(
+                "ATTACH_DEV_SECRET",
+                "using a per-process dev secret; set UX_CHANNEL_SECRET in production",
+            )
+        return _per_process_dev_secret()
+    _refuse_attach_secret(
+        diag,
+        "attach() requires UX_CHANNEL_SECRET or UX_BEHAVIOR_SECRET outside dev; "
+        "the public dev secret is not accepted",
+    )
 
 
 def _payload_from(ctx: Any, args: dict[str, Any]) -> dict[str, Any]:
@@ -91,6 +146,8 @@ def attach(
             diag.warn("ATTACH_NO_ASGI", "attach(asgi=None) — not live")
         return None
 
+    secret = _resolve_attach_secret(secret, diag)
+
     try:
         from ux_channel import Channel, ChannelConfig
     except ImportError as exc:
@@ -103,20 +160,6 @@ def attach(
         if getattr(behavior, "strict_attach", False):
             raise
         return None
-
-    secret = (
-        secret
-        or os.environ.get("UX_CHANNEL_SECRET")
-        or os.environ.get("UX_BEHAVIOR_SECRET")
-        or ""
-    )
-    if not secret:
-        secret = "dev-secret-key-32chars-minimum!!!!"
-        if diag is not None:
-            diag.warn(
-                "ATTACH_DEV_SECRET",
-                "using built-in dev secret; set UX_CHANNEL_SECRET in production",
-            )
 
     try:
         if os.environ.get("REDIS_URL"):

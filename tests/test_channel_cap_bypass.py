@@ -27,7 +27,7 @@ def _attached():
     app = Behavior.boot(title="Bypass")
     app.add(Vault)
     app.region(lambda: "<div id='app.root'>ok</div>", uid="app.root")
-    assert app.attach(FastAPI()) is not None
+    assert app.attach(FastAPI(), secret="s" * 40) is not None
     return app
 
 

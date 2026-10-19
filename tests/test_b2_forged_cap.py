@@ -125,6 +125,40 @@ def test_dev_forged_cap_signed_with_public_constant_is_401(
         served.stop()
 
 
+def test_dev_secret_is_per_process_and_not_the_public_constant(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    _clear(monkeypatch)
+    monkeypatch.setenv("DEBUG", "1")
+
+    def _boot():
+        app = Behavior.boot()
+        app.region(lambda: "<div id='app.root'></div>", uid="app.root")
+        return app.attach(FastAPI())
+
+    first = _boot()
+    second = _boot()
+    assert first is not None and second is not None
+    assert first.config.secret == second.config.secret
+    assert first.config.secret != PUBLIC_DEV_SECRET
+    assert first.config.secret.startswith("dev-")
+    assert len(first.config.secret) >= 32
+
+
+def test_redis_url_in_dev_does_not_install_the_public_constant(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    _clear(monkeypatch)
+    monkeypatch.setenv("DEBUG", "1")
+    monkeypatch.setenv("REDIS_URL", "redis://127.0.0.1:9/0")
+    app = Behavior.boot()
+    app.region(lambda: "<div id='app.root'></div>", uid="app.root")
+    wire = app.attach(FastAPI())
+    assert wire is not None
+    assert wire.config.secret != PUBLIC_DEV_SECRET
+    assert not wire.config.secret.startswith("dev-secret-key")
+
+
 def test_explicit_secret_rejects_forged_public_constant(
     monkeypatch: pytest.MonkeyPatch,
 ):
