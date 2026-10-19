@@ -472,6 +472,31 @@ class Behavior:
             pending = _end_follow_ups(token)
         return self._finish(action, component_id, inst, before, result, pending, trusted=trusted)
 
+    def _verified_payload(self, payload: dict[str, Any] | None) -> dict[str, Any]:
+        clean = _without_payload_trust(dict(payload or {}))
+        clean["_trusted"] = _FRAMEWORK_TRUST
+        return clean
+
+    def dispatch_verified(
+        self, name: str, payload: dict[str, Any] | None = None
+    ) -> list[Op]:
+        """only for framework code after Channel or an equivalent check has verified the Cap.
+
+        Trust is this call's sentinel only. A task started while the action
+        runs does not inherit it.
+        """
+        return self.dispatch(name, **self._verified_payload(payload))
+
+    async def async_dispatch_verified(
+        self, name: str, payload: dict[str, Any] | None = None
+    ) -> list[Op]:
+        """only for framework code after Channel or an equivalent check has verified the Cap.
+
+        Trust is this call's sentinel only. A task started while the action
+        runs does not inherit it.
+        """
+        return await self.async_dispatch(name, **self._verified_payload(payload))
+
     def submit(
         self,
         action: str,

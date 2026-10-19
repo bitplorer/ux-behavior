@@ -29,6 +29,8 @@ FROZEN_PUBLIC = frozenset(
         "close",
         "select",
         "confirm",
+        "dispatch_verified",
+        "async_dispatch_verified",
         "MorphState",
         "RefState",
         "UiState",

@@ -17,7 +17,7 @@ from ux_behavior import AuthorityError, Behavior, Component, action
 class Vault(Component):
     id = "vault"
     wiped = False
-    child = False
+    child_ran = False
     task: asyncio.Task | None = None
 
     def render(self):
@@ -25,6 +25,16 @@ class Vault(Component):
 
     @action(caps=("vault.wipe",))
     def wipe(self):
+        self.wiped = True
+        return []
+
+    @action(caps=("vault.wipe",))
+    async def wipe_async(self):
+        self.wiped = True
+        return []
+
+    @action(caps=("vault.wipe",))
+    def spawn(self):
         self.wiped = True
         app = self._behavior
 
@@ -35,7 +45,7 @@ class Vault(Component):
         return []
 
     @action(caps=("vault.wipe",))
-    async def wipe_async(self):
+    async def spawn_async(self):
         self.wiped = True
         app = self._behavior
 
@@ -47,7 +57,7 @@ class Vault(Component):
 
     @action(caps=("vault.wipe",))
     def child(self):
-        self.child = True
+        self.child_ran = True
         return []
 
 
@@ -77,20 +87,20 @@ def test_dispatch_verified_ignores_payload_trusted():
 
 async def test_task_spawned_inside_dispatch_verified_is_not_trusted():
     app = _app()
-    app.dispatch_verified("vault.wipe", {})
+    app.dispatch_verified("vault.spawn", {})
     assert app.get("vault").wiped is True
     with pytest.raises(AuthorityError):
         await app.get("vault").task
-    assert app.get("vault").child is False
+    assert app.get("vault").child_ran is False
 
 
 async def test_task_spawned_inside_async_dispatch_verified_is_not_trusted():
     app = _app()
-    await app.async_dispatch_verified("vault.wipe_async", {})
+    await app.async_dispatch_verified("vault.spawn_async", {})
     assert app.get("vault").wiped is True
     with pytest.raises(AuthorityError):
         await app.get("vault").task
-    assert app.get("vault").child is False
+    assert app.get("vault").child_ran is False
 
 
 def test_verified_docstring_is_for_framework_after_cap_check():

@@ -25,6 +25,9 @@ from ux_behavior.planes import DictBackend
 from ux_behavior.root import Behavior
 from ux_behavior.state_api import StateAPI
 
+dispatch_verified = Behavior.dispatch_verified
+async_dispatch_verified = Behavior.async_dispatch_verified
+
 __all__ = [
     "AuthorityError",
     "Behavior",
@@ -47,6 +50,8 @@ __all__ = [
     "bind",
     "close",
     "confirm",
+    "dispatch_verified",
+    "async_dispatch_verified",
     "follow_up",
     "go",
     "notify",

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+- `dispatch_verified(name, payload)` and `async_dispatch_verified(name, payload)`
+  grant trust for that one call after a Cap check. A task started inside the
+  action does not inherit the grant. The private sentinel stays off the
+  public surface.
+
 ### Security
 
 - `attach()` no longer signs Caps with the published constant
