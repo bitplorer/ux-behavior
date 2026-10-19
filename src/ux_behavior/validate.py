@@ -9,9 +9,11 @@ are not product parameters. ``apply_defaults`` filling VAR_POSITIONAL as
 from __future__ import annotations
 
 import inspect
-from typing import Any, get_args, get_origin, get_type_hints
+from typing import Any, ForwardRef, get_args, get_origin
 
 from ux_behavior.errors import ValidationError
+
+_UNRESOLVED = object()
 
 
 def _bind_target(fn: Any) -> Any:
@@ -66,6 +68,7 @@ def bind_action_args(fn: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
     target = _bind_target(fn)
     sig = _product_signature(target)
     kwargs = _unpack_intent_args(sig, dict(kwargs))
+    provided = set(kwargs)
     try:
         bound = sig.bind_partial(**kwargs)
         bound.apply_defaults()
@@ -74,11 +77,6 @@ def bind_action_args(fn: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
 
     out: dict[str, Any] = {}
     errors: dict[str, str] = {}
-
-    try:
-        hints = get_type_hints(target)
-    except Exception:
-        hints = {}
 
     for name, param in sig.parameters.items():
         if param.kind in (
@@ -91,7 +89,9 @@ def bind_action_args(fn: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
                 errors[name] = "required"
             continue
         out[name] = bound.arguments[name]
-        ann = hints.get(name, param.annotation)
+        if name not in provided:
+            continue
+        ann = _resolve_annotation(target, param.annotation)
         if ann is inspect.Parameter.empty:
             continue
         val = out[name]
@@ -105,6 +105,40 @@ def bind_action_args(fn: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
 
 def _ann_name(ann: Any) -> str:
     return getattr(ann, "__name__", str(ann))
+
+
+def _resolve_annotation(fn: Any, ann: Any) -> Any:
+    """Resolve one parameter hint. A failure leaves the others in force."""
+    if ann is inspect.Parameter.empty or not isinstance(ann, str):
+        return ann
+    globalns = getattr(fn, "__globals__", {})
+    resolved = _evaluate_annotation(globalns, ann)
+    if resolved is _UNRESOLVED:
+        return ann
+    return resolved
+
+
+def _evaluate_annotation(globalns: dict[str, Any], expr: str) -> Any:
+    try:
+        value = ForwardRef(expr).evaluate(
+            globals=globalns,
+            locals=None,
+            type_params=None,
+        )
+    except Exception:
+        return _UNRESOLVED
+    # A quoted forward ref evaluates to a string. Resolve that name too,
+    # the same second step get_type_hints does, but only for this parameter.
+    if isinstance(value, str):
+        try:
+            value = ForwardRef(value).evaluate(
+                globals=globalns,
+                locals=None,
+                type_params=None,
+            )
+        except Exception:
+            return _UNRESOLVED
+    return value
 
 
 def _matches(ann: Any, value: Any) -> bool:

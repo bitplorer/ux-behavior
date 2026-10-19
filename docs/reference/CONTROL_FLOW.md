@@ -18,7 +18,7 @@ boot → add → region → attach(asgi)
   → Channel boot
   → optional channel planes + drivers
 button: control(action) → Cap attrs (if mint OK)
-inbound: Channel auth → async_dispatch(..., _trusted=True)
+inbound: Channel auth → async_dispatch with the private trust sentinel
 ```
 
 ## Caps matrix
@@ -26,7 +26,7 @@ inbound: Channel auth → async_dispatch(..., _trusted=True)
 | Action caps | Offline | Attached wire |
 |-------------|---------|---------------|
 | `()` | runs | runs |
-| non-empty | **AuthorityError** unless trust/`_trusted` | runs (Channel already gated) |
+| non-empty | **AuthorityError** unless `trust()` or the wire sentinel | runs (Channel already gated) |
 
 ## Validation
 
@@ -73,6 +73,7 @@ Each event: `level`, `code`, `message`, **`hint`** (next step), `context`, `at`.
 | VALIDATION_FAILED | Fix args or render error morph targets |
 | STAMP_REJECT | `app.use` / `app.domain` |
 | CONTINUATION_MISSING | `follow_up` before `emit` |
-| ATTACH_DEV_SECRET | Set UX_CHANNEL_SECRET |
+| ATTACH_SECRET_REQUIRED | Set UX_CHANNEL_SECRET; the public dev secret is refused |
+| ATTACH_DEV_SECRET | DEBUG boot is using a per-process secret; set UX_CHANNEL_SECRET before production |
 
 Full map: `ux_behavior.diagnostics.HINTS`.

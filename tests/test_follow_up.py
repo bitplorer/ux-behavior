@@ -18,6 +18,7 @@ from ux_behavior import (
     notify,
 )
 from ux_behavior.events import _armed
+from ux_behavior.root import _FRAMEWORK_TRUST
 
 
 class Orders(Component):
@@ -70,7 +71,7 @@ def test_strict_caps_offline():
     app.add(Orders)
     with pytest.raises(AuthorityError):
         app.dispatch("orders.secure")
-    ops = app.dispatch("orders.secure", _trusted=True)
+    ops = app.dispatch("orders.secure", _trusted=_FRAMEWORK_TRUST)
     assert ops
 
 

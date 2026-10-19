@@ -26,6 +26,7 @@ from ux_behavior import (
     go,
     notify,
 )
+from ux_behavior.root import _FRAMEWORK_TRUST
 
 
 class Accordion(Component):
@@ -200,7 +201,7 @@ def test_offline_extra_protected_refuse_trust():
     with app.trust():
         app.dispatch("sec.write", n=2)
     assert app.get("sec").n == 2
-    app.dispatch("sec.write", n=3, _trusted=True)
+    app.dispatch("sec.write", n=3, _trusted=_FRAMEWORK_TRUST)
     assert app.get("sec").n == 3
 
 
@@ -209,7 +210,7 @@ async def test_offline_extra_protected_async():
     app = _offline_app()
     with pytest.raises(AuthorityError):
         await app.async_dispatch("sec.write_async", n=1)
-    await app.async_dispatch("sec.write_async", n=4, _trusted=True)
+    await app.async_dispatch("sec.write_async", n=4, _trusted=_FRAMEWORK_TRUST)
     assert app.get("sec").n == 4
 
 
@@ -291,7 +292,7 @@ class HttpEdge:
                 try:
                     args = dict(data.get("args") or {})
                     if data.get("trusted"):
-                        args["_trusted"] = True
+                        args["_trusted"] = _FRAMEWORK_TRUST
                     if path == "/dispatch":
                         ops = outer.app.dispatch(data["action"], **args)
                     elif path == "/async_dispatch":

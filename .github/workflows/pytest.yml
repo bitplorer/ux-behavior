@@ -18,3 +18,18 @@ jobs:
         run: pytest -q --ignore=tests/test_live_channel.py
       - name: Doctor
         run: uxbehavior doctor --fail
+
+  live-secret:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install
+        run: |
+          pip install -e ".[dev]"
+          pip install fastapi httpx uvicorn
+          pip install "git+https://github.com/bitplorer/ux-channel.git#subdirectory=python"
+      - name: Forged Cap and attached Cap gate
+        run: pytest -q tests/test_b2_forged_cap.py tests/test_channel_cap_bypass.py

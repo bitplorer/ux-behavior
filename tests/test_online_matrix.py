@@ -17,6 +17,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
 
+from ux_behavior.root import _FRAMEWORK_TRUST
 from ux_behavior import (
     AuthorityError,
     Behavior,
@@ -376,7 +377,7 @@ class _Server:
                     if path == "/dispatch":
                         args = dict(data.get("args") or {})
                         if data.get("trusted"):
-                            args["_trusted"] = True
+                            args["_trusted"] = _FRAMEWORK_TRUST
                         ops = outer.app.dispatch(data["action"], **args)
                         return self._json(
                             200,

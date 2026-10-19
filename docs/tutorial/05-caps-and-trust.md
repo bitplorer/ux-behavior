@@ -25,9 +25,6 @@ app.dispatch("orders.place", sku="x")     # AuthorityError + diagnostics CAP_REQ
 ```python
 with app.trust():
     app.dispatch("orders.place", sku="x")
-
-# or
-app.dispatch("orders.place", sku="x", _trusted=True)
 ```
 
 Never use `trust()` on production request paths.

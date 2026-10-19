@@ -31,7 +31,8 @@ Primary codes (non-exhaustive; see `ux_behavior.diagnostics.HINTS`):
 
 ```python
 try:
-    ops = await app.async_dispatch(name, **payload)
+    ops = app.submit(name, payload)
+    ops = await app.async_submit(name, payload)
 except AuthorityError as e:
     log.warning("%s | %s", e, e.hint or app.diagnostics.last_hint())
     # return 403 or morph

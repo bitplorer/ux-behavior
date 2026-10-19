@@ -208,8 +208,8 @@ class BoundAction:
         self._action = action
         self._instance = instance
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        return self._action(*args, _bound_instance=self._instance, **kwargs)
+    def __call__(self, /, *args: Any, **kwargs: Any) -> Any:
+        return self._action(self._instance, *args, **kwargs)
 
     def ui(self, **kwargs: Any) -> dict[str, str]:
         """DOM-ready progressive attrs for this action + args."""
@@ -258,24 +258,16 @@ class ActionMethod:
             return self
         return BoundAction(self, obj)
 
-    def __call__(
-        self, *args: Any, _bound_instance: Any | None = None, **kwargs: Any
-    ) -> Any:
+    def __call__(self, instance: Any, /, *args: Any, **kwargs: Any) -> Any:
         if self._is_async:
 
             async def _run() -> list[Op] | None:
-                if _bound_instance is not None:
-                    result = await self._fn(_bound_instance, *args, **kwargs)
-                else:
-                    result = await self._fn(*args, **kwargs)
+                result = await self._fn(instance, *args, **kwargs)
                 return _normalize_result(result, self._qualname)
 
             return _run()
 
-        if _bound_instance is not None:
-            result = self._fn(_bound_instance, *args, **kwargs)
-        else:
-            result = self._fn(*args, **kwargs)
+        result = self._fn(instance, *args, **kwargs)
         return _normalize_result(result, self._qualname)
 
     def ui(self, **kwargs: Any) -> dict[str, str]:

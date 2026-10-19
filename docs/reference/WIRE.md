@@ -16,8 +16,19 @@ app.attach(asgi, *, secret=None, path="/ux-channel", region=None, uid=None, chan
 ```text
 1. Idempotent if _wire already set
 2. asgi is None → warn, return None
-3. Import Channel → else CHANNEL_MISSING, return None
-4. Resolve secret (env or dev default + warn)
+3. Import Channel → else CHANNEL_MISSING, return None (raise if strict_attach).
+   A host without ux-channel gets None even when no secret is configured.
+4. Resolve secret. Outside dev, a missing secret or the public dev constant
+   raises (ATTACH_SECRET_REQUIRED). Dev is DEBUG in 1/true/yes/on after
+   strip + lower (this package has no other dev switch). In dev, a missing
+   secret is one random per-process value, same shape as
+   ChannelConfig.development() (ATTACH_DEV_SECRET warn). The public
+   constant is never accepted, including ChannelConfig.production when
+   REDIS_URL is set. `REDIS_URL` with no configured secret raises even
+   when `DEBUG=1`, because that store is shared by more than one process.
+   Set `UX_CHANNEL_SECRET` even in dev when using `--workers` greater
+   than 1, `--reload`, or `REDIS_URL`. A per-process secret does not
+   survive a restart, and Caps minted with it fail on the next process.
 5. Channel.boot → on failure: error; raise if strict_attach
 6. Register region paint callable
 7. Register ux_behavior.dispatch handler (prefer async)
@@ -31,7 +42,7 @@ app.attach(asgi, *, secret=None, path="/ux-channel", region=None, uid=None, chan
 - Reads `ux_action` + args/form.
 - Empty action → warn, no-op.
 - On exception: `DISPATCH_FAILED` + **re-raise** (not swallowed).
-- Always `_trusted=True` after Channel acceptance.
+- Always the private trust sentinel after Channel acceptance. A payload `_trusted` value is dropped.
 
 ## 4. control path
 
@@ -54,7 +65,8 @@ If Host called `app.use("effects"|"search")`, attach attempts `channel.use(name)
 |------|----------|-------------|
 | CHANNEL_MISSING | error | Install channel package |
 | ATTACH_BOOT_FAILED | error | Fix config/secret/Redis |
-| ATTACH_DEV_SECRET | warn | Set production secret |
+| ATTACH_SECRET_REQUIRED | error | Set UX_CHANNEL_SECRET; the public dev secret is refused |
+| ATTACH_DEV_SECRET | warn | DEBUG boot is using a per-process secret |
 | PLANES_*_FALLBACK | warn | Inspect Channel state API |
 | DRIVERS_FAILED | warn | Register drivers on Host |
 
@@ -68,11 +80,18 @@ from ux_channel.protocol.types import Result
 
 @ch.on("cart.add")
 async def cart_add(ctx, sku: str):
-    await app.async_dispatch("cart.add", _trusted=True, sku=sku)
+    with app.trust():
+        await app.async_dispatch("cart.add", sku=sku)
     return Result.success(
         client_event("cart:added", target="#cart", detail={"sku": sku}),
     )
 ```
+
+`with app.trust()` lends trust to a task created inside the block, and that
+task keeps it for its whole life. See the
+[spawned-task warning](SECURITY.md#trust-context). A second wire that has
+already verified the Cap can call `await app.async_dispatch_verified(name, payload)`
+instead. That grant is one call and does not spread to spawned tasks.
 
 Wire shape: `{op: "dispatch", name, target?, detail?, bubbles?}`.
 `target` is a CSS selector; omit → classic `ux-channel.js` fires on `document.body`.

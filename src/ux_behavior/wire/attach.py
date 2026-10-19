@@ -3,11 +3,25 @@
 from __future__ import annotations
 
 import importlib.util
+import logging
 import os
-from typing import Any, Callable
+import secrets
+import threading
+from typing import Any, Callable, NoReturn
+
+from ux_behavior.root import _FRAMEWORK_TRUST, _IGNORED_TRUST_LOG
 
 DEFAULT_REGION_UID = "app.root"
 UX_ACTION_KEY = "ux_action"
+
+# Older builds signed every secret-less attach() with this published string.
+# It is a denylist now, not a fallback.
+_PUBLIC_DEV_SECRET = "dev-secret-key-32chars-minimum!!!!"
+# This package has no other dev switch. Same truthy allowlist as ux-dom #35.
+_DEBUG_TRUTHY = frozenset({"1", "true", "yes", "on"})
+_process_dev_secret: str | None = None
+_process_dev_secret_lock = threading.Lock()
+log = logging.getLogger("ux_behavior")
 
 
 def probe() -> dict[str, bool]:
@@ -49,14 +63,69 @@ def attach_info(behavior: Any | None = None) -> dict[str, Any]:
     }
 
 
+def _debug_requests_dev() -> bool:
+    return os.environ.get("DEBUG", "").strip().lower() in _DEBUG_TRUTHY
+
+
+def _per_process_dev_secret() -> str:
+    """One random secret for this process, same shape as ChannelConfig.development()."""
+    global _process_dev_secret
+    with _process_dev_secret_lock:
+        if _process_dev_secret is None:
+            _process_dev_secret = "dev-" + secrets.token_urlsafe(24)
+        return _process_dev_secret
+
+
+def _refuse_attach_secret(diag: Any, message: str) -> NoReturn:
+    if diag is not None:
+        diag.error("ATTACH_SECRET_REQUIRED", message)
+    raise RuntimeError(message)
+
+
+def _resolve_attach_secret(explicit: str | None, diag: Any) -> str:
+    """Secret for Channel.boot. The public dev constant is never returned."""
+    chosen = (
+        explicit
+        or os.environ.get("UX_CHANNEL_SECRET")
+        or os.environ.get("UX_BEHAVIOR_SECRET")
+        or ""
+    )
+    if chosen == _PUBLIC_DEV_SECRET:
+        _refuse_attach_secret(diag, "the public dev secret is not accepted")
+    if not chosen and os.environ.get("REDIS_URL"):
+        _refuse_attach_secret(
+            diag,
+            "attach() requires UX_CHANNEL_SECRET or UX_BEHAVIOR_SECRET when "
+            "REDIS_URL is set; a per-process dev secret is not shared across processes",
+        )
+    if chosen:
+        return chosen
+    if _debug_requests_dev():
+        if diag is not None:
+            diag.warn(
+                "ATTACH_DEV_SECRET",
+                "using a per-process dev secret; set UX_CHANNEL_SECRET in production",
+            )
+        return _per_process_dev_secret()
+    _refuse_attach_secret(
+        diag,
+        "attach() requires UX_CHANNEL_SECRET or UX_BEHAVIOR_SECRET outside dev; "
+        "the public dev secret is not accepted",
+    )
+
+
 def _payload_from(ctx: Any, args: dict[str, Any]) -> dict[str, Any]:
-    reserved = {UX_ACTION_KEY}
+    reserved = {UX_ACTION_KEY, "_trusted"}
+    if "_trusted" in args:
+        log.warning(_IGNORED_TRUST_LOG)
     payload = {k: v for k, v in args.items() if k not in reserved}
     if ctx is not None:
         form = getattr(ctx, "form", None) or getattr(ctx, "data", None) or {}
         if isinstance(form, dict):
             for key, value in form.items():
                 if key in reserved:
+                    if key == "_trusted":
+                        log.warning(_IGNORED_TRUST_LOG)
                     continue
                 if key not in payload:
                     payload[str(key)] = value
@@ -104,19 +173,7 @@ def attach(
             raise
         return None
 
-    secret = (
-        secret
-        or os.environ.get("UX_CHANNEL_SECRET")
-        or os.environ.get("UX_BEHAVIOR_SECRET")
-        or ""
-    )
-    if not secret:
-        secret = "dev-secret-key-32chars-minimum!!!!"
-        if diag is not None:
-            diag.warn(
-                "ATTACH_DEV_SECRET",
-                "using built-in dev secret; set UX_CHANNEL_SECRET in production",
-            )
+    secret = _resolve_attach_secret(secret, diag)
 
     try:
         if os.environ.get("REDIS_URL"):
@@ -160,7 +217,7 @@ def attach(
             return
         try:
             await behavior.async_dispatch(
-                name, _trusted=True, **_payload_from(ctx, args)
+                name, _trusted=_FRAMEWORK_TRUST, **_payload_from(ctx, args)
             )
         except Exception as exc:
             if diag is not None:
@@ -198,7 +255,7 @@ def attach(
                     diag.warn("DISPATCH_EMPTY_ACTION", "inbound event missing ux_action")
                 return None
             try:
-                behavior.dispatch(name, _trusted=True, **_payload_from(ctx, args))
+                behavior.dispatch(name, _trusted=_FRAMEWORK_TRUST, **_payload_from(ctx, args))
             except Exception as err:
                 if diag is not None:
                     diag.error(

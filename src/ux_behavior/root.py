@@ -11,6 +11,7 @@ from contextvars import ContextVar
 from dataclasses import replace
 
 import importlib.util
+import logging
 from contextlib import contextmanager
 from typing import Any, Callable, Iterable, Iterator, Type
 
@@ -32,6 +33,27 @@ from ux_behavior.ops import Op, update
 from ux_behavior.planes import MISSING
 from ux_behavior.state_api import StateAPI
 from ux_behavior.validate import bind_action_args
+
+log = logging.getLogger("ux_behavior")
+
+# Identity, not a bool. JSON and ``dispatch(**body)`` cannot produce it.
+_FRAMEWORK_TRUST = object()
+# Passed by emit when the armed call was not trusted, so the keyword is
+# occupied and a leftover slot cannot become the only ``_trusted`` argument.
+_TRUST_NOT_GRANTED = object()
+_IGNORED_TRUST_LOG = (
+    "ignoring _trusted from caller data; trust is not taken from a payload value"
+)
+
+
+def _without_payload_trust(data: dict[str, Any]) -> dict[str, Any]:
+    """Drop a ``_trusted`` key that arrived in posted data."""
+    if "_trusted" not in data:
+        return data
+    log.warning(_IGNORED_TRUST_LOG)
+    cleaned = dict(data)
+    cleaned.pop("_trusted", None)
+    return cleaned
 
 
 def _public_state(inst: Any) -> dict[str, Any]:
@@ -185,6 +207,9 @@ class Behavior:
         """Trust calls made in this context only (contextvar, per task/thread).
 
         ``strict_caps`` is not touched, so concurrent requests stay checked.
+        A task started inside this block keeps trust after the block ends.
+        Never start a long-lived worker, queue consumer, or background task
+        inside ``trust()``: that task keeps trust for its whole life.
         """
         token = _TRUST_SCOPE.set(_TRUST_SCOPE.get() | {self._trust_key})
         self.diagnostics.warn("TRUST_ON", "Cap checks skipped in this trust() context")
@@ -196,6 +221,22 @@ class Behavior:
 
     def _is_trusted(self, trusted: bool) -> bool:
         return bool(trusted) or self._trust_key in _TRUST_SCOPE.get()
+
+    def _take_trust(self, kwargs: dict[str, Any]) -> bool:
+        """Trust only when ``_trusted`` is the private sentinel.
+
+        Any other supplied value, including ``True``, ``"yes"``, and ``1``,
+        is ignored and logged. ``app.trust()`` still counts.
+        """
+        if "_trusted" not in kwargs:
+            return self._is_trusted(False)
+        flag = kwargs.pop("_trusted")
+        if flag is _FRAMEWORK_TRUST:
+            return self._is_trusted(True)
+        if flag is _TRUST_NOT_GRANTED:
+            return self._is_trusted(False)
+        log.warning(_IGNORED_TRUST_LOG)
+        return self._is_trusted(False)
 
     def use(self, *names: str) -> "Behavior":
         self.domains.use(*names)
@@ -301,7 +342,7 @@ class Behavior:
             raise AuthorityError(
                 f"{action!r} requires Cap {caps}",
                 hint=(
-                    "attach Channel, use app.trust(), or dispatch(..., _trusted=True)"
+                    "attach Channel or use app.trust()"
                     if self.developer_hints
                     else ""
                 ),
@@ -390,8 +431,8 @@ class Behavior:
             resolved[key] = value
         return item.action, resolved
 
-    def dispatch(self, action: str, **kwargs: Any) -> list[Op]:
-        trusted = self._is_trusted(kwargs.pop("_trusted", False))
+    def dispatch(self, action: str, /, **kwargs: Any) -> list[Op]:
+        trusted = self._take_trust(kwargs)
         component_id, inst, fn = self._resolve(action)
         if getattr(fn, "_ux_behavior_async", False):
             raise TypeError(
@@ -411,8 +452,8 @@ class Behavior:
             pending = _end_follow_ups(token)
         return self._finish(action, component_id, inst, before, result, pending, trusted=trusted)
 
-    async def async_dispatch(self, action: str, **kwargs: Any) -> list[Op]:
-        trusted = self._is_trusted(kwargs.pop("_trusted", False))
+    async def async_dispatch(self, action: str, /, **kwargs: Any) -> list[Op]:
+        trusted = self._take_trust(kwargs)
         component_id, inst, fn = self._resolve(action)
         self._require_caps(fn, action, trusted=trusted)
         try:
@@ -431,13 +472,39 @@ class Behavior:
             pending = _end_follow_ups(token)
         return self._finish(action, component_id, inst, before, result, pending, trusted=trusted)
 
+    def _verified_payload(self, payload: dict[str, Any] | None) -> dict[str, Any]:
+        clean = _without_payload_trust(dict(payload or {}))
+        clean["_trusted"] = _FRAMEWORK_TRUST
+        return clean
+
+    def dispatch_verified(
+        self, name: str, payload: dict[str, Any] | None = None, /
+    ) -> list[Op]:
+        """only for framework code after Channel or an equivalent check has verified the Cap.
+
+        Trust is this call's sentinel only. A task started while the action
+        runs does not inherit it.
+        """
+        return self.dispatch(name, **self._verified_payload(payload))
+
+    async def async_dispatch_verified(
+        self, name: str, payload: dict[str, Any] | None = None, /
+    ) -> list[Op]:
+        """only for framework code after Channel or an equivalent check has verified the Cap.
+
+        Trust is this call's sentinel only. A task started while the action
+        runs does not inherit it.
+        """
+        return await self.async_dispatch(name, **self._verified_payload(payload))
+
     def submit(
         self,
         action: str,
         args: dict[str, Any] | None = None,
+        /,
         **kwargs: Any,
     ) -> list[Op]:
-        payload = dict(args or {})
+        payload = _without_payload_trust(dict(args or {}))
         payload.update(kwargs)
         return self.dispatch(action, **payload)
 
@@ -445,9 +512,10 @@ class Behavior:
         self,
         action: str,
         args: dict[str, Any] | None = None,
+        /,
         **kwargs: Any,
     ) -> list[Op]:
-        payload = dict(args or {})
+        payload = _without_payload_trust(dict(args or {}))
         payload.update(kwargs)
         return await self.async_dispatch(action, **payload)
 
@@ -455,17 +523,21 @@ class Behavior:
         item = _armed_continuations(self._continuation_scope).get(str(event or "").strip())
         return bool(getattr(item, "trusted", False))
 
-    def emit(self, event: str, **slots: Any) -> list[Op]:
+    def emit(self, event: str, /, **slots: Any) -> list[Op]:
         trusted = self._armed_trust(event)
         action, resolved = self._continuation_args(event, slots)
         _disarm_continuation(self._continuation_scope, str(event or "").strip())  # single use
-        return self.dispatch(action, _trusted=trusted, **resolved)
+        resolved = _without_payload_trust(resolved)
+        flag = _FRAMEWORK_TRUST if trusted else _TRUST_NOT_GRANTED
+        return self.dispatch(action, _trusted=flag, **resolved)
 
-    async def async_emit(self, event: str, **slots: Any) -> list[Op]:
+    async def async_emit(self, event: str, /, **slots: Any) -> list[Op]:
         trusted = self._armed_trust(event)
         action, resolved = self._continuation_args(event, slots)
         _disarm_continuation(self._continuation_scope, str(event or "").strip())  # single use
-        return await self.async_dispatch(action, _trusted=trusted, **resolved)
+        resolved = _without_payload_trust(resolved)
+        flag = _FRAMEWORK_TRUST if trusted else _TRUST_NOT_GRANTED
+        return await self.async_dispatch(action, _trusted=flag, **resolved)
 
     def _check_stamp(self, ops: list[Op]) -> None:
         for op in ops:

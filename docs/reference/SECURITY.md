@@ -11,7 +11,8 @@
 | Client-writable bag holds prices/qty | `client_risk` path refuse | Channel ClientSafety |
 | Preview/dry-run mutates authority state | `preview()` blocks session/store writes | Host |
 | Stamp allows undeclared ops | `_check_stamp` PermissionError | Host agrees domains |
-| Dev secret in production | `ATTACH_DEV_SECRET` diagnostic | Host env |
+| Public dev secret in production | `attach()` raises `ATTACH_SECRET_REQUIRED` | Host env `UX_CHANNEL_SECRET` |
+| Dev secret shared across processes | `REDIS_URL` with no configured secret raises, including when `DEBUG=1` | Set `UX_CHANNEL_SECRET` even in dev for `--workers` > 1, `--reload`, or Redis |
 | Silent Cap-less controls in prod | `strict_control=True` | Host boot profile |
 
 Behavior does **not** replace Channel. If Channel is absent, protected actions **do not run** (default).
@@ -31,24 +32,23 @@ Semantics of the *strings* inside `caps` are **Host/Channel conventions**. Behav
 
 Protected action runs only if one of:
 
-1. `dispatch(..., _trusted=True)`
+1. the wire passed the private trust sentinel after Channel accepted the Cap
 2. `with app.trust():`
+3. `app.dispatch_verified(name, payload)` or `await app.async_dispatch_verified(name, payload)` after Channel, or an equivalent check, has verified the Cap
 
-Attaching a Channel does **not** skip this check (0.4.0). The Channel's own handler passes `_trusted=True` only after it has verified the Cap.
+Attaching a Channel does **not** skip this check (0.4.0). The Channel's own handler passes the sentinel only after it has verified the Cap. `True`, `"yes"`, and `1` are not that sentinel.
+
+A `_trusted` key inside `submit(action, body)` or `async_submit(action, body)` does not grant trust. That dict is posted data. The same key is dropped from Channel payloads and from continuation slots. `dispatch(action, **body)` with `"_trusted"` in the body is ignored and logged.
 
 Otherwise: `AuthorityError` + diagnostic `CAP_REQUIRED` + **hint**.
 
 ### Live gate
 
-Channel verifies the Cap on the request **before** the wire handler runs. Wire then calls:
+Channel verifies the Cap on the request **before** the wire handler runs. The wire then dispatches with the private sentinel. Behavior trusts the edge only after Channel has accepted the request.
 
-```python
-await behavior.async_dispatch(name, _trusted=True, **payload)
-```
+Do not spread request JSON into `dispatch` or `submit`. A body that contains `_trusted` is caller data. Pass a payload dict to `submit(name, payload)` / `async_submit(name, payload)`, or pass the fields you mean as explicit keywords.
 
-Behavior trusts the edge only after Channel has accepted the request. **Do not** expose `_trusted=True` on public HTTP handlers without Channel.
-
-### trust() context
+### trust() context <a id="trust-context"></a>
 
 ```python
 with app.trust():
@@ -57,11 +57,13 @@ with app.trust():
 
 Scoped to the current context (contextvar, 0.4.0): other tasks and threads stay checked, and `strict_caps` is not changed. Emits diagnostic `TRUST_ON` / `TRUST_OFF`. Intended for **tests** and controlled Host admin tooling. Not for ordinary request handlers.
 
+A task started inside `with app.trust()` keeps trust after the block ends.
+
 > **Warning:** trust is carried by the current context. Tasks created inside the
 > block (`asyncio.create_task`, `TaskGroup`, `loop.run_in_executor` with a copied
 > context) copy that context and **inherit trust**, even after the block
-> exits. Do not spawn background work inside `trust()` unless that work is
-> itself trusted.
+> exits. Never start a long-lived worker, queue consumer, or background task
+> inside `trust()`, because such a task keeps trust for its whole life.
 
 ### Follow-ups (`follow_up` / `emit`)
 
@@ -74,6 +76,9 @@ Scoped to the current context (contextvar, 0.4.0): other tasks and threads stay 
   This is intentional: a refund or payment step never runs twice.
 - The continuation runs with the trust of the dispatch that armed it, or the
   emitter's own `trust()` context. `emit` never grants trust.
+- A follow-up armed by an uncapped wire call is trusted by design. The wire
+  grant is on the call, not on the action's `caps`. A public action invoked
+  through that path arms its continuation as trusted.
 - Only trusted host code may expose `emit` (for example, a webhook that has
   verified the provider's signature). Never route an unauthenticated request to
   `emit`: a continuation armed by trusted code would run with that trust.
@@ -119,9 +124,10 @@ Blocks **session** and **store** plane writes. Client and Ref remain writable so
 |----------|------|
 | `UX_CHANNEL_SECRET` | Preferred Channel secret |
 | `UX_BEHAVIOR_SECRET` | Fallback |
-| built-in dev string | Only if both unset → `ATTACH_DEV_SECRET` warn |
+| `DEBUG` | `1` / `true` / `yes` / `on` (strip + lower) selects one random per-process secret when both secrets above are unset |
+| public dev string | Never accepted, in production or dev, including `ChannelConfig.production` when `REDIS_URL` is set |
 
-Production: set a strong secret via environment or process secrets manager **before** attach.
+Outside dev, `attach()` with no secret raises. It does not sign with a built-in constant. `REDIS_URL` with no configured secret raises even when `DEBUG=1`. Set `UX_CHANNEL_SECRET` even in dev when using `--workers` greater than 1, `--reload`, or `REDIS_URL`. The per-process secret does not survive a restart, and a Cap minted in one process is refused by another. Production: set a strong secret via the environment or a process secrets manager **before** attach.
 
 ## 7. Recommended production boot flags
 

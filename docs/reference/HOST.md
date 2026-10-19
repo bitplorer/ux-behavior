@@ -50,7 +50,7 @@ if app.diagnostics.has_errors():
 app = Behavior.boot(strict_caps=True)
 app.add(Cart)
 with app.trust():
-    app.dispatch("orders.place", **payload)  # protected offline
+    app.submit("orders.place", payload)  # protected offline
 
 # or public actions only
 @action(caps=())

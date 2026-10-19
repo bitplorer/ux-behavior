@@ -2,6 +2,76 @@
 
 ## Unreleased
 
+### Breaking
+
+- `_trusted=True` no longer grants trust. A payload `_trusted` value is
+  dropped, and the trust argument accepts only the private sentinel.
+  `dispatch(action, **body)` does not grant trust. After a Cap check, call
+  `app.dispatch_verified(name, payload)` or
+  `await app.async_dispatch_verified(name, payload)`.
+  `app.trust()` is unchanged, and a task started inside it keeps trust for
+  its whole life.
+- `attach()` requires `UX_CHANNEL_SECRET` or `UX_BEHAVIOR_SECRET` outside
+  dev. The published dev constant is refused even when passed explicitly.
+- `dispatch`, `async_dispatch`, `submit`, `async_submit`, `emit`,
+  `async_emit`, `dispatch_verified`, and `async_dispatch_verified` take
+  their method parameters positionally. A payload key named `action` or
+  `self` is caller data.
+- An unnamed posted key sent to an action that does not declare
+  `**kwargs` is a validation error. The action does not run. Keys such
+  as `is_admin` and `role` do not reach it.
+
+### Added
+
+- `app.dispatch_verified(name, payload)` and
+  `await app.async_dispatch_verified(name, payload)` grant trust for that
+  one call after a Cap check. A task started inside the action does not
+  inherit the grant. The private sentinel stays off the public surface.
+  The helpers are methods on the app, not package-level exports.
+
+### Security
+
+- `attach()` no longer signs Caps with the published constant
+  `dev-secret-key-32chars-minimum!!!!`. Outside dev that call raises
+  (`ATTACH_SECRET_REQUIRED`) when no secret is configured. Dev is `DEBUG`
+  in `1` / `true` / `yes` / `on` after strip + lower; this package has no
+  other dev switch. In dev, a missing secret is one random per-process
+  value with the same shape as `ChannelConfig.development()`. The constant
+  is refused in every mode, including `UX_CHANNEL_SECRET` /
+  `UX_BEHAVIOR_SECRET` and `ChannelConfig.production` when `REDIS_URL` is
+  set. Reason: a Cap signed with that constant was accepted on a stock
+  `attach()` that had no secret.
+- `attach()` raises without a secret outside dev, so `UX_CHANNEL_SECRET`
+  (or `UX_BEHAVIOR_SECRET`) must be set. A host without ux-channel still
+  gets `None` from `attach()` when no secret is configured: the missing
+  package is reported before the secret check.
+- The public constant is refused even when passed explicitly.
+- Dev Caps don't survive a restart. The per-process secret is minted once
+  in that process and is not written anywhere. Set `UX_CHANNEL_SECRET`
+  even in dev when using `--workers` greater than 1, `--reload`, or
+  `REDIS_URL`. `REDIS_URL` with no configured secret raises even when
+  `DEBUG=1`, because that store is shared by more than one process.
+- `_trusted` in payloads is dropped, and the trust argument now takes the
+  sentinel. `dispatch(action, **body)`, `submit(action, body)`, and an
+  explicit `_trusted=True` / `"yes"` / `1` do not grant trust. An ignored
+  body value is logged. `app.trust()` is unchanged. `wire/attach.py`
+  passes the private sentinel only after Channel accepts the Cap. Reason:
+  a host that spread request JSON into `dispatch` ran a capped action
+  when the body contained `_trusted`.
+
+### Fixed
+
+- An omitted default is not type-checked. `b: Box = None` with `b` left
+  out stays accepted, and the default is still passed to the action.
+  Only values the caller actually passed are checked. Reason: resolving
+  hints per parameter started rejecting defaults the caller never sent.
+- Action argument checks resolve each parameter annotation on its own.
+  `list[int]` stays a pass-through. One annotation that cannot be
+  resolved no longer skips the other parameters, so `n: int` is still
+  checked beside an unresolvable sibling. Reason: `get_type_hints()` on
+  the whole callable raised for that one annotation, and the handler
+  then dropped every hint.
+
 ## 0.4.1
 
 ### Removed — dead imports (no API change)

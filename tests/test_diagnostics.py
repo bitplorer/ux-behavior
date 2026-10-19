@@ -53,6 +53,7 @@ def test_hints_cover_emitted_codes():
         "ATTACH_ASYNC_HANDLER_FAILED",
         "ATTACH_BOOT_FAILED",
         "ATTACH_DEV_SECRET",
+        "ATTACH_SECRET_REQUIRED",
         "ATTACH_IDEMPOTENT",
         "ATTACH_NO_ASGI",
         "ATTACH_OK",
@@ -93,9 +94,10 @@ def test_hints_cover_emitted_codes():
     assert missing == []
 
 
-def test_strict_attach_missing_channel():
+def test_strict_attach_missing_channel(monkeypatch):
     if importlib.util.find_spec("ux_channel") is not None:
         pytest.skip("ux-channel installed")
+    monkeypatch.setenv("UX_CHANNEL_SECRET", "s" * 40)
     app = Behavior.boot(strict_attach=True)
     with pytest.raises(ImportError):
         app.attach(object())

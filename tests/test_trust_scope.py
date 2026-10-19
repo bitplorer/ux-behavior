@@ -6,6 +6,7 @@ import asyncio
 import pytest
 
 from ux_behavior import AuthorityError, Behavior, Component, action, follow_up
+from ux_behavior.root import _FRAMEWORK_TRUST
 
 
 class Shop(Component):
@@ -49,7 +50,7 @@ async def test_async_emit_does_not_grant_trust():
 
 def test_emit_inherits_trust_from_trusted_arming():
     app = _app()
-    app.dispatch("shop.ask_refund", _trusted=True)
+    app.dispatch("shop.ask_refund", _trusted=_FRAMEWORK_TRUST)
     app.emit("approved")
     assert app.get("shop").refunded == 1
 
@@ -67,6 +68,26 @@ def test_trust_does_not_flip_shared_strict_caps():
     with app.trust():
         assert app.strict_caps is True
         app.dispatch("shop.refund")
+    assert app.get("shop").refunded == 1
+
+
+@pytest.mark.asyncio
+async def test_task_created_inside_trust_stays_trusted_after_block():
+    """Intended: a task started inside trust() keeps trust after the block exits."""
+    app = _app()
+    entered = asyncio.Event()
+    release = asyncio.Event()
+
+    async def worker():
+        entered.set()
+        await release.wait()
+        await app.async_dispatch("shop.refund")
+
+    with app.trust():
+        task = asyncio.create_task(worker())
+        await entered.wait()
+    release.set()
+    await task
     assert app.get("shop").refunded == 1
 
 
@@ -98,7 +119,7 @@ def test_continuation_is_single_use():
     from ux_behavior import ContinuationError
 
     app = _app()
-    app.dispatch("shop.ask_refund", _trusted=True)
+    app.dispatch("shop.ask_refund", _trusted=_FRAMEWORK_TRUST)
     app.emit("approved")
     with pytest.raises(ContinuationError):
         app.emit("approved")
@@ -111,7 +132,7 @@ async def test_async_continuation_is_single_use():
     from ux_behavior import ContinuationError
 
     app = _app()
-    app.dispatch("shop.ask_refund", _trusted=True)
+    app.dispatch("shop.ask_refund", _trusted=_FRAMEWORK_TRUST)
     await app.async_emit("approved")
     with pytest.raises(ContinuationError):
         await app.async_emit("approved")

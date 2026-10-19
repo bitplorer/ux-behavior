@@ -196,6 +196,13 @@ A future change is legal only if it still satisfies the one-sentence contract **
 | Teach Channel about motion | Never under this contract |
 | Mint a fifth package | Never under this contract |
 
+`app.dispatch_verified(name, payload)` and
+`await app.async_dispatch_verified(name, payload)` take that seat. A second
+wire calls those methods after Channel, or an equivalent check, has verified
+the Cap. The grant is the private sentinel on that one call. Tasks spawned
+inside the action do not inherit it. The methods are not package-level
+exports, and the sentinel stays off `__all__`.
+
 ---
 
 ## 10. Success criteria (boardroom test)

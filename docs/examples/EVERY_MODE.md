@@ -14,7 +14,7 @@ Automated: `tests/test_every_mode.py`.
 | **Action kind** | Sync `@action` · Async `@action` (`async def`) |
 | **Network** | Offline (no Channel) · Live (`attach` + Channel) |
 | **Caps** | Public `caps=()` · Protected `caps=("…",)` |
-| **Authority** | Strict default · `trust()` · `_trusted=True` · wire attached |
+| **Authority** | Strict default · `trust()` · wire sentinel after Cap · wire attached |
 | **Outcome** | Ops · morph error · `AuthorityError` · `TypeError` · diagnostic |
 
 ---
@@ -140,7 +140,8 @@ except AuthorityError:
 ```python
 with app.trust():
     app.dispatch("demo.protected_set", n=3)
-app.dispatch("demo.protected_set", n=4, _trusted=True)
+with app.trust():
+    app.dispatch("demo.protected_set", n=4)
 ```
 
 ### S4 — Sync entry + sync protected continuation
@@ -187,7 +188,8 @@ except AuthorityError:
 ### A5 — Async entry + async protected + _trusted
 
 ```python
-await app.async_dispatch("demo.protected_async_set", n=7, _trusted=True)
+with app.trust():
+    await app.async_dispatch("demo.protected_async_set", n=7)
 assert app.get("demo").n == 7
 ```
 

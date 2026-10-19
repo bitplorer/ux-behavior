@@ -11,8 +11,9 @@
 | `async_dispatch` | yes | yes |
 | `submit` / `async_submit` | same as above | merges `args` dict |
 | `emit` / `async_emit` | via dispatch family | resolves continuation first |
+| `dispatch_verified` / `async_dispatch_verified` | same as dispatch / async_dispatch | one trusted call after a Cap check |
 
-Reserved kwargs: `_trusted` (bool) — stripped before binding to the action signature.
+Reserved kwargs: `_trusted`. Only the module-private sentinel grants trust. The wire passes it after Channel has accepted the Cap, and so does `app.dispatch_verified(name, payload)` / `await app.async_dispatch_verified(name, payload)`. `True`, `"yes"`, `1`, and any other value are ignored and logged. A `_trusted` entry in `submit` / `async_submit` args, a Channel form or args payload, continuation slots, or `dispatch(action, **body)` is posted data and does not grant trust. The key is stripped before binding. Hosts use `app.trust()` for tests and admin paths. `action` and `self` in a payload are caller data. The parameters of `dispatch`, `async_dispatch`, `submit`, `async_submit`, `emit`, `async_emit`, `dispatch_verified`, and `async_dispatch_verified` are positional-only, so those keys are not the method's own parameters. A key binds when the action names it. A key the signature does not name is not passed into `**kwargs`. An unnamed posted key sent to an action that does not declare `**kwargs` is a validation error: the action does not run. A normal method already receives its instance as `self`, so a payload key of that name is not passed a second time.
 
 ## 2. Pipeline (ordered)
 
@@ -42,12 +43,14 @@ Reserved kwargs: `_trusted` (bool) — stripped before binding to the action sig
 
 ## 3. Validation behavior
 
-Uses `inspect.signature` + `typing.get_type_hints` (resolves `from __future__ import annotations`).
+Uses `inspect.signature` and resolves each parameter annotation on its own (including `from __future__ import annotations`).
 
 - Missing required params → field error.
+- A default the caller did not pass is filled in and not type-checked. `b: Box = None` with `b` omitted stays accepted. A value the caller passed, including an explicit `None`, is checked.
 - Simple type mismatch → field error.
 - Union/Optional: None allowed when present in union; other branches lightly checked.
-- Complex generics: treated as pass-through (not a full type checker).
+- Complex generics: treated as pass-through (not a full type checker). `list[int]` does not check its elements.
+- An annotation that cannot be resolved is skipped for that parameter only. It does not turn off checks on the other parameters.
 
 Error morph target: `{action}.{field}-error` or `{action}-error` for `_`.
 
@@ -60,7 +63,7 @@ follow_up(event, action, *, args_from=None, **args)
 - Must run inside step 7–9 context; otherwise `RuntimeError`.
 - Overwrites prior continuation for the same `event` name on this Behavior in the same `contextvars` context. Callers that share a context overwrite each other. A copied context keeps its own armed event.
 - `emit` merges: fixed `args`, then `args_from` mapping from slots, then extra slots. A source key that was copied onto its destination is consumed and is not forwarded. Slots that were not consumed are still forwarded.
-- Continuation dispatch inherits the trust of the dispatch that armed it (0.4.0). A follow-up armed by an anonymous public action is checked like any untrusted call. A trusted host (e.g. a verified payment webhook) emits inside `app.trust()` or arms from a `_trusted=True` dispatch.
+- Continuation dispatch inherits the trust of the dispatch that armed it (0.4.0). A follow-up armed by an anonymous public action is checked like any untrusted call. A trusted host (e.g. a verified payment webhook) emits inside `app.trust()` or arms from a dispatch the wire already marked trusted.
 
 ## 5. Stamp
 
