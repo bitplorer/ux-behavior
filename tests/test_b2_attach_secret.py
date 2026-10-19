@@ -1,0 +1,107 @@
+"""B2: attach() must not sign with the published dev secret.
+
+Live script item3_behavior_b2_dev_secret.py. Part 2 (control() offline, empty
+``data_cap``) is intended and pinned here. The forged-Cap HTTP check lives in
+``test_b2_forged_cap.py`` (needs ux-channel).
+"""
+
+from __future__ import annotations
+
+import pytest
+
+from ux_behavior import Behavior, Component, action
+
+PUBLIC_DEV_SECRET = "dev-secret-key-32chars-minimum!!!!"
+_SECRET_ENV = ("UX_CHANNEL_SECRET", "UX_BEHAVIOR_SECRET", "REDIS_URL", "DEBUG")
+
+
+class Vault(Component):
+    id = "vault"
+    wiped = False
+
+    def render(self):
+        return "<div id='vault'></div>"
+
+    @action(caps=("vault.wipe",))
+    def wipe(self):
+        self.wiped = True
+
+
+@pytest.fixture
+def clean_env(monkeypatch: pytest.MonkeyPatch) -> pytest.MonkeyPatch:
+    for key in _SECRET_ENV:
+        monkeypatch.delenv(key, raising=False)
+    return monkeypatch
+
+
+def test_control_offline_door_stays_open():
+    """Part 2 of the live script: strict_control does not mint a Cap offline."""
+    app = Behavior.boot(title="offline", strict_control=True)
+    app.add(Vault)
+    attrs = app.control("vault.wipe")
+    assert attrs["data_action"] == "vault.wipe"
+    assert attrs["data_cap"] == ""
+    assert "CONTROL_OFFLINE" in app.diagnostics.summary()["codes"]
+
+
+def test_attach_without_asgi_still_returns_none(clean_env: pytest.MonkeyPatch):
+    assert Behavior.boot().attach(None) is None
+
+
+def test_explicit_real_secret_is_not_refused(clean_env: pytest.MonkeyPatch):
+    """A caller-supplied secret is not the public constant and is not rejected."""
+    wire = Behavior.boot().attach(object(), secret="s" * 40)
+    if wire is not None:
+        assert wire.config.secret == "s" * 40
+        assert wire.config.secret != PUBLIC_DEV_SECRET
+
+
+def test_attach_without_secret_outside_dev_raises(clean_env: pytest.MonkeyPatch):
+    with pytest.raises(RuntimeError, match="UX_CHANNEL_SECRET"):
+        Behavior.boot().attach(object())
+
+
+@pytest.mark.parametrize("raw", ["0", "false", "no", "off", "2", "maybe", " "])
+def test_debug_falsey_requires_secret(clean_env: pytest.MonkeyPatch, raw: str):
+    clean_env.setenv("DEBUG", raw)
+    with pytest.raises(RuntimeError, match="UX_CHANNEL_SECRET"):
+        Behavior.boot().attach(object())
+
+
+@pytest.mark.parametrize("raw", ["1", "true", "yes", "on", " TRUE ", "Yes", "ON"])
+def test_debug_truthy_allows_missing_secret(clean_env: pytest.MonkeyPatch, raw: str):
+    """Dev signal is DEBUG in {1, true, yes, on} after strip + lower."""
+    clean_env.setenv("DEBUG", raw)
+    Behavior.boot().attach(object())
+
+
+def test_explicit_public_constant_rejected_in_dev(clean_env: pytest.MonkeyPatch):
+    clean_env.setenv("DEBUG", "1")
+    with pytest.raises(RuntimeError, match="public dev secret"):
+        Behavior.boot().attach(object(), secret=PUBLIC_DEV_SECRET)
+
+
+def test_env_public_constant_rejected_outside_dev(clean_env: pytest.MonkeyPatch):
+    clean_env.setenv("UX_CHANNEL_SECRET", PUBLIC_DEV_SECRET)
+    with pytest.raises(RuntimeError, match="public dev secret"):
+        Behavior.boot().attach(object())
+
+
+def test_behavior_secret_env_public_constant_rejected(clean_env: pytest.MonkeyPatch):
+    clean_env.setenv("UX_BEHAVIOR_SECRET", PUBLIC_DEV_SECRET)
+    with pytest.raises(RuntimeError, match="public dev secret"):
+        Behavior.boot().attach(object())
+
+
+def test_redis_url_without_secret_outside_dev_raises(clean_env: pytest.MonkeyPatch):
+    """REDIS_URL must not fall through to ChannelConfig.production(<constant>)."""
+    clean_env.setenv("REDIS_URL", "redis://127.0.0.1:9/0")
+    with pytest.raises(RuntimeError, match="UX_CHANNEL_SECRET"):
+        Behavior.boot().attach(object())
+
+
+def test_redis_url_with_public_constant_raises(clean_env: pytest.MonkeyPatch):
+    clean_env.setenv("REDIS_URL", "redis://127.0.0.1:9/0")
+    clean_env.setenv("UX_CHANNEL_SECRET", PUBLIC_DEV_SECRET)
+    with pytest.raises(RuntimeError, match="public dev secret"):
+        Behavior.boot().attach(object())

@@ -1,0 +1,107 @@
+"""B3: a ``_trusted`` key in payload data must not pass the Cap gate.
+
+Live script item3_behavior_b3_trusted_kwarg.py. The explicit keyword
+``dispatch(..., _trusted=True)`` is the framework flag (wire/attach.py sets
+it only after Channel accepts the Cap) and stays. ``submit(action, body)``
+must not treat a body field of that name as the flag.
+"""
+
+from __future__ import annotations
+
+import pytest
+
+from ux_behavior import AuthorityError, Behavior, Component, action, follow_up
+from ux_behavior.wire.attach import _payload_from
+
+
+class Vault(Component):
+    id = "vault"
+    wiped = False
+
+    def render(self):
+        return "<div id='vault'></div>"
+
+    @action(caps=("vault.wipe",))
+    def wipe(self):
+        self.wiped = True
+
+    @action(caps=())
+    def ask(self):
+        follow_up("go", "vault.wipe")
+        return []
+
+
+def _app() -> Behavior:
+    app = Behavior.boot()
+    app.add(Vault)
+    return app
+
+
+def test_submit_body_trusted_raises():
+    app = _app()
+    with pytest.raises(AuthorityError):
+        app.submit("vault.wipe", {"_trusted": True})
+    assert app.get("vault").wiped is False
+
+
+async def test_async_submit_body_trusted_raises():
+    app = _app()
+    with pytest.raises(AuthorityError):
+        await app.async_submit("vault.wipe", {"_trusted": True})
+    assert app.get("vault").wiped is False
+
+
+def test_explicit_trusted_kwarg_still_runs():
+    """Internal / host path: the keyword the framework passes after Cap acceptance."""
+    app = _app()
+    app.dispatch("vault.wipe", _trusted=True)
+    assert app.get("vault").wiped is True
+
+
+def test_submit_explicit_trusted_kwarg_still_runs():
+    app = _app()
+    app.submit("vault.wipe", {}, _trusted=True)
+    assert app.get("vault").wiped is True
+
+
+async def test_async_dispatch_explicit_trusted_kwarg_still_runs():
+    app = _app()
+    await app.async_dispatch("vault.wipe", _trusted=True)
+    assert app.get("vault").wiped is True
+
+
+def test_trust_context_still_runs():
+    app = _app()
+    with app.trust():
+        app.dispatch("vault.wipe")
+    assert app.get("vault").wiped is True
+
+
+def test_untrusted_dispatch_still_raises():
+    app = _app()
+    with pytest.raises(AuthorityError):
+        app.dispatch("vault.wipe")
+    assert app.get("vault").wiped is False
+
+
+def test_channel_payload_drops_trusted():
+    class Ctx:
+        form = {"_trusted": True, "name": "Ada"}
+
+    payload = _payload_from(Ctx(), {"_trusted": True, "sku": "tee"})
+    assert payload == {"sku": "tee", "name": "Ada"}
+
+
+def test_emit_slot_trusted_does_not_grant_trust():
+    app = _app()
+    app.dispatch("vault.ask")
+    with pytest.raises(AuthorityError):
+        app.emit("go", _trusted=True)
+    assert app.get("vault").wiped is False
+
+
+def test_emit_keeps_trust_armed_by_framework_flag():
+    app = _app()
+    app.dispatch("vault.ask", _trusted=True)
+    app.emit("go", _trusted=False)
+    assert app.get("vault").wiped is True
