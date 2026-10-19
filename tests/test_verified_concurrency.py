@@ -95,3 +95,14 @@ async def test_plain_call_after_cancelled_verified_call_raises():
     with pytest.raises(AuthorityError):
         app.dispatch("vault.plain")
     assert inst.plain_ran is False
+
+
+async def test_plain_call_after_same_task_timeout_raises():
+    """A timeout in this task must not leave the next plain call trusted."""
+    app, inst = _app()
+    with pytest.raises(TimeoutError):
+        async with asyncio.timeout(0.05):
+            await app.async_dispatch_verified("vault.slow", {})
+    with pytest.raises(AuthorityError):
+        app.dispatch("vault.plain")
+    assert inst.plain_ran is False
