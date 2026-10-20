@@ -12,6 +12,7 @@
 | Preview/dry-run mutates authority state | `preview()` blocks session/store writes | Host |
 | Stamp allows undeclared ops | `_check_stamp` PermissionError | Host agrees domains |
 | Public dev secret in production | `attach()` raises `ATTACH_SECRET_REQUIRED` | Host env `UX_CHANNEL_SECRET` |
+| Weak secret found only at boot | `attach_secret_problem(env)` returns `attach()`'s refusal message before boot; length rules are ux-channel's | ux-channel `ChannelConfig` / `CapService` |
 | Dev secret shared across processes | `REDIS_URL` with no configured secret raises, including when `DEBUG=1` | Set `UX_CHANNEL_SECRET` even in dev for `--workers` > 1, `--reload`, or Redis |
 | Silent Cap-less controls in prod | `strict_control=True` | Host boot profile |
 
@@ -128,6 +129,8 @@ Blocks **session** and **store** plane writes. Client and Ref remain writable so
 | public dev string | Never accepted, in production or dev, including `ChannelConfig.production` when `REDIS_URL` is set |
 
 Outside dev, `attach()` with no secret raises. It does not sign with a built-in constant. `REDIS_URL` with no configured secret raises even when `DEBUG=1`. Set `UX_CHANNEL_SECRET` even in dev when using `--workers` greater than 1, `--reload`, or `REDIS_URL`. The per-process secret does not survive a restart, and a Cap minted in one process is refused by another. Production: set a strong secret via the environment or a process secrets manager **before** attach.
+
+A secret that ux-channel's `ChannelConfig` or `CapService` refuses (too short, or a known weak value on the `REDIS_URL` production path) also raises `ATTACH_SECRET_REQUIRED`, with ux-channel's message. To check before boot, call `ux_behavior.wire.attach_secret_problem(env=None, *, secret=None)`: it returns None when `attach()` would accept, otherwise the message `attach()` raises. `attach()` uses the same check. Without ux-channel installed it returns a message, because the length rules are ux-channel's and cannot be checked.
 
 ## 7. Recommended production boot flags
 

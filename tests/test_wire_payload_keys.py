@@ -74,6 +74,7 @@ def _channel(*, reject_async: bool) -> types.ModuleType:
 
     module.Channel = Channel
     module.ChannelConfig = ChannelConfig
+    module.CapService = _Config  # accepts any secret; the real rules are ux-channel's
     return module
 
 

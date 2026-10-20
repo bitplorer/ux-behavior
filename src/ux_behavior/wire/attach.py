@@ -88,36 +88,77 @@ def _refuse_attach_secret(diag: Any, message: str) -> NoReturn:
     raise RuntimeError(message)
 
 
-def _resolve_attach_secret(explicit: str | None, diag: Any) -> str:
-    """Secret for Channel.boot. The public dev constant is never returned."""
+def _channel_config(secret: str, redis_url: str | None) -> Any:
+    """The ChannelConfig attach() boots with. Its validators are ux-channel's."""
+    from ux_channel import ChannelConfig
+
+    if redis_url:
+        return ChannelConfig.production(secret).with_redis(redis_url)
+    return ChannelConfig.development(secret=secret, allow_memory_stores=True)
+
+
+def _attach_secret(
+    explicit: str | None, env: Mapping[str, str] | None, *, store_dev: bool
+) -> tuple[str, str | None, bool]:
+    """(secret, problem, dev) for Channel.boot. ``problem`` is None when accepted.
+
+    Only attach() passes ``store_dev=True``. A check reads the per-process dev
+    secret if attach() already made one, else checks a fresh value of the same
+    shape, and stores nothing.
+
+    The public dev constant is never accepted. Length and strength rules are
+    ux-channel's: the secret goes through the same ChannelConfig attach()
+    boots with, then CapService, and their error text is passed on.
+    """
+    source = os.environ if env is None else env
     chosen = (
         explicit
-        or os.environ.get("UX_CHANNEL_SECRET")
-        or os.environ.get("UX_BEHAVIOR_SECRET")
+        or source.get("UX_CHANNEL_SECRET")
+        or source.get("UX_BEHAVIOR_SECRET")
         or ""
     )
     if chosen == _PUBLIC_DEV_SECRET:
-        _refuse_attach_secret(diag, "the public dev secret is not accepted")
-    if not chosen and os.environ.get("REDIS_URL"):
-        _refuse_attach_secret(
-            diag,
+        return "", "the public dev secret is not accepted", False
+    redis_url = source.get("REDIS_URL")
+    if not chosen and redis_url:
+        return "", (
             "attach() requires UX_CHANNEL_SECRET or UX_BEHAVIOR_SECRET when "
-            "REDIS_URL is set; a per-process dev secret is not shared across processes",
-        )
-    if chosen:
-        return chosen
-    if debug_requests_dev():
-        if diag is not None:
-            diag.warn(
-                "ATTACH_DEV_SECRET",
-                "using a per-process dev secret; set UX_CHANNEL_SECRET in production",
-            )
-        return _per_process_dev_secret()
-    _refuse_attach_secret(
-        diag,
-        "attach() requires UX_CHANNEL_SECRET or UX_BEHAVIOR_SECRET outside dev; "
-        "the public dev secret is not accepted",
-    )
+            "REDIS_URL is set; a per-process dev secret is not shared across processes"
+        ), False
+    if not chosen and not debug_requests_dev(source):
+        return "", (
+            "attach() requires UX_CHANNEL_SECRET or UX_BEHAVIOR_SECRET outside dev; "
+            "the public dev secret is not accepted"
+        ), False
+    dev = not chosen
+    if dev:
+        if store_dev:
+            chosen = _per_process_dev_secret()
+        else:
+            chosen = _process_dev_secret or "dev-" + secrets.token_urlsafe(24)
+    try:
+        from ux_channel import CapService
+    except ImportError as exc:
+        return chosen, f"ux_channel is not installed, so the secret cannot be checked: {exc}", dev
+    try:
+        CapService(_channel_config(chosen, redis_url).secret)
+    except ValueError as exc:
+        return chosen, f"ux_channel refuses the channel secret: {exc}", dev
+    return chosen, None, dev
+
+
+def attach_secret_problem(
+    env: Mapping[str, str] | None = None, *, secret: str | None = None
+) -> str | None:
+    """None when attach() would accept the secret config in ``env``.
+
+    Otherwise the message attach() raises with (``ATTACH_SECRET_REQUIRED``).
+    ``env`` defaults to ``os.environ``; ``secret`` is attach()'s ``secret=``.
+    Length rules come from ux-channel. Without it this returns a "not
+    installed" message; attach() itself returns None (``CHANNEL_MISSING``).
+    Pure: it changes no module state.
+    """
+    return _attach_secret(secret, env, store_dev=False)[1]
 
 
 def _payload_from(ctx: Any, args: dict[str, Any]) -> dict[str, Any]:
@@ -167,7 +208,7 @@ def attach(
         return None
 
     try:
-        from ux_channel import Channel, ChannelConfig
+        from ux_channel import Channel
     except ImportError as exc:
         if diag is not None:
             diag.error(
@@ -179,13 +220,17 @@ def attach(
             raise
         return None
 
-    secret = _resolve_attach_secret(secret, diag)
+    secret, problem, dev = _attach_secret(secret, None, store_dev=True)
+    if problem is not None:
+        _refuse_attach_secret(diag, problem)
+    if dev and diag is not None:
+        diag.warn(
+            "ATTACH_DEV_SECRET",
+            "using a per-process dev secret; set UX_CHANNEL_SECRET in production",
+        )
 
     try:
-        if os.environ.get("REDIS_URL"):
-            cfg = ChannelConfig.production(secret).with_redis(os.environ["REDIS_URL"])
-        else:
-            cfg = ChannelConfig.development(secret=secret, allow_memory_stores=True)
+        cfg = _channel_config(secret, os.environ.get("REDIS_URL"))
         ch = Channel.boot(asgi, config=cfg, path=path)
     except Exception as exc:
         if diag is not None:

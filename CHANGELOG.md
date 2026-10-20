@@ -17,12 +17,30 @@
   `async_emit`, `dispatch_verified`, and `async_dispatch_verified` take
   their method parameters positionally. A payload key named `action` or
   `self` is caller data.
+- A short or weak secret (one ux-channel refuses: too short for
+  `CapService`, or below `ChannelConfig.production` strength when
+  `REDIS_URL` is set) now raises `ATTACH_SECRET_REQUIRED` before
+  `Channel.boot`, with ux-channel's message, in every mode.
+  - Old: diagnostic `ATTACH_BOOT_FAILED`; `attach()` returned None, or
+    with `strict_attach=True` re-raised ux-channel's `ValueError`.
+  - New: diagnostic `ATTACH_SECRET_REQUIRED`; `attach()` raises
+    `RuntimeError`, with or without `strict_attach`. `strict_attach=True`
+    callers that caught `ValueError` for a short or weak secret now get
+    `RuntimeError`.
 - An unnamed posted key sent to an action that does not declare
   `**kwargs` is a validation error. The action does not run. Keys such
   as `is_admin` and `role` do not reach it.
 
 ### Added
 
+- `ux_behavior.wire.attach_secret_problem(env=None, *, secret=None)`
+  returns None when `attach()` would accept the secret config in `env`
+  (any `Mapping[str, str]`, default `os.environ`), otherwise the message
+  `attach()` raises with `ATTACH_SECRET_REQUIRED`. `attach()` calls the
+  same check, so a pre-boot doctor and `attach()` cannot disagree. Length
+  rules are not restated: the secret goes through the `ChannelConfig`
+  attach boots with and ux-channel's `CapService`, and their message is
+  passed on. Without ux-channel it returns a message.
 - `app.dispatch_verified(name, payload)` and
   `await app.async_dispatch_verified(name, payload)` grant trust for that
   one call after a Cap check. A task started inside the action does not

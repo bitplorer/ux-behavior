@@ -31,5 +31,5 @@ jobs:
           pip install -e ".[dev]"
           pip install fastapi httpx uvicorn
           pip install "git+https://github.com/bitplorer/ux-channel.git#subdirectory=python"
-      - name: Forged Cap and attached Cap gate
-        run: pytest -q tests/test_b2_forged_cap.py tests/test_channel_cap_bypass.py
+      - name: Forged Cap, attached Cap gate, secret preflight
+        run: pytest -q tests/test_b2_forged_cap.py tests/test_channel_cap_bypass.py tests/test_attach_secret_problem.py
