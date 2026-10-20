@@ -31,6 +31,16 @@ app.attach(asgi, *, secret=None, path="/ux-channel", region=None, uid=None, chan
    Set `UX_CHANNEL_SECRET` even in dev when using `--workers` greater
    than 1, `--reload`, or `REDIS_URL`. A per-process secret does not
    survive a restart, and Caps minted with it fail on the next process.
+   The secret then goes through the ChannelConfig this step boots with
+   and through ux-channel's `CapService`; a secret they refuse raises
+   ATTACH_SECRET_REQUIRED with ux-channel's own message. The length rules
+   live in ux-channel only.
+   Preflight: `from ux_behavior.wire import attach_secret_problem`;
+   `attach_secret_problem(env=None, *, secret=None)` returns None when this
+   step accepts, else the exact message it raises. `env` is any
+   `Mapping[str, str]` and defaults to `os.environ`. attach() calls the same
+   check, so the two cannot disagree. Without ux-channel it returns a
+   message, because the secret cannot be checked.
 5. Channel.boot → on failure: error; raise if strict_attach
 6. Register region paint callable
 7. Register ux_behavior.dispatch handler (prefer async)
@@ -67,7 +77,7 @@ If Host called `app.use("effects"|"search")`, attach attempts `channel.use(name)
 |------|----------|-------------|
 | CHANNEL_MISSING | error | Install channel package |
 | ATTACH_BOOT_FAILED | error | Fix config/secret/Redis |
-| ATTACH_SECRET_REQUIRED | error | Set UX_CHANNEL_SECRET; the public dev secret is refused |
+| ATTACH_SECRET_REQUIRED | error | Set UX_CHANNEL_SECRET; the public dev secret and secrets ux-channel refuses are refused. Check first with `attach_secret_problem()` |
 | ATTACH_DEV_SECRET | warn | DEBUG boot is using a per-process secret |
 | PLANES_*_FALLBACK | warn | Inspect Channel state API |
 | DRIVERS_FAILED | warn | Register drivers on Host |
