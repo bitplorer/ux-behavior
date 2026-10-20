@@ -31,10 +31,12 @@ HINTS: dict[str, str] = {
     "ATTACH_SECRET_REQUIRED": (
         "Set UX_CHANNEL_SECRET or UX_BEHAVIOR_SECRET. "
         "The published dev secret is not accepted. "
-        "DEBUG=1 (true/yes/on) is the local per-process secret only."
+        "DEBUG=1 (true/yes/on) is the local per-process secret only. "
+        "A secret ux-channel refuses (secret length or strength) lands here too; "
+        "check first with ux_behavior.wire.attach_secret_problem()."
     ),
     "ATTACH_BOOT_FAILED": (
-        "Check Channel config, secret length, and Redis URL; retry attach."
+        "Check Channel config and Redis URL; retry attach."
     ),
     "ATTACH_ASYNC_HANDLER": "Inbound dispatch uses async_dispatch.",
     "ATTACH_ASYNC_HANDLER_FAILED": (

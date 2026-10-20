@@ -98,9 +98,13 @@ def _channel_config(secret: str, redis_url: str | None) -> Any:
 
 
 def _attach_secret(
-    explicit: str | None, env: Mapping[str, str] | None
+    explicit: str | None, env: Mapping[str, str] | None, *, store_dev: bool
 ) -> tuple[str, str | None, bool]:
     """(secret, problem, dev) for Channel.boot. ``problem`` is None when accepted.
+
+    Only attach() passes ``store_dev=True``. A check reads the per-process dev
+    secret if attach() already made one, else checks a fresh value of the same
+    shape, and stores nothing.
 
     The public dev constant is never accepted. Length and strength rules are
     ux-channel's: the secret goes through the same ChannelConfig attach()
@@ -128,7 +132,10 @@ def _attach_secret(
         ), False
     dev = not chosen
     if dev:
-        chosen = _per_process_dev_secret()
+        if store_dev:
+            chosen = _per_process_dev_secret()
+        else:
+            chosen = _process_dev_secret or "dev-" + secrets.token_urlsafe(24)
     try:
         from ux_channel import CapService
     except ImportError as exc:
@@ -147,9 +154,11 @@ def attach_secret_problem(
 
     Otherwise the message attach() raises with (``ATTACH_SECRET_REQUIRED``).
     ``env`` defaults to ``os.environ``; ``secret`` is attach()'s ``secret=``.
-    Length rules come from ux-channel, so a host without it gets a message.
+    Length rules come from ux-channel. Without it this returns a "not
+    installed" message; attach() itself returns None (``CHANNEL_MISSING``).
+    Pure: it changes no module state.
     """
-    return _attach_secret(secret, env)[1]
+    return _attach_secret(secret, env, store_dev=False)[1]
 
 
 def _payload_from(ctx: Any, args: dict[str, Any]) -> dict[str, Any]:
@@ -211,7 +220,7 @@ def attach(
             raise
         return None
 
-    secret, problem, dev = _attach_secret(secret, None)
+    secret, problem, dev = _attach_secret(secret, None, store_dev=True)
     if problem is not None:
         _refuse_attach_secret(diag, problem)
     if dev and diag is not None:

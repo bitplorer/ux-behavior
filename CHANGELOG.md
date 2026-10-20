@@ -17,11 +17,16 @@
   `async_emit`, `dispatch_verified`, and `async_dispatch_verified` take
   their method parameters positionally. A payload key named `action` or
   `self` is caller data.
-- A secret that ux-channel refuses (too short for `CapService`, or below
-  `ChannelConfig.production` strength when `REDIS_URL` is set) now makes
-  `attach()` raise `RuntimeError` (`ATTACH_SECRET_REQUIRED`) with
-  ux-channel's message. Before, it logged `ATTACH_BOOT_FAILED` and
-  returned None unless `strict_attach=True`.
+- A short or weak secret (one ux-channel refuses: too short for
+  `CapService`, or below `ChannelConfig.production` strength when
+  `REDIS_URL` is set) now raises `ATTACH_SECRET_REQUIRED` before
+  `Channel.boot`, with ux-channel's message, in every mode.
+  - Old: diagnostic `ATTACH_BOOT_FAILED`; `attach()` returned None, or
+    with `strict_attach=True` re-raised ux-channel's `ValueError`.
+  - New: diagnostic `ATTACH_SECRET_REQUIRED`; `attach()` raises
+    `RuntimeError`, with or without `strict_attach`. `strict_attach=True`
+    callers that caught `ValueError` for a short or weak secret now get
+    `RuntimeError`.
 - An unnamed posted key sent to an action that does not declare
   `**kwargs` is a validation error. The action does not run. Keys such
   as `is_admin` and `role` do not reach it.

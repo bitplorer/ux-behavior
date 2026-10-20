@@ -76,7 +76,7 @@ If Host called `app.use("effects"|"search")`, attach attempts `channel.use(name)
 | Code | Severity | Host action |
 |------|----------|-------------|
 | CHANNEL_MISSING | error | Install channel package |
-| ATTACH_BOOT_FAILED | error | Fix config/secret/Redis |
+| ATTACH_BOOT_FAILED | error | Fix config/Redis (secret refusals are ATTACH_SECRET_REQUIRED) |
 | ATTACH_SECRET_REQUIRED | error | Set UX_CHANNEL_SECRET; the public dev secret and secrets ux-channel refuses are refused. Check first with `attach_secret_problem()` |
 | ATTACH_DEV_SECRET | warn | DEBUG boot is using a per-process secret |
 | PLANES_*_FALLBACK | warn | Inspect Channel state API |

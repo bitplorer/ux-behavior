@@ -149,3 +149,32 @@ def test_attach_refuses_exactly_when_problem(
         assert codes == ["ATTACH_SECRET_REQUIRED"]
     else:
         assert app.attach(fastapi.FastAPI()) is not None
+
+
+@pytest.mark.parametrize(
+    "env",
+    [{"DEBUG": "1"}, {"UX_CHANNEL_SECRET": STRONG}, {}, {"UX_CHANNEL_SECRET": "x"}],
+    ids=["debug", "strong", "missing", "short"],
+)
+def test_check_leaves_module_state_unchanged(
+    monkeypatch: pytest.MonkeyPatch, env: dict[str, str]
+):
+    attach_module = importlib.import_module("ux_behavior.wire.attach")
+
+    monkeypatch.setattr(attach_module, "_process_dev_secret", None)
+    before = dict(vars(attach_module))
+    attach_secret_problem(env)
+    attach_secret_problem(env)
+    assert dict(vars(attach_module)) == before
+    assert attach_module._process_dev_secret is None
+
+
+def test_check_reuses_existing_dev_secret_without_replacing_it(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    attach_module = importlib.import_module("ux_behavior.wire.attach")
+
+    existing = "dev-" + "e" * 32
+    monkeypatch.setattr(attach_module, "_process_dev_secret", existing)
+    attach_secret_problem({"DEBUG": "1"})
+    assert attach_module._process_dev_secret == existing
