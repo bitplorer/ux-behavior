@@ -7,6 +7,7 @@ import logging
 import os
 import secrets
 import threading
+from collections.abc import Mapping
 from typing import Any, Callable, NoReturn
 
 from ux_behavior.root import _FRAMEWORK_TRUST, _IGNORED_TRUST_LOG
@@ -18,7 +19,7 @@ UX_ACTION_KEY = "ux_action"
 # It is a denylist now, not a fallback.
 _PUBLIC_DEV_SECRET = "dev-secret-key-32chars-minimum!!!!"
 # This package has no other dev switch. Same truthy allowlist as ux-dom #35.
-_DEBUG_TRUTHY = frozenset({"1", "true", "yes", "on"})
+DEBUG_TRUTHY = frozenset({"1", "true", "yes", "on"})
 _process_dev_secret: str | None = None
 _process_dev_secret_lock = threading.Lock()
 log = logging.getLogger("ux_behavior")
@@ -63,8 +64,13 @@ def attach_info(behavior: Any | None = None) -> dict[str, Any]:
     }
 
 
-def _debug_requests_dev() -> bool:
-    return os.environ.get("DEBUG", "").strip().lower() in _DEBUG_TRUTHY
+def debug_requests_dev(env: Mapping[str, str] | None = None) -> bool:
+    """True when ``DEBUG`` in ``env`` is in ``DEBUG_TRUTHY`` after strip + lower.
+
+    ``env`` defaults to ``os.environ``. This package has no other dev switch.
+    """
+    source = os.environ if env is None else env
+    return source.get("DEBUG", "").strip().lower() in DEBUG_TRUTHY
 
 
 def _per_process_dev_secret() -> str:
@@ -100,7 +106,7 @@ def _resolve_attach_secret(explicit: str | None, diag: Any) -> str:
         )
     if chosen:
         return chosen
-    if _debug_requests_dev():
+    if debug_requests_dev():
         if diag is not None:
             diag.warn(
                 "ATTACH_DEV_SECRET",
