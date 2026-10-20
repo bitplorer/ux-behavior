@@ -124,7 +124,7 @@ Blocks **session** and **store** plane writes. Client and Ref remain writable so
 |----------|------|
 | `UX_CHANNEL_SECRET` | Preferred Channel secret |
 | `UX_BEHAVIOR_SECRET` | Fallback |
-| `DEBUG` | `1` / `true` / `yes` / `on` (strip + lower) selects one random per-process secret when both secrets above are unset |
+| `DEBUG` | `1` / `true` / `yes` / `on` (strip + lower) selects one random per-process secret when both secrets above are unset. Read it with `ux_behavior.wire.debug_requests_dev(env=None)`; the set is `ux_behavior.wire.DEBUG_TRUTHY` |
 | public dev string | Never accepted, in production or dev, including `ChannelConfig.production` when `REDIS_URL` is set |
 
 Outside dev, `attach()` with no secret raises. It does not sign with a built-in constant. `REDIS_URL` with no configured secret raises even when `DEBUG=1`. Set `UX_CHANNEL_SECRET` even in dev when using `--workers` greater than 1, `--reload`, or `REDIS_URL`. The per-process secret does not survive a restart, and a Cap minted in one process is refused by another. Production: set a strong secret via the environment or a process secrets manager **before** attach.

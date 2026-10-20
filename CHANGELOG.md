@@ -28,6 +28,12 @@
   one call after a Cap check. A task started inside the action does not
   inherit the grant. The private sentinel stays off the public surface.
   The helpers are methods on the app, not package-level exports.
+- `ux_behavior.wire.DEBUG_TRUTHY` and
+  `ux_behavior.wire.debug_requests_dev(env=None)` publish the `DEBUG` dev
+  switch that `attach()` uses. `env` is any `Mapping[str, str]` and
+  defaults to `os.environ`. Other stack layers read the same switch from
+  here instead of copying it. The private `_DEBUG_TRUTHY` and
+  `_debug_requests_dev` are gone, with no alias.
 
 ### Security
 

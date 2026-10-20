@@ -20,7 +20,9 @@ app.attach(asgi, *, secret=None, path="/ux-channel", region=None, uid=None, chan
    A host without ux-channel gets None even when no secret is configured.
 4. Resolve secret. Outside dev, a missing secret or the public dev constant
    raises (ATTACH_SECRET_REQUIRED). Dev is DEBUG in 1/true/yes/on after
-   strip + lower (this package has no other dev switch). In dev, a missing
+   strip + lower (this package has no other dev switch). The switch is
+   public: `from ux_behavior.wire import DEBUG_TRUTHY, debug_requests_dev`;
+   `debug_requests_dev(env=None)` reads `env` or `os.environ`. In dev, a missing
    secret is one random per-process value, same shape as
    ChannelConfig.development() (ATTACH_DEV_SECRET warn). The public
    constant is never accepted, including ChannelConfig.production when
