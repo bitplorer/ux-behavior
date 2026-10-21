@@ -1,0 +1,53 @@
+{
+ "ux_behavior.wire.events": {
+  "consumers": [
+   "docs/reference/WIRE.md",
+   "tests/test_client_event.py"
+  ],
+  "doc": "Host-only CustomEvent wire op.",
+  "exported_as": [],
+  "features": [
+   "wire-compose"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.wire"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {
+    "ux-channel": [
+     "ux_channel.protocol.ops"
+    ]
+   },
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "wire",
+  "path": "src/ux_behavior/wire/events.py",
+  "public": [
+   "client_event"
+  ],
+  "symbols": {
+   "client_event": {
+    "doc": "Channel wire op. Host-only. Not a Behavior Op. Not public API.",
+    "kind": "function",
+    "public": true,
+    "signature": "(name: str, *, target: Optional[str]=None, detail: Optional[dict[str, Any]]=None, bubbles: bool=True) -> dict"
+   }
+  }
+ }
+}

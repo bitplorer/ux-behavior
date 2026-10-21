@@ -1,0 +1,16 @@
+{
+ "docs/reference/API.md": {
+  "claims": [
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior.__all__"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior.wire"
+   }
+  ]
+ }
+}

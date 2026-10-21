@@ -1,0 +1,26 @@
+{
+ "docs/reference/WIRE.md": {
+  "claims": [
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "DISPATCH_FAILED"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire:client_event"
+   },
+   {
+    "kind": "module",
+    "resolved": false,
+    "text": "ux_behavior.dispatch"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior.wire"
+   }
+  ]
+ }
+}

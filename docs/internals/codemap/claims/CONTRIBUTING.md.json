@@ -1,0 +1,16 @@
+{
+ "CONTRIBUTING.md": {
+  "claims": [
+   {
+    "kind": "cli",
+    "resolved": true,
+    "text": "uxbehavior doctor --fail"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "src/ux_behavior"
+   }
+  ]
+ }
+}

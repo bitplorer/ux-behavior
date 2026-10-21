@@ -94,6 +94,7 @@ Specialized folders (`security/`, `ship/`, `design/`, `tutorial/`, `patterns/`, 
 | [internals/c4.md](internals/c4.md) | C4-style context |
 | [internals/ARCHITECTURE.md](internals/ARCHITECTURE.md) | System design |
 | [internals/INTERNALS.md](internals/INTERNALS.md) | Internals |
+| [internals/CODEMAP.md](internals/CODEMAP.md) | Generated code map (`codemap/`): layers, features, domain charter |
 | [../KILL_UX_APP.md](../KILL_UX_APP.md) | Why ux-app was retired (history; not current API) |
 | [plans/2026-09-12-telos-phase-0-1-tip-793f120.md](plans/2026-09-12-telos-phase-0-1-tip-793f120.md) | PLAN-ONLY TELOS Phase 0–1 (projection) |
 

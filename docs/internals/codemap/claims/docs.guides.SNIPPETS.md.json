@@ -1,0 +1,126 @@
+{
+ "docs/guides/SNIPPETS.md": {
+  "claims": [
+   {
+    "kind": "cli",
+    "resolved": true,
+    "text": "uxbehavior doctor --fail"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.isolation:doctor"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:AuthorityError"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:Behavior"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:Component"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:DictBackend"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:KeepState"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:MorphState"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:PrefState"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:RefState"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:UiState"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:ValidationError"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:action"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:bind"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:close"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:confirm"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:follow_up"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:go"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:notify"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:open"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:select"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:submit_outcome"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:update"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior.isolation"
+   }
+  ]
+ }
+}

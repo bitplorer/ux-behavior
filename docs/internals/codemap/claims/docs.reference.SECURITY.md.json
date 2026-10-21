@@ -1,0 +1,61 @@
+{
+ "docs/reference/SECURITY.md": {
+  "claims": [
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "ATTACH_SECRET_REQUIRED"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "CAP_REQUIRED"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "CONTROL_MINTED"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "CONTROL_MINT_FAILED"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "CONTROL_OFFLINE"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "REDIS_URL"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "TRUST_OFF"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "TRUST_ON"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "UX_BEHAVIOR_SECRET"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "UX_CHANNEL_SECRET"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior.wire.DEBUG_TRUTHY"
+   }
+  ]
+ }
+}

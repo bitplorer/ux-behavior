@@ -1,0 +1,16 @@
+{
+ "docs/reference/CONTROL_FLOW.md": {
+  "claims": [
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "VALIDATION_FAILED"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior.diagnostics.HINTS"
+   }
+  ]
+ }
+}

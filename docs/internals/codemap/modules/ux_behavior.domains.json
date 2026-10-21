@@ -1,0 +1,138 @@
+{
+ "ux_behavior.domains": {
+  "consumers": [],
+  "doc": "Domain packs and session stamp.",
+  "exported_as": [],
+  "features": [
+   "stamp"
+  ],
+  "imported_by": {
+   "function_level": [
+    "ux_behavior.isolation"
+   ],
+   "module_level": [
+    "ux_behavior.root"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "dataclasses",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "core",
+  "path": "src/ux_behavior/domains.py",
+  "public": [
+   "BASELINE",
+   "DomainPack",
+   "DomainTable",
+   "EFFECTS",
+   "NAV",
+   "SEARCH",
+   "S_PAIRS",
+   "UI",
+   "default_table",
+   "validate_pair"
+  ],
+  "symbols": {
+   "DomainPack": {
+    "bases": [],
+    "decorators": [
+     "dataclass(frozen=True)"
+    ],
+    "doc": "",
+    "kind": "class",
+    "methods": {
+     "pairs": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> frozenset[tuple[str, str]]"
+     }
+    },
+    "public": true
+   },
+   "DomainTable": {
+    "bases": [],
+    "decorators": [
+     "dataclass"
+    ],
+    "doc": "",
+    "kind": "class",
+    "methods": {
+     "allows": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, ns: str, name: str) -> bool"
+     },
+     "domain": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, name: str, version: str, pairs: Iterable[tuple[str, str]]) -> DomainPack"
+     },
+     "names": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> list[str]"
+     },
+     "packs": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> dict[str, DomainPack]"
+     },
+     "register": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, pack: DomainPack) -> None"
+     },
+     "stamp": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> frozenset[tuple[str, str]]"
+     },
+     "use": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, *names: str) -> None"
+     }
+    },
+    "public": true
+   },
+   "default_table": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "() -> DomainTable"
+   },
+   "validate_pair": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(ns: str, name: str) -> None"
+   }
+  }
+ }
+}

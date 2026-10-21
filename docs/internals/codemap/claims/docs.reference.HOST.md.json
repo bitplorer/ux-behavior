@@ -1,0 +1,11 @@
+{
+ "docs/reference/HOST.md": {
+  "claims": [
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:Behavior"
+   }
+  ]
+ }
+}

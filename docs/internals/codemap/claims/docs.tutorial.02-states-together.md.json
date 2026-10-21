@@ -1,0 +1,11 @@
+{
+ "docs/tutorial/02-states-together.md": {
+  "claims": [
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:DictBackend"
+   }
+  ]
+ }
+}

@@ -1,0 +1,52 @@
+{
+ "ux_behavior.wire.drivers": {
+  "consumers": [],
+  "doc": "Soft-register Channel drivers — report every outcome.",
+  "exported_as": [],
+  "features": [
+   "wire-attach"
+  ],
+  "imported_by": {
+   "function_level": [
+    "ux_behavior.wire.attach"
+   ],
+   "module_level": [],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "wire",
+  "path": "src/ux_behavior/wire/drivers.py",
+  "public": [
+   "try_register_drivers"
+  ],
+  "symbols": {
+   "_try": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(channel: Any, name: str, diag: Any) -> str"
+   },
+   "try_register_drivers": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(behavior: Any, channel: Any) -> dict[str, str]"
+   }
+  }
+ }
+}

@@ -1,0 +1,88 @@
+{
+ "ux_behavior.chrome": {
+  "consumers": [
+   "docs/guides/PRODUCTION_APP.md",
+   "docs/guides/SNIPPETS.md",
+   "docs/patterns/COMPLEX_NESTED.md",
+   "docs/patterns/NESTED.md",
+   "docs/patterns/confirm.md",
+   "docs/patterns/modal.md",
+   "docs/tutorial/03-actions-and-ops.md",
+   "docs/tutorial/09-full-shop.md",
+   "examples/harbor_cart_pilot.py",
+   "tests/test_characterization_documented_usage.py",
+   "tests/test_examples_matrix.py",
+   "tests/test_live_channel.py",
+   "tests/test_online_matrix.py"
+  ],
+  "doc": "Chrome verbs — open / close / select / confirm.",
+  "exported_as": [
+   "ux_behavior:close",
+   "ux_behavior:confirm",
+   "ux_behavior:open",
+   "ux_behavior:select"
+  ],
+  "features": [
+   "ops"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.ops"
+   ],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "core",
+  "path": "src/ux_behavior/chrome.py",
+  "public": [
+   "close",
+   "confirm",
+   "open",
+   "select"
+  ],
+  "symbols": {
+   "close": {
+    "doc": "Close overlay and clear kind/payload.",
+    "kind": "function",
+    "public": true,
+    "signature": "() -> list[Op]"
+   },
+   "confirm": {
+    "doc": "Confirm dialog via the single overlay cell.",
+    "kind": "function",
+    "public": true,
+    "signature": "(title: str, body: str='', **payload: Any) -> list[Op]"
+   },
+   "open": {
+    "doc": "Open overlay of the given kind.",
+    "kind": "function",
+    "public": true,
+    "signature": "(kind: str, **payload: Any) -> list[Op]"
+   },
+   "select": {
+    "doc": "Select active tab/page/accordion key.",
+    "kind": "function",
+    "public": true,
+    "signature": "(region: str, value: str) -> list[Op]"
+   }
+  }
+ }
+}

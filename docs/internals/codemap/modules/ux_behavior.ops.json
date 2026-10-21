@@ -1,0 +1,138 @@
+{
+ "ux_behavior.ops": {
+  "consumers": [
+   "docs/examples/EVERY_MODE.md",
+   "docs/examples/EXAMPLES.md",
+   "docs/guides/GUIDE.md",
+   "docs/guides/PRODUCTION_APP.md",
+   "docs/guides/SNIPPETS.md",
+   "docs/patterns/COMPLEX.md",
+   "docs/patterns/COMPLEX_NESTED.md",
+   "docs/patterns/NESTED.md",
+   "docs/patterns/confirm.md",
+   "docs/patterns/forms.md",
+   "docs/patterns/modal.md",
+   "docs/patterns/tabs.md",
+   "docs/patterns/toasts.md",
+   "docs/patterns/wizard.md",
+   "docs/tutorial/03-actions-and-ops.md",
+   "docs/tutorial/06-continuations.md",
+   "docs/tutorial/09-full-shop.md",
+   "examples/harbor_cart_pilot.py",
+   "tests/test_async_validate.py",
+   "tests/test_characterization_documented_usage.py",
+   "tests/test_dispatch.py",
+   "tests/test_domains.py",
+   "tests/test_every_mode.py",
+   "tests/test_examples_matrix.py",
+   "tests/test_follow_up.py",
+   "tests/test_live_channel.py",
+   "tests/test_local.py",
+   "tests/test_online_matrix.py",
+   "tests/test_parity_extra.py",
+   "tests/test_refresh.py"
+  ],
+  "doc": "Author-facing Ops and macros.",
+  "exported_as": [
+   "ux_behavior:Op",
+   "ux_behavior:go",
+   "ux_behavior:notify",
+   "ux_behavior:submit_outcome",
+   "ux_behavior:update"
+  ],
+  "features": [
+   "ops"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior",
+    "ux_behavior.action",
+    "ux_behavior.chrome",
+    "ux_behavior.local",
+    "ux_behavior.root",
+    "ux_behavior.wire.compose"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "dataclasses",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "core",
+  "path": "src/ux_behavior/ops.py",
+  "public": [
+   "Op",
+   "go",
+   "notify",
+   "submit_outcome",
+   "update"
+  ],
+  "symbols": {
+   "Op": {
+    "bases": [],
+    "decorators": [
+     "dataclass(frozen=True)"
+    ],
+    "doc": "",
+    "kind": "class",
+    "methods": {
+     "fq": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> str"
+     },
+     "pair": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> tuple[str, str]"
+     }
+    },
+    "public": true
+   },
+   "go": {
+    "doc": "Navigate last.",
+    "kind": "function",
+    "public": true,
+    "signature": "(href: str) -> Op"
+   },
+   "notify": {
+    "doc": "S-only notice.",
+    "kind": "function",
+    "public": true,
+    "signature": "(message: str, *, level: str='info') -> Op"
+   },
+   "submit_outcome": {
+    "doc": "Outcome of a submit: morph the region + optional notice.",
+    "kind": "function",
+    "public": true,
+    "signature": "(target: str, html: Any='', *, message: str | None=None, level: str='info') -> list[Op]"
+   },
+   "update": {
+    "doc": "Author morph. Projected to Channel idiomorph by the wire door.",
+    "kind": "function",
+    "public": true,
+    "signature": "(target: str, html: Any='') -> Op"
+   }
+  }
+ }
+}

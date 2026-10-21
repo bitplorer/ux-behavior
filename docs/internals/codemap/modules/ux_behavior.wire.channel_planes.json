@@ -1,0 +1,100 @@
+{
+ "ux_behavior.wire.channel_planes": {
+  "consumers": [],
+  "doc": "Channel-backed plane adapters — failures reported, never silent.",
+  "exported_as": [],
+  "features": [
+   "wire-attach"
+  ],
+  "imported_by": {
+   "function_level": [
+    "ux_behavior.wire.attach"
+   ],
+   "module_level": [],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {
+    "ux-channel": [
+     "ux_channel"
+    ]
+   },
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.planes"
+   ],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "wire",
+  "path": "src/ux_behavior/wire/channel_planes.py",
+  "public": [
+   "ChannelClientBackend",
+   "ChannelSessionBackend",
+   "try_install_channel_planes"
+  ],
+  "symbols": {
+   "ChannelClientBackend": {
+    "bases": [],
+    "doc": "",
+    "kind": "class",
+    "methods": {
+     "__init__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, channel_state: Any, *, diagnostics: Any=None) -> None"
+     },
+     "get": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, key: str, default: Any=None) -> Any"
+     },
+     "set": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, key: str, value: Any) -> None"
+     }
+    },
+    "public": true
+   },
+   "ChannelSessionBackend": {
+    "bases": [],
+    "doc": "",
+    "kind": "class",
+    "methods": {
+     "__init__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, channel_state: Any) -> None"
+     },
+     "get": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, key: str, default: Any=None) -> Any"
+     },
+     "set": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, key: str, value: Any) -> None"
+     }
+    },
+    "public": true
+   },
+   "try_install_channel_planes": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(behavior: Any, channel: Any) -> dict[str, str]"
+   }
+  }
+ }
+}

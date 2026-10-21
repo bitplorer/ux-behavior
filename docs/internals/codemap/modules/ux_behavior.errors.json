@@ -1,0 +1,114 @@
+{
+ "ux_behavior.errors": {
+  "consumers": [
+   "docs/examples/EVERY_MODE.md",
+   "docs/guides/SNIPPETS.md",
+   "tests/test_async_validate.py",
+   "tests/test_b3_trusted_payload.py",
+   "tests/test_channel_cap_bypass.py",
+   "tests/test_characterization_documented_usage.py",
+   "tests/test_diagnostics.py",
+   "tests/test_dispatch_verified.py",
+   "tests/test_every_mode.py",
+   "tests/test_examples_matrix.py",
+   "tests/test_follow_up.py",
+   "tests/test_online_matrix.py",
+   "tests/test_parity_extra.py",
+   "tests/test_trust_scope.py",
+   "tests/test_verified_concurrency.py"
+  ],
+  "doc": "Author-facing errors — message includes next step when known.",
+  "exported_as": [
+   "ux_behavior:AuthorityError",
+   "ux_behavior:BehaviorError",
+   "ux_behavior:ContinuationError",
+   "ux_behavior:ValidationError"
+  ],
+  "features": [
+   "payload-validation"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior",
+    "ux_behavior.client_risk",
+    "ux_behavior.root",
+    "ux_behavior.validate"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "core",
+  "path": "src/ux_behavior/errors.py",
+  "public": [
+   "AuthorityError",
+   "BehaviorError",
+   "ContinuationError",
+   "ValidationError"
+  ],
+  "symbols": {
+   "AuthorityError": {
+    "bases": [
+     "BehaviorError"
+    ],
+    "doc": "Action or plane write refused (Cap / trust / preview / client risk).",
+    "kind": "class",
+    "methods": {},
+    "public": true
+   },
+   "BehaviorError": {
+    "bases": [
+     "Exception"
+    ],
+    "doc": "Base. ``hint`` is the natural next step for Hosts/developers.",
+    "kind": "class",
+    "methods": {
+     "__init__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, message: str, *, hint: str='') -> None"
+     }
+    },
+    "public": true
+   },
+   "ContinuationError": {
+    "bases": [
+     "BehaviorError"
+    ],
+    "doc": "Event has no continuation.",
+    "kind": "class",
+    "methods": {},
+    "public": true
+   },
+   "ValidationError": {
+    "bases": [
+     "BehaviorError"
+    ],
+    "doc": "Action arguments failed binding or type checks.",
+    "kind": "class",
+    "methods": {
+     "__init__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, message: str, *, fields: dict[str, str] | None=None, hint: str='') -> None"
+     }
+    },
+    "public": true
+   }
+  }
+ }
+}

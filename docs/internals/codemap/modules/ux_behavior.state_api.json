@@ -1,0 +1,122 @@
+{
+ "ux_behavior.state_api": {
+  "consumers": [],
+  "doc": "Host State API — where MorphState planes store values.",
+  "exported_as": [
+   "ux_behavior:StateAPI"
+  ],
+  "features": [
+   "field-state"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior",
+    "ux_behavior.root"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.planes"
+   ],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "core",
+  "path": "src/ux_behavior/state_api.py",
+  "public": [
+   "StateAPI"
+  ],
+  "symbols": {
+   "StateAPI": {
+    "bases": [],
+    "doc": "Storage policy for MorphState planes on one Behavior.",
+    "kind": "class",
+    "methods": {
+     "__init__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, behavior: Any) -> None"
+     },
+     "_check_plane": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, plane: str) -> None"
+     },
+     "backend": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, plane: str) -> PlaneBackend"
+     },
+     "backends": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "Resolved backend per plane (override or memory).",
+      "kind": "function",
+      "signature": "(self) -> dict[str, PlaneBackend]"
+     },
+     "get": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, plane: str, key: str, default: Any=None) -> Any"
+     },
+     "has": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, plane: str, key: str) -> bool"
+     },
+     "is_locked": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, plane: str) -> bool"
+     },
+     "locked": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> frozenset[str]"
+     },
+     "report": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "Active source per plane: memory | host | channel | …",
+      "kind": "function",
+      "signature": "(self) -> dict[str, str]"
+     },
+     "reset": {
+      "doc": "Restore memory backend(s). Clears lock for reset planes.",
+      "kind": "function",
+      "signature": "(self, plane: str | None=None) -> Any"
+     },
+     "set": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, plane: str, key: str, value: Any) -> None"
+     },
+     "use": {
+      "doc": "Install a backend for a plane.",
+      "kind": "function",
+      "signature": "(self, plane: str, backend: PlaneBackend, *, lock: bool=True, source: str='host') -> Any"
+     }
+    },
+    "public": true
+   }
+  }
+ }
+}

@@ -1,0 +1,81 @@
+{
+ "ux_behavior.local": {
+  "consumers": [
+   "examples/harbor_cart_pilot.py",
+   "tests/test_characterization_documented_usage.py",
+   "tests/test_local.py"
+  ],
+  "doc": "In-process helpers for tests — not a third kernel.",
+  "exported_as": [],
+  "features": [
+   "composition-root"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.ops",
+    "ux_behavior.root"
+   ],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "behavior",
+  "path": "src/ux_behavior/local.py",
+  "public": [
+   "LocalRuntime"
+  ],
+  "symbols": {
+   "LocalRuntime": {
+    "bases": [],
+    "doc": "Bind a Behavior and invoke Actions, collecting list[Op].",
+    "kind": "class",
+    "methods": {
+     "__init__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, behavior: Behavior | None=None) -> None"
+     },
+     "actions": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, component_id: str | None=None) -> list[str]"
+     },
+     "bind": {
+      "decorators": [
+       "classmethod"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(cls, behavior: Behavior | None=None) -> 'LocalRuntime'"
+     },
+     "call": {
+      "doc": "Invoke an @action via Behavior.dispatch (dirty projection included).",
+      "kind": "function",
+      "signature": "(self, component_id: str, method: str, **kwargs: Any) -> list[Op]"
+     },
+     "refresh": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, component_id: str) -> list[Op]"
+     }
+    },
+    "public": true
+   }
+  }
+ }
+}

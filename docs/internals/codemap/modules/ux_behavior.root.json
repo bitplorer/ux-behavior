@@ -1,0 +1,360 @@
+{
+ "ux_behavior.root": {
+  "consumers": [
+   "docs/examples/EVERY_MODE.md",
+   "docs/examples/EXAMPLES.md",
+   "docs/guides/GUIDE.md",
+   "docs/guides/PRODUCTION_APP.md",
+   "docs/guides/SNIPPETS.md",
+   "docs/patterns/COMPLEX_NESTED.md",
+   "docs/patterns/NESTED.md",
+   "docs/patterns/dropdown.md",
+   "docs/patterns/tabs.md",
+   "docs/patterns/toasts.md",
+   "docs/reference/HOST.md",
+   "docs/tutorial/01-first-component.md",
+   "docs/tutorial/02-states-together.md",
+   "docs/tutorial/04-forms-and-validation.md",
+   "docs/tutorial/06-continuations.md",
+   "docs/tutorial/07-async.md",
+   "docs/tutorial/08-live-channel.md",
+   "docs/tutorial/09-full-shop.md",
+   "examples/harbor_cart_pilot.py",
+   "tests/test_action_ui.py",
+   "tests/test_async_validate.py",
+   "tests/test_attach.py",
+   "tests/test_attach_secret_problem.py",
+   "tests/test_attach_sync_fallback.py",
+   "tests/test_b1_annotation_scope.py",
+   "tests/test_b1_omitted_default.py",
+   "tests/test_b2_attach_secret.py",
+   "tests/test_b2_forged_cap.py",
+   "tests/test_b3_trusted_payload.py",
+   "tests/test_bind_action_args.py",
+   "tests/test_bound_action_positional.py",
+   "tests/test_bound_instance_payload.py",
+   "tests/test_channel_cap_bypass.py",
+   "tests/test_characterization_documented_usage.py",
+   "tests/test_client_dirty.py",
+   "tests/test_diagnostics.py",
+   "tests/test_dispatch.py",
+   "tests/test_dispatch_verified.py",
+   "tests/test_domains.py",
+   "tests/test_every_mode.py",
+   "tests/test_examples_matrix.py",
+   "tests/test_follow_up.py",
+   "tests/test_instance_payload.py",
+   "tests/test_live_channel.py",
+   "tests/test_local.py",
+   "tests/test_morph_ref.py",
+   "tests/test_online_matrix.py",
+   "tests/test_parity_extra.py",
+   "tests/test_payload_reserved_keys.py",
+   "tests/test_planes.py",
+   "tests/test_posted_keys_dropped.py",
+   "tests/test_refresh.py",
+   "tests/test_state_api.py",
+   "tests/test_submit_positional.py",
+   "tests/test_trust_scope.py",
+   "tests/test_unnamed_key_validation.py",
+   "tests/test_verified_concurrency.py",
+   "tests/test_wire_payload_keys.py"
+  ],
+  "doc": "Composition root — standard Channel interface for product behavior.",
+  "exported_as": [
+   "ux_behavior:Behavior"
+  ],
+  "features": [
+   "caps-and-trust",
+   "composition-root"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior",
+    "ux_behavior.local",
+    "ux_behavior.wire.attach"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "contextlib",
+     "contextvars",
+     "dataclasses",
+     "importlib.util",
+     "logging",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [
+    "ux_behavior.wire.attach",
+    "ux_behavior.wire.control"
+   ],
+   "module_level": [
+    "ux_behavior.client_risk",
+    "ux_behavior.diagnostics",
+    "ux_behavior.domains",
+    "ux_behavior.errors",
+    "ux_behavior.events",
+    "ux_behavior.fields",
+    "ux_behavior.ops",
+    "ux_behavior.planes",
+    "ux_behavior.state_api",
+    "ux_behavior.validate"
+   ],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "behavior",
+  "path": "src/ux_behavior/root.py",
+  "public": [
+   "Behavior",
+   "log"
+  ],
+  "symbols": {
+   "Behavior": {
+    "bases": [],
+    "doc": "Composition root. Dumb Hosts: boot → add → attach → control / dispatch.",
+    "kind": "class",
+    "methods": {
+     "__init__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, title: str='', domains: DomainTable | None=None, *, strict_caps: bool=True, client_risk: bool=True, strict_control: bool=False, strict_attach: bool=False, developer_hints: bool=False) -> None"
+     },
+     "_armed_trust": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, event: str) -> bool"
+     },
+     "_backend_for": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, plane: str, fld: Field | None=None) -> Any"
+     },
+     "_check_stamp": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, ops: list[Op]) -> None"
+     },
+     "_continuation_args": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, event: str, slots: dict[str, Any]) -> tuple[str, dict[str, Any]]"
+     },
+     "_finish": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, action: str, component_id: str, inst: Any, before: dict[str, Any], result: Any, pending: list[Continuation], *, trusted: bool=False) -> list[Op]"
+     },
+     "_is_trusted": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, trusted: bool) -> bool"
+     },
+     "_require_caps": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, fn: Any, action: str, *, trusted: bool) -> None"
+     },
+     "_resolve": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, action: str) -> tuple[str, Any, Any]"
+     },
+     "_take_trust": {
+      "doc": "Trust only when ``_trusted`` is the private sentinel.",
+      "kind": "function",
+      "signature": "(self, kwargs: dict[str, Any]) -> bool"
+     },
+     "_validation_ops": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, action: str, err: ValidationError) -> list[Op]"
+     },
+     "_verified_payload": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, payload: dict[str, Any] | None) -> dict[str, Any]"
+     },
+     "actions": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, component_id: str | None=None) -> list[str]"
+     },
+     "add": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, component: Type[Any] | Any) -> Any"
+     },
+     "async_dispatch": {
+      "doc": "",
+      "kind": "async function",
+      "signature": "(self, action: str, /, **kwargs: Any) -> list[Op]"
+     },
+     "async_dispatch_verified": {
+      "doc": "only for framework code after Channel or an equivalent check has verified the Cap.",
+      "kind": "async function",
+      "signature": "(self, name: str, payload: dict[str, Any] | None=None, /) -> list[Op]"
+     },
+     "async_emit": {
+      "doc": "",
+      "kind": "async function",
+      "signature": "(self, event: str, /, **slots: Any) -> list[Op]"
+     },
+     "async_submit": {
+      "doc": "",
+      "kind": "async function",
+      "signature": "(self, action: str, args: dict[str, Any] | None=None, /, **kwargs: Any) -> list[Op]"
+     },
+     "attach": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, asgi: Any, **kwargs: Any) -> Any"
+     },
+     "boot": {
+      "decorators": [
+       "classmethod"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(cls, title: str='', *, strict_caps: bool=True, client_risk: bool=True, strict_control: bool=False, strict_attach: bool=False, developer_hints: bool=False) -> 'Behavior'"
+     },
+     "components": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> dict[str, Any]"
+     },
+     "continuations": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> dict[str, Continuation]"
+     },
+     "control": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, action: Any, **args: Any) -> dict[str, str]"
+     },
+     "cores_available": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> dict[str, bool]"
+     },
+     "dispatch": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, action: str, /, **kwargs: Any) -> list[Op]"
+     },
+     "dispatch_verified": {
+      "doc": "only for framework code after Channel or an equivalent check has verified the Cap.",
+      "kind": "function",
+      "signature": "(self, name: str, payload: dict[str, Any] | None=None, /) -> list[Op]"
+     },
+     "domain": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, name: str, version: str, pairs: Iterable[tuple[str, str]]) -> 'Behavior'"
+     },
+     "emit": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, event: str, /, **slots: Any) -> list[Op]"
+     },
+     "get": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, component_id: str) -> Any"
+     },
+     "is_preview": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> bool"
+     },
+     "plane_get": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, plane: str, inst: Any, fld: Field) -> Any"
+     },
+     "plane_set": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, plane: str, inst: Any, fld: Field, value: Any) -> None"
+     },
+     "preview": {
+      "decorators": [
+       "contextmanager"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> Iterator['Behavior']"
+     },
+     "refresh": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, component_id: str) -> list[Op]"
+     },
+     "region": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, render: Callable[[], Any], *, uid: str | None=None) -> 'Behavior'"
+     },
+     "stamp": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> frozenset[tuple[str, str]]"
+     },
+     "submit": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, action: str, args: dict[str, Any] | None=None, /, **kwargs: Any) -> list[Op]"
+     },
+     "trust": {
+      "decorators": [
+       "contextmanager"
+      ],
+      "doc": "Trust calls made in this context only (contextvar, per task/thread).",
+      "kind": "function",
+      "signature": "(self) -> Iterator['Behavior']"
+     },
+     "use": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, *names: str) -> 'Behavior'"
+     }
+    },
+    "public": true
+   },
+   "_public_state": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(inst: Any) -> dict[str, Any]"
+   },
+   "_without_payload_trust": {
+    "doc": "Drop a ``_trusted`` key that arrived in posted data.",
+    "kind": "function",
+    "public": false,
+    "signature": "(data: dict[str, Any]) -> dict[str, Any]"
+   }
+  }
+ }
+}

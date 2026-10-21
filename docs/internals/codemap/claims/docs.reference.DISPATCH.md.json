@@ -1,0 +1,11 @@
+{
+ "docs/reference/DISPATCH.md": {
+  "claims": [
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "STAMP_REJECT"
+   }
+  ]
+ }
+}

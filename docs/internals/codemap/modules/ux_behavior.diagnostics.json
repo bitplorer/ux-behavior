@@ -1,0 +1,119 @@
+{
+ "ux_behavior.diagnostics": {
+  "consumers": [
+   "docs/reference/CONTROL_FLOW.md",
+   "docs/reference/ERRORS.md",
+   "tests/test_diagnostics.py"
+  ],
+  "doc": "In-process diagnostics.",
+  "exported_as": [],
+  "features": [
+   "diagnostics"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.root"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "dataclasses",
+     "datetime",
+     "logging",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "core",
+  "path": "src/ux_behavior/diagnostics.py",
+  "public": [
+   "DiagEvent",
+   "Diagnostics",
+   "HINTS",
+   "Level",
+   "log"
+  ],
+  "symbols": {
+   "DiagEvent": {
+    "bases": [],
+    "decorators": [
+     "dataclass"
+    ],
+    "doc": "",
+    "kind": "class",
+    "methods": {},
+    "public": true
+   },
+   "Diagnostics": {
+    "bases": [],
+    "doc": "",
+    "kind": "class",
+    "methods": {
+     "__init__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, *, developer_hints: bool=False) -> None"
+     },
+     "_emit": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, level: Level, code: str, message: str, *, hint: str | None=None, **context: Any) -> DiagEvent"
+     },
+     "clear": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> None"
+     },
+     "error": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, code: str, message: str, *, hint: str | None=None, **context: Any) -> DiagEvent"
+     },
+     "has_errors": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> bool"
+     },
+     "has_warnings": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> bool"
+     },
+     "info": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, code: str, message: str, *, hint: str | None=None, **context: Any) -> DiagEvent"
+     },
+     "last_hint": {
+      "doc": "Next step from the most recent warn/error, or empty when hints off.",
+      "kind": "function",
+      "signature": "(self) -> str"
+     },
+     "summary": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> dict[str, Any]"
+     },
+     "warn": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, code: str, message: str, *, hint: str | None=None, **context: Any) -> DiagEvent"
+     }
+    },
+    "public": true
+   }
+  }
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "AGENTS.md": {
+  "claims": [
+   {
+    "kind": "cli",
+    "resolved": true,
+    "text": "uxbehavior doctor --fail"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire:Conflict"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire:Result"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire:compose"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire:lower"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "src/ux_behavior/__init__.py"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior.wire"
+   }
+  ]
+ }
+}

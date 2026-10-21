@@ -1,0 +1,41 @@
+{
+ "docs/reference/REFERENCE.md": {
+  "claims": [
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire.attach:attach"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire.attach:attach_info"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire.attach:probe"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire:Result"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior.wire"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior.wire.attach"
+   }
+  ]
+ }
+}

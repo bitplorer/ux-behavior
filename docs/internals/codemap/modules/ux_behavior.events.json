@@ -1,0 +1,154 @@
+{
+ "ux_behavior.events": {
+  "consumers": [
+   "docs/examples/EVERY_MODE.md",
+   "docs/examples/EXAMPLES.md",
+   "docs/guides/GUIDE.md",
+   "docs/guides/PRODUCTION_APP.md",
+   "docs/guides/SNIPPETS.md",
+   "docs/patterns/COMPLEX.md",
+   "docs/patterns/COMPLEX_NESTED.md",
+   "docs/patterns/NESTED.md",
+   "docs/patterns/toasts.md",
+   "docs/tutorial/06-continuations.md",
+   "docs/tutorial/09-full-shop.md",
+   "tests/test_async_validate.py",
+   "tests/test_b3_trusted_payload.py",
+   "tests/test_characterization_documented_usage.py",
+   "tests/test_every_mode.py",
+   "tests/test_examples_matrix.py",
+   "tests/test_follow_up.py",
+   "tests/test_online_matrix.py",
+   "tests/test_parity_extra.py",
+   "tests/test_payload_reserved_keys.py",
+   "tests/test_trust_scope.py"
+  ],
+  "doc": "Events and continuations.",
+  "exported_as": [
+   "ux_behavior:Continuation",
+   "ux_behavior:follow_up"
+  ],
+  "features": [
+   "continuations"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior",
+    "ux_behavior.root"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "contextvars",
+     "copy",
+     "dataclasses",
+     "typing",
+     "weakref"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "core",
+  "path": "src/ux_behavior/events.py",
+  "public": [
+   "Continuation",
+   "follow_up"
+  ],
+  "symbols": {
+   "Continuation": {
+    "bases": [],
+    "decorators": [
+     "dataclass"
+    ],
+    "doc": "",
+    "kind": "class",
+    "methods": {},
+    "public": true
+   },
+   "_ContinuationScope": {
+    "bases": [],
+    "doc": "Identity for one Behavior's armed table. Weak-key, not a bare object().",
+    "kind": "class",
+    "methods": {},
+    "public": false
+   },
+   "_arm_continuation": {
+    "doc": "Store a copy of ``item`` for this context only. Parent bags stay put.",
+    "kind": "function",
+    "public": false,
+    "signature": "(scope: object, item: Continuation) -> None"
+   },
+   "_armed_continuations": {
+    "doc": "Continuations armed in this context for one Behavior scope.",
+    "kind": "function",
+    "public": false,
+    "signature": "(scope: object) -> dict[str, Continuation]"
+   },
+   "_begin_follow_ups": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "() -> Any"
+   },
+   "_clone_continuation": {
+    "doc": "New Continuation. Each ``args`` and ``args_from`` value is deep-copied.",
+    "kind": "function",
+    "public": false,
+    "signature": "(item: Continuation) -> Continuation"
+   },
+   "_copy_bag": {
+    "doc": "Weak copy. Each Continuation belongs to the destination bag only.",
+    "kind": "function",
+    "public": false,
+    "signature": "(bag: WeakKeyDictionary | None) -> WeakKeyDictionary"
+   },
+   "_copy_mapping": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(mapping: dict[str, Any]) -> dict[str, Any]"
+   },
+   "_copy_value": {
+    "doc": "Deep copy one mapping value.",
+    "kind": "function",
+    "public": false,
+    "signature": "(value: Any) -> Any"
+   },
+   "_disarm_continuation": {
+    "doc": "Drop ``event`` for this context: a continuation fires at most once.",
+    "kind": "function",
+    "public": false,
+    "signature": "(scope: object, event: str) -> None"
+   },
+   "_end_follow_ups": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(token: Any) -> list[Continuation]"
+   },
+   "_local_bag": {
+    "doc": "Install this context's own bag so a copied context does not share objects.",
+    "kind": "function",
+    "public": false,
+    "signature": "() -> WeakKeyDictionary | None"
+   },
+   "follow_up": {
+    "doc": "Bind an event to a later action. Call only inside an @action.",
+    "kind": "function",
+    "public": true,
+    "signature": "(event: str, action: str, *, args_from: dict[str, str] | None=None, **args: Any) -> Continuation"
+   }
+  }
+ }
+}
