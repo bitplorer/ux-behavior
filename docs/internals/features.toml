@@ -1,0 +1,237 @@
+# Features registry (curated). scripts/codemap.py validates every reference:
+# modules must be mapped, ``symbols`` (``module:Name`` or ``module:Class.method``)
+# must resolve, and ``tests`` / ``docs`` paths must exist. The validated entries
+# are folded into codemap/index.json, and each module shard lists its features.
+# Edit this file in the same PR that moves a feature. See CODEMAP.md.
+
+[[feature]]
+id = "composition-root"
+purpose = "Behavior boots, registers Components and dispatches `component.method` to verified list[Op], sync and async."
+modules = ["ux_behavior.root", "ux_behavior.local"]
+symbols = [
+  "ux_behavior.root:Behavior.boot",
+  "ux_behavior.root:Behavior.add",
+  "ux_behavior.root:Behavior.dispatch",
+  "ux_behavior.root:Behavior.async_dispatch",
+  "ux_behavior.root:Behavior.refresh",
+  "ux_behavior.local:LocalRuntime",
+]
+tests = [
+  "tests/test_dispatch.py",
+  "tests/test_refresh.py",
+  "tests/test_local.py",
+  "tests/test_every_mode.py",
+]
+docs = ["docs/reference/DISPATCH.md", "docs/internals/INTERNALS.md"]
+
+[[feature]]
+id = "components-and-actions"
+purpose = "Component units with `@action` verbs; returns are normalized to Ops and `bind()` emits the live channel attribute triad."
+modules = ["ux_behavior.component", "ux_behavior.action"]
+symbols = [
+  "ux_behavior.component:Component",
+  "ux_behavior.component:ComponentProtocol",
+  "ux_behavior.action:action",
+  "ux_behavior.action:bind",
+  "ux_behavior.action:ActionMethod",
+  "ux_behavior.action:BoundAction",
+]
+tests = [
+  "tests/test_action_ui.py",
+  "tests/test_bound_action_positional.py",
+  "tests/test_bound_instance_payload.py",
+]
+docs = ["docs/reference/REFERENCE.md", "docs/tutorial/03-actions-and-ops.md"]
+
+[[feature]]
+id = "field-state"
+purpose = "MorphState (must repaint) and RefState (silent) descriptors, stored on memory or Host planes through app.state."
+modules = ["ux_behavior.fields", "ux_behavior.planes", "ux_behavior.state_api"]
+symbols = [
+  "ux_behavior.fields:MorphState",
+  "ux_behavior.fields:RefState",
+  "ux_behavior.fields:UiState",
+  "ux_behavior.fields:PrefState",
+  "ux_behavior.fields:KeepState",
+  "ux_behavior.planes:DictBackend",
+  "ux_behavior.planes:MemoryPlanes",
+  "ux_behavior.state_api:StateAPI",
+  "ux_behavior.root:Behavior.plane_get",
+  "ux_behavior.root:Behavior.plane_set",
+]
+tests = [
+  "tests/test_morph_ref.py",
+  "tests/test_planes.py",
+  "tests/test_state_api.py",
+  "tests/test_client_dirty.py",
+]
+docs = ["docs/reference/STATE.md", "docs/reference/STATE_DEEP.md"]
+
+[[feature]]
+id = "ops"
+purpose = "Op `(ns, name)` instructions and the macros that build them: update / notify / go / submit_outcome and the chrome verbs."
+modules = ["ux_behavior.ops", "ux_behavior.chrome"]
+symbols = [
+  "ux_behavior.ops:Op",
+  "ux_behavior.ops:update",
+  "ux_behavior.ops:notify",
+  "ux_behavior.ops:go",
+  "ux_behavior.ops:submit_outcome",
+  "ux_behavior.chrome:open",
+  "ux_behavior.chrome:close",
+  "ux_behavior.chrome:select",
+  "ux_behavior.chrome:confirm",
+]
+tests = ["tests/test_domains.py", "tests/test_characterization_documented_usage.py"]
+docs = ["docs/reference/REFERENCE.md", "docs/tutorial/03-actions-and-ops.md"]
+
+[[feature]]
+id = "caps-and-trust"
+purpose = "Offline Cap gate per action, the per-caller trust() scope, verified dispatch for a second wire and client-plane write risk."
+modules = ["ux_behavior.root", "ux_behavior.client_risk"]
+symbols = [
+  "ux_behavior.root:Behavior.trust",
+  "ux_behavior.root:Behavior.preview",
+  "ux_behavior.root:Behavior._require_caps",
+  "ux_behavior.root:Behavior.dispatch_verified",
+  "ux_behavior.root:Behavior.async_dispatch_verified",
+  "ux_behavior.client_risk:check_client_write",
+  "ux_behavior.errors:AuthorityError",
+]
+tests = [
+  "tests/test_trust_scope.py",
+  "tests/test_dispatch_verified.py",
+  "tests/test_verified_concurrency.py",
+  "tests/test_b3_trusted_payload.py",
+  "tests/test_channel_cap_bypass.py",
+]
+docs = ["docs/reference/SECURITY.md", "docs/tutorial/05-caps-and-trust.md"]
+
+[[feature]]
+id = "payload-validation"
+purpose = "Bind posted payloads to the @action signature and type hints; failures become field-error morph Ops, not crashes."
+modules = ["ux_behavior.validate", "ux_behavior.errors"]
+symbols = [
+  "ux_behavior.validate:bind_action_args",
+  "ux_behavior.errors:ValidationError",
+  "ux_behavior.root:Behavior._validation_ops",
+]
+tests = [
+  "tests/test_bind_action_args.py",
+  "tests/test_b1_annotation_scope.py",
+  "tests/test_b1_omitted_default.py",
+  "tests/test_unnamed_key_validation.py",
+  "tests/test_posted_keys_dropped.py",
+  "tests/test_payload_reserved_keys.py",
+]
+docs = ["docs/reference/DISPATCH.md", "docs/tutorial/04-forms-and-validation.md"]
+
+[[feature]]
+id = "continuations"
+purpose = "follow_up arms a deferred action for an event name; Behavior.emit / submit run it under the caller's trust."
+modules = ["ux_behavior.events"]
+symbols = [
+  "ux_behavior.events:follow_up",
+  "ux_behavior.events:Continuation",
+  "ux_behavior.root:Behavior.emit",
+  "ux_behavior.root:Behavior.async_emit",
+  "ux_behavior.root:Behavior.submit",
+  "ux_behavior.errors:ContinuationError",
+]
+tests = ["tests/test_follow_up.py", "tests/test_submit_positional.py"]
+docs = ["docs/tutorial/06-continuations.md", "docs/reference/REFERENCE.md"]
+
+[[feature]]
+id = "stamp"
+purpose = "Agreed (ns, name) Op pairs from domain packs; an Op outside the session stamp is refused."
+modules = ["ux_behavior.domains"]
+symbols = [
+  "ux_behavior.domains:DomainPack",
+  "ux_behavior.domains:DomainTable",
+  "ux_behavior.domains:default_table",
+  "ux_behavior.root:Behavior.use",
+  "ux_behavior.root:Behavior._check_stamp",
+]
+tests = ["tests/test_domains.py"]
+docs = ["docs/reference/DISPATCH.md"]
+
+[[feature]]
+id = "diagnostics"
+purpose = "Structured info/warn/error events with hints for degraded and refused paths."
+modules = ["ux_behavior.diagnostics"]
+symbols = ["ux_behavior.diagnostics:Diagnostics", "ux_behavior.diagnostics:DiagEvent"]
+tests = ["tests/test_diagnostics.py"]
+docs = ["docs/reference/ERRORS.md", "docs/reference/CONTROL_FLOW.md"]
+
+[[feature]]
+id = "wire-attach"
+purpose = "Soft-attach a live ux-channel: secret preflight, Channel boot, dispatch handler, Channel-backed planes and drivers."
+modules = [
+  "ux_behavior.wire",
+  "ux_behavior.wire.attach",
+  "ux_behavior.wire.channel_planes",
+  "ux_behavior.wire.drivers",
+]
+symbols = [
+  "ux_behavior.wire.attach:attach",
+  "ux_behavior.wire.attach:attach_secret_problem",
+  "ux_behavior.wire.attach:debug_requests_dev",
+  "ux_behavior.wire.attach:probe",
+  "ux_behavior.wire.channel_planes:try_install_channel_planes",
+  "ux_behavior.wire.drivers:try_register_drivers",
+  "ux_behavior.root:Behavior.attach",
+]
+tests = [
+  "tests/test_attach.py",
+  "tests/test_attach_secret_problem.py",
+  "tests/test_attach_sync_fallback.py",
+  "tests/test_b2_attach_secret.py",
+  "tests/test_b2_forged_cap.py",
+  "tests/test_wire_debug.py",
+  "tests/test_live_channel.py",
+]
+docs = ["docs/reference/WIRE.md", "docs/tutorial/08-live-channel.md"]
+
+[[feature]]
+id = "wire-control"
+purpose = "Button attributes for an action: offline data attrs, or a minted Cap bundle once Channel is attached."
+modules = ["ux_behavior.wire.control"]
+symbols = [
+  "ux_behavior.wire.control:control_attrs",
+  "ux_behavior.wire.control:resolve_action_name",
+  "ux_behavior.root:Behavior.control",
+]
+tests = ["tests/test_channel_cap_bypass.py", "tests/test_online_matrix.py"]
+docs = ["docs/reference/SECURITY.md", "docs/reference/WIRE.md"]
+
+[[feature]]
+id = "wire-compose"
+purpose = "Fold Ops into Channel wire dicts under the XOR law (morph XOR scene.enter), plus the Result builder and client_event."
+modules = ["ux_behavior.wire.compose", "ux_behavior.wire.result", "ux_behavior.wire.events"]
+symbols = [
+  "ux_behavior.wire.compose:compose",
+  "ux_behavior.wire.compose:lower",
+  "ux_behavior.wire.compose:Conflict",
+  "ux_behavior.wire.result:Result",
+  "ux_behavior.wire.events:client_event",
+]
+tests = ["tests/test_compose.py", "tests/test_result.py", "tests/test_client_event.py"]
+docs = ["docs/reference/WIRE.md", "docs/reference/REFERENCE.md"]
+
+[[feature]]
+id = "doctor"
+purpose = "Isolation Law and frozen public surface checks, run by `uxbehavior doctor`, plus the component / action scaffold."
+modules = ["ux_behavior.isolation", "ux_behavior.cli"]
+symbols = [
+  "ux_behavior.isolation:doctor",
+  "ux_behavior.isolation:scan_imports",
+  "ux_behavior.isolation:check_public_surface",
+  "ux_behavior.cli:main",
+]
+tests = [
+  "tests/test_doctor.py",
+  "tests/test_cli.py",
+  "tests/test_public_api.py",
+  "tests/resilience/test_ownership_isolation.py",
+]
+docs = ["docs/internals/INTERNALS.md", "docs/reference/API.md"]

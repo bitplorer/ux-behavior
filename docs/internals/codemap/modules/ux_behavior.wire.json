@@ -1,0 +1,66 @@
+{
+ "ux_behavior.wire": {
+  "consumers": [
+   "docs/internals/ARCHITECTURE.md",
+   "docs/plans/2026-09-12-telos-phase-0-1-tip-793f120.md",
+   "docs/reference/API.md",
+   "docs/reference/REFERENCE.md",
+   "docs/reference/SECURITY.md",
+   "docs/reference/WIRE.md",
+   "examples/harbor_cart_pilot.py",
+   "tests/resilience/test_ownership_isolation.py",
+   "tests/test_attach.py",
+   "tests/test_attach_secret_problem.py",
+   "tests/test_characterization_documented_usage.py",
+   "tests/test_client_event.py",
+   "tests/test_compose.py",
+   "tests/test_live_channel.py",
+   "tests/test_result.py",
+   "tests/test_wire_debug.py"
+  ],
+  "doc": "Progressive wire door.",
+  "exported_as": [],
+  "features": [
+   "wire-attach"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {},
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.wire.attach",
+    "ux_behavior.wire.compose",
+    "ux_behavior.wire.events",
+    "ux_behavior.wire.result"
+   ],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "wire",
+  "path": "src/ux_behavior/wire/__init__.py",
+  "public": [
+   "Conflict",
+   "DEBUG_TRUTHY",
+   "Result",
+   "as_selector",
+   "attach",
+   "attach_info",
+   "attach_secret_problem",
+   "client_event",
+   "compose",
+   "debug_requests_dev",
+   "lower",
+   "present",
+   "probe"
+  ],
+  "symbols": {}
+ }
+}

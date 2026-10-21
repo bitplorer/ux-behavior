@@ -1,0 +1,168 @@
+{
+ "ux_behavior.fields": {
+  "consumers": [
+   "docs/examples/EVERY_MODE.md",
+   "docs/examples/EXAMPLES.md",
+   "docs/guides/GUIDE.md",
+   "docs/guides/PRODUCTION_APP.md",
+   "docs/guides/SNIPPETS.md",
+   "docs/patterns/COMPLEX.md",
+   "docs/patterns/COMPLEX_NESTED.md",
+   "docs/patterns/NESTED.md",
+   "docs/patterns/carousel.md",
+   "docs/patterns/confirm.md",
+   "docs/patterns/dropdown.md",
+   "docs/patterns/filters.md",
+   "docs/patterns/forms.md",
+   "docs/patterns/modal.md",
+   "docs/patterns/tabs.md",
+   "docs/patterns/toasts.md",
+   "docs/patterns/wizard.md",
+   "docs/tutorial/01-first-component.md",
+   "docs/tutorial/02-states-together.md",
+   "docs/tutorial/04-forms-and-validation.md",
+   "docs/tutorial/06-continuations.md",
+   "docs/tutorial/07-async.md",
+   "docs/tutorial/08-live-channel.md",
+   "docs/tutorial/09-full-shop.md",
+   "tests/test_async_validate.py",
+   "tests/test_characterization_documented_usage.py",
+   "tests/test_client_dirty.py",
+   "tests/test_every_mode.py",
+   "tests/test_examples_matrix.py",
+   "tests/test_follow_up.py",
+   "tests/test_morph_ref.py",
+   "tests/test_online_matrix.py",
+   "tests/test_parity_extra.py",
+   "tests/test_planes.py",
+   "tests/test_state_api.py"
+  ],
+  "doc": "Component field state — MorphState | RefState.",
+  "exported_as": [
+   "ux_behavior:KeepState",
+   "ux_behavior:MorphState",
+   "ux_behavior:PrefState",
+   "ux_behavior:RefState",
+   "ux_behavior:UiState"
+  ],
+  "features": [
+   "field-state"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior",
+    "ux_behavior.root"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "builtins",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.planes"
+   ],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "core",
+  "path": "src/ux_behavior/fields.py",
+  "public": [
+   "Field",
+   "KeepState",
+   "MorphState",
+   "PrefState",
+   "RefState",
+   "UiState",
+   "plane_storage_key",
+   "ref_field_names"
+  ],
+  "symbols": {
+   "Field": {
+    "bases": [],
+    "doc": "",
+    "kind": "class",
+    "methods": {
+     "__get__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, obj: Any, owner: builtins.type | None=None) -> Any"
+     },
+     "__init__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, default: Any=None, *, plane: str='session', key: str | None=None, type: Any=None, validate: Callable[[Any], Any] | None=None, backend: Any=None) -> None"
+     },
+     "__set__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, obj: Any, value: Any) -> None"
+     },
+     "__set_name__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, owner: builtins.type, name: str) -> None"
+     },
+     "_guard_write": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, value: Any) -> Any"
+     }
+    },
+    "public": true
+   },
+   "KeepState": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(default: Any=None, *, type: Any=None, validate: Callable[[Any], Any] | None=None) -> Field"
+   },
+   "MorphState": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(default: Any=None, *, backend: Any='session', key: str | None=None, type: Any=None, validate: Callable[[Any], Any] | None=None) -> Field"
+   },
+   "PrefState": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(default: Any=None, *, key: str | None=None, type: Any=None, validate: Callable[[Any], Any] | None=None) -> Field"
+   },
+   "RefState": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(default: Any=None, *, type: Any=None, validate: Callable[[Any], Any] | None=None) -> Field"
+   },
+   "UiState": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(default: Any=None, *, type: Any=None, validate: Callable[[Any], Any] | None=None) -> Field"
+   },
+   "plane_storage_key": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(plane: str, inst: Any, fld: Field) -> str"
+   },
+   "ref_field_names": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(inst: Any) -> frozenset[str]"
+   }
+  }
+ }
+}

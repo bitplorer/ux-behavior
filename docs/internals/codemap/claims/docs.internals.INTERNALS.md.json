@@ -1,0 +1,11 @@
+{
+ "docs/internals/INTERNALS.md": {
+  "claims": [
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "FROZEN_PUBLIC"
+   }
+  ]
+ }
+}

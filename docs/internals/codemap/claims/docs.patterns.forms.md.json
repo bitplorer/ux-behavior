@@ -1,0 +1,31 @@
+{
+ "docs/patterns/forms.md": {
+  "claims": [
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:Component"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:MorphState"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:action"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:submit_outcome"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:update"
+   }
+  ]
+ }
+}

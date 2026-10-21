@@ -1,0 +1,260 @@
+{
+ "ux_behavior.action": {
+  "consumers": [
+   "docs/examples/EVERY_MODE.md",
+   "docs/examples/EXAMPLES.md",
+   "docs/guides/GUIDE.md",
+   "docs/guides/PRODUCTION_APP.md",
+   "docs/guides/SNIPPETS.md",
+   "docs/patterns/COMPLEX.md",
+   "docs/patterns/COMPLEX_NESTED.md",
+   "docs/patterns/NESTED.md",
+   "docs/patterns/carousel.md",
+   "docs/patterns/confirm.md",
+   "docs/patterns/dropdown.md",
+   "docs/patterns/filters.md",
+   "docs/patterns/forms.md",
+   "docs/patterns/modal.md",
+   "docs/patterns/tabs.md",
+   "docs/patterns/toasts.md",
+   "docs/patterns/wizard.md",
+   "docs/tutorial/01-first-component.md",
+   "docs/tutorial/02-states-together.md",
+   "docs/tutorial/03-actions-and-ops.md",
+   "docs/tutorial/04-forms-and-validation.md",
+   "docs/tutorial/06-continuations.md",
+   "docs/tutorial/07-async.md",
+   "docs/tutorial/08-live-channel.md",
+   "docs/tutorial/09-full-shop.md",
+   "examples/harbor_cart_pilot.py",
+   "tests/test_action_ui.py",
+   "tests/test_async_validate.py",
+   "tests/test_attach_sync_fallback.py",
+   "tests/test_b1_annotation_scope.py",
+   "tests/test_b1_omitted_default.py",
+   "tests/test_b2_attach_secret.py",
+   "tests/test_b2_forged_cap.py",
+   "tests/test_b3_trusted_payload.py",
+   "tests/test_bind_action_args.py",
+   "tests/test_bound_action_positional.py",
+   "tests/test_bound_instance_payload.py",
+   "tests/test_channel_cap_bypass.py",
+   "tests/test_characterization_documented_usage.py",
+   "tests/test_client_dirty.py",
+   "tests/test_diagnostics.py",
+   "tests/test_dispatch.py",
+   "tests/test_dispatch_verified.py",
+   "tests/test_domains.py",
+   "tests/test_every_mode.py",
+   "tests/test_examples_matrix.py",
+   "tests/test_follow_up.py",
+   "tests/test_instance_payload.py",
+   "tests/test_live_channel.py",
+   "tests/test_local.py",
+   "tests/test_morph_ref.py",
+   "tests/test_online_matrix.py",
+   "tests/test_parity_extra.py",
+   "tests/test_payload_reserved_keys.py",
+   "tests/test_planes.py",
+   "tests/test_posted_keys_dropped.py",
+   "tests/test_refresh.py",
+   "tests/test_state_api.py",
+   "tests/test_submit_positional.py",
+   "tests/test_trust_scope.py",
+   "tests/test_unnamed_key_validation.py",
+   "tests/test_verified_concurrency.py",
+   "tests/test_wire_payload_keys.py"
+  ],
+  "doc": "@action — mark a method as product behavior that produces Ops.",
+  "exported_as": [
+   "ux_behavior:action",
+   "ux_behavior:bind"
+  ],
+  "features": [
+   "components-and-actions"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior",
+    "ux_behavior.wire.control"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "functools",
+     "inspect",
+     "json",
+     "re",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.ops"
+   ],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "core",
+  "path": "src/ux_behavior/action.py",
+  "public": [
+   "ActionMethod",
+   "BoundAction",
+   "action",
+   "action_ui_attrs",
+   "bind"
+  ],
+  "symbols": {
+   "ActionMethod": {
+    "bases": [],
+    "doc": "Descriptor returned by @action: supports invoke + ``.ui``.",
+    "kind": "class",
+    "methods": {
+     "__call__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, instance: Any, /, *args: Any, **kwargs: Any) -> Any"
+     },
+     "__get__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, obj: Any, objtype: type | None=None) -> Any"
+     },
+     "__init__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, fn: Callable[..., Any], *, caps: tuple[str, ...], is_async: bool, qualname: str) -> None"
+     },
+     "__repr__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> str"
+     },
+     "ui": {
+      "doc": "Unbound UI attrs (verb from qualname; prefer bound ``.ui``).",
+      "kind": "function",
+      "signature": "(self, **kwargs: Any) -> dict[str, str]"
+     }
+    },
+    "public": true
+   },
+   "BoundAction": {
+    "bases": [],
+    "doc": "Instance-bound @action: callable + ``.ui(**kwargs)``.",
+    "kind": "class",
+    "methods": {
+     "__call__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, /, *args: Any, **kwargs: Any) -> Any"
+     },
+     "__func__": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> Callable[..., Any]"
+     },
+     "__getattr__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, name: str) -> Any"
+     },
+     "__init__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, action: 'ActionMethod', instance: Any) -> None"
+     },
+     "__repr__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> str"
+     },
+     "__self__": {
+      "decorators": [
+       "property"
+      ],
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> Any"
+     },
+     "ui": {
+      "doc": "DOM-ready progressive attrs for this action + args.",
+      "kind": "function",
+      "signature": "(self, **kwargs: Any) -> dict[str, str]"
+     }
+    },
+    "public": true
+   },
+   "_action_instance": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(obj: Any) -> Any | None"
+   },
+   "_action_verb_name": {
+    "doc": "Derive channel/progressive action name: {id}.{method} or method.",
+    "kind": "function",
+    "public": false,
+    "signature": "(fn: Callable[..., Any], instance: Any | None) -> str"
+   },
+   "_is_action": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(obj: Any) -> bool"
+   },
+   "_normalize_result": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(result: Any, qualname: str) -> list[Op] | None"
+   },
+   "_require_ui_arg_names": {
+    "doc": "Reject argument names that cannot safely be attribute-name suffixes.",
+    "kind": "function",
+    "public": false,
+    "signature": "(kwargs: dict[str, Any]) -> None"
+   },
+   "_unwrap_action_fn": {
+    "doc": "Return the underlying decorated function.",
+    "kind": "function",
+    "public": false,
+    "signature": "(obj: Any) -> Callable[..., Any]"
+   },
+   "_validate_ui_kwargs": {
+    "doc": "Fail closed: kwargs must be parameters of the action (excluding self/cls).",
+    "kind": "function",
+    "public": false,
+    "signature": "(fn: Callable[..., Any], kwargs: dict[str, Any]) -> None"
+   },
+   "action": {
+    "doc": "Decorator. Caps required unless ``caps=()`` (public).",
+    "kind": "function",
+    "public": true,
+    "signature": "(fn: Callable[..., Any] | None=None, *, caps: tuple[str, ...] | list[str]=()) -> Any"
+   },
+   "action_ui_attrs": {
+    "doc": "Build progressive control attrs for an @action callable.",
+    "kind": "function",
+    "public": true,
+    "signature": "(action_obj: Any, *, _instance: Any | None=None, **kwargs: Any) -> dict[str, str]"
+   },
+   "bind": {
+    "doc": "Generic helper: ``**bind(self.add, sku=\"tee\")``.",
+    "kind": "function",
+    "public": true,
+    "signature": "(action_obj: Any, **kwargs: Any) -> dict[str, str]"
+   }
+  }
+ }
+}

@@ -1,0 +1,32 @@
+{
+ "ux_behavior._version": {
+  "consumers": [],
+  "doc": "",
+  "exported_as": [
+   "ux_behavior:__version__"
+  ],
+  "features": [],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {},
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [],
+   "type_checking": []
+  },
+  "is_public": false,
+  "layer": "core",
+  "path": "src/ux_behavior/_version.py",
+  "public": [],
+  "symbols": {}
+ }
+}

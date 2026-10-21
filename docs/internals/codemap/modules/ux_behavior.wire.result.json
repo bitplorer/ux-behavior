@@ -1,0 +1,96 @@
+{
+ "ux_behavior.wire.result": {
+  "consumers": [
+   "docs/reference/REFERENCE.md",
+   "tests/test_characterization_documented_usage.py",
+   "tests/test_client_event.py",
+   "tests/test_live_channel.py",
+   "tests/test_result.py"
+  ],
+  "doc": "Elevated Result builder.",
+  "exported_as": [],
+  "features": [
+   "wire-compose"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.wire"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.wire.compose"
+   ],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "wire",
+  "path": "src/ux_behavior/wire/result.py",
+  "public": [
+   "Result"
+  ],
+  "symbols": {
+   "Result": {
+    "bases": [],
+    "doc": "Build a Channel-shaped ops list with XOR and navigate-last enforced.",
+    "kind": "class",
+    "methods": {
+     "__init__": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self) -> None"
+     },
+     "build": {
+      "doc": "Compose and return the final ops list.",
+      "kind": "function",
+      "signature": "(self) -> list[dict[str, Any]]"
+     },
+     "explain": {
+      "doc": "Alias of build() for dry-run readability at call sites.",
+      "kind": "function",
+      "signature": "(self) -> list[dict[str, Any]]"
+     },
+     "morph": {
+      "doc": "Authority morph (projects to idiomorph at the wire door).",
+      "kind": "function",
+      "signature": "(self, target: str, html: Any='') -> 'Result'"
+     },
+     "motion": {
+      "doc": "Fold a Scene or transition ops. Must not also inject html on a morph target.",
+      "kind": "function",
+      "signature": "(self, scene_or_ops: Any) -> 'Result'"
+     },
+     "navigate": {
+      "doc": "Navigate — ordered last at compose time.",
+      "kind": "function",
+      "signature": "(self, href: str) -> 'Result'"
+     },
+     "notify": {
+      "doc": "S-only log notice on the Result.",
+      "kind": "function",
+      "signature": "(self, message: str, *, level: str='info') -> 'Result'"
+     },
+     "op": {
+      "doc": "Append any foldable item (wire dict, Op, Scene, list).",
+      "kind": "function",
+      "signature": "(self, item: Any) -> 'Result'"
+     }
+    },
+    "public": true
+   }
+  }
+ }
+}

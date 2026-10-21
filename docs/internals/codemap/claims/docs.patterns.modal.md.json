@@ -1,0 +1,41 @@
+{
+ "docs/patterns/modal.md": {
+  "claims": [
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:Component"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:MorphState"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:action"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:close"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:notify"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:open"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:submit_outcome"
+   }
+  ]
+ }
+}

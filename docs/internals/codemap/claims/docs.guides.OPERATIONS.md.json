@@ -1,0 +1,11 @@
+{
+ "docs/guides/OPERATIONS.md": {
+  "claims": [
+   {
+    "kind": "cli",
+    "resolved": true,
+    "text": "uxbehavior doctor --fail"
+   }
+  ]
+ }
+}

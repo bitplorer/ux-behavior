@@ -1,0 +1,41 @@
+{
+ "docs/tutorial/03-actions-and-ops.md": {
+  "claims": [
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:action"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:close"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:go"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:notify"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:open"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:submit_outcome"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:update"
+   }
+  ]
+ }
+}

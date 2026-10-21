@@ -1,0 +1,26 @@
+{
+ "docs/tutorial/01-first-component.md": {
+  "claims": [
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:Behavior"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:Component"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:MorphState"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:action"
+   }
+  ]
+ }
+}

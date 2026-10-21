@@ -1,0 +1,96 @@
+{
+ "ux_behavior.isolation": {
+  "consumers": [
+   "docs/guides/GUIDE.md",
+   "docs/guides/SNIPPETS.md",
+   "docs/plans/2026-09-12-telos-phase-0-1-tip-793f120.md",
+   "tests/resilience/test_ownership_isolation.py",
+   "tests/test_characterization_documented_usage.py",
+   "tests/test_doctor.py",
+   "tests/test_live_channel.py"
+  ],
+  "doc": "Isolation and public-surface freeze + doctor.",
+  "exported_as": [],
+  "features": [
+   "doctor"
+  ],
+  "imported_by": {
+   "function_level": [
+    "ux_behavior.cli"
+   ],
+   "module_level": [],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "pathlib",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [
+    "ux_behavior",
+    "ux_behavior.domains"
+   ],
+   "module_level": [],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "tooling",
+  "path": "src/ux_behavior/isolation.py",
+  "public": [
+   "BANNED_IMPORT_PREFIXES",
+   "BANNED_PUBLIC_NAMES",
+   "BANNED_SOURCE_TOKENS",
+   "FROZEN_PUBLIC",
+   "check_public_surface",
+   "check_stamp_hygiene",
+   "doctor",
+   "scan_banned_tokens",
+   "scan_imports"
+  ],
+  "symbols": {
+   "_in_wire_door": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(path: Path) -> bool"
+   },
+   "check_public_surface": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(exported: Iterable[str]) -> list[str]"
+   },
+   "check_stamp_hygiene": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "() -> list[str]"
+   },
+   "doctor": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(package_root: Path | None=None) -> list[str]"
+   },
+   "scan_banned_tokens": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(paths: Iterable[Path]) -> list[str]"
+   },
+   "scan_imports": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(paths: Iterable[Path]) -> list[str]"
+   }
+  }
+ }
+}

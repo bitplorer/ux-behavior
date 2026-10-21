@@ -1,0 +1,36 @@
+{
+ "docs/tutorial/08-live-channel.md": {
+  "claims": [
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "REDIS_URL"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "UX_CHANNEL_SECRET"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:Behavior"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:Component"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:MorphState"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:action"
+   }
+  ]
+ }
+}

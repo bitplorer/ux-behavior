@@ -1,0 +1,145 @@
+{
+ "ux_behavior.wire.attach": {
+  "consumers": [
+   "docs/plans/2026-09-12-telos-phase-0-1-tip-793f120.md",
+   "docs/reference/REFERENCE.md",
+   "docs/reference/SECURITY.md",
+   "docs/reference/WIRE.md",
+   "examples/harbor_cart_pilot.py",
+   "tests/test_attach.py",
+   "tests/test_attach_secret_problem.py",
+   "tests/test_b3_trusted_payload.py",
+   "tests/test_domains.py",
+   "tests/test_live_channel.py",
+   "tests/test_wire_debug.py"
+  ],
+  "doc": "Live Channel attach (progressive door) — no silent attach failure.",
+  "exported_as": [],
+  "features": [
+   "wire-attach"
+  ],
+  "imported_by": {
+   "function_level": [
+    "ux_behavior.root"
+   ],
+   "module_level": [
+    "ux_behavior.wire",
+    "ux_behavior.wire.control"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {
+    "ux-channel": [
+     "ux_channel"
+    ]
+   },
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "collections.abc",
+     "importlib.util",
+     "logging",
+     "os",
+     "secrets",
+     "threading",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [
+    "ux_behavior.wire.channel_planes",
+    "ux_behavior.wire.drivers"
+   ],
+   "module_level": [
+    "ux_behavior.root"
+   ],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "wire",
+  "path": "src/ux_behavior/wire/attach.py",
+  "public": [
+   "DEBUG_TRUTHY",
+   "DEFAULT_REGION_UID",
+   "UX_ACTION_KEY",
+   "attach",
+   "attach_info",
+   "attach_secret_problem",
+   "debug_requests_dev",
+   "log",
+   "present",
+   "probe"
+  ],
+  "symbols": {
+   "_attach_secret": {
+    "doc": "(secret, problem, dev) for Channel.boot. ``problem`` is None when accepted.",
+    "kind": "function",
+    "public": false,
+    "signature": "(explicit: str | None, env: Mapping[str, str] | None, *, store_dev: bool) -> tuple[str, str | None, bool]"
+   },
+   "_channel_config": {
+    "doc": "The ChannelConfig attach() boots with. Its validators are ux-channel's.",
+    "kind": "function",
+    "public": false,
+    "signature": "(secret: str, redis_url: str | None) -> Any"
+   },
+   "_payload_from": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(ctx: Any, args: dict[str, Any]) -> dict[str, Any]"
+   },
+   "_per_process_dev_secret": {
+    "doc": "One random secret for this process, same shape as ChannelConfig.development().",
+    "kind": "function",
+    "public": false,
+    "signature": "() -> str"
+   },
+   "_refuse_attach_secret": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(diag: Any, message: str) -> NoReturn"
+   },
+   "attach": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(behavior: Any, asgi: Any, *, secret: str | None=None, path: str='/ux-channel', region: Callable[[], Any] | None=None, uid: str | None=None, channel_planes: bool=True) -> Any"
+   },
+   "attach_info": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(behavior: Any | None=None) -> dict[str, Any]"
+   },
+   "attach_secret_problem": {
+    "doc": "None when attach() would accept the secret config in ``env``.",
+    "kind": "function",
+    "public": true,
+    "signature": "(env: Mapping[str, str] | None=None, *, secret: str | None=None) -> str | None"
+   },
+   "debug_requests_dev": {
+    "doc": "True when ``DEBUG`` in ``env`` is in ``DEBUG_TRUTHY`` after strip + lower.",
+    "kind": "function",
+    "public": true,
+    "signature": "(env: Mapping[str, str] | None=None) -> bool"
+   },
+   "present": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "() -> bool"
+   },
+   "probe": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "() -> dict[str, bool]"
+   }
+  }
+ }
+}

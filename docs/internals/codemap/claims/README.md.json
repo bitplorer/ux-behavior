@@ -1,0 +1,46 @@
+{
+ "README.md": {
+  "claims": [
+   {
+    "kind": "cli",
+    "resolved": true,
+    "text": "uxbehavior"
+   },
+   {
+    "kind": "cli",
+    "resolved": true,
+    "text": "uxbehavior doctor --fail"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:Behavior"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:Component"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:MorphState"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:action"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:notify"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior"
+   }
+  ]
+ }
+}

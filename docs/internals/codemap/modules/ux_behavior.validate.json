@@ -1,0 +1,94 @@
+{
+ "ux_behavior.validate": {
+  "consumers": [
+   "tests/test_b1_annotation_scope.py",
+   "tests/test_bind_action_args.py"
+  ],
+  "doc": "Action argument binding and light type checks.",
+  "exported_as": [],
+  "features": [
+   "payload-validation"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.root"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "inspect",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.errors"
+   ],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "core",
+  "path": "src/ux_behavior/validate.py",
+  "public": [
+   "bind_action_args"
+  ],
+  "symbols": {
+   "_ann_name": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(ann: Any) -> str"
+   },
+   "_bind_target": {
+    "doc": "Underlying @action function. BoundAction.__call__(*args) is not it.",
+    "kind": "function",
+    "public": false,
+    "signature": "(fn: Any) -> Any"
+   },
+   "_evaluate_annotation": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(globalns: dict[str, Any], expr: str) -> Any"
+   },
+   "_matches": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(ann: Any, value: Any) -> bool"
+   },
+   "_product_signature": {
+    "doc": "Signature authors wrote, without self/cls.",
+    "kind": "function",
+    "public": false,
+    "signature": "(fn: Any) -> inspect.Signature"
+   },
+   "_resolve_annotation": {
+    "doc": "Resolve one parameter hint. A failure leaves the others in force.",
+    "kind": "function",
+    "public": false,
+    "signature": "(fn: Any, ann: Any) -> Any"
+   },
+   "_unpack_intent_args": {
+    "doc": "Flatten Channel-style ``args=dict`` unless the action declares ``args``.",
+    "kind": "function",
+    "public": false,
+    "signature": "(sig: inspect.Signature, kwargs: dict[str, Any]) -> dict[str, Any]"
+   },
+   "bind_action_args": {
+    "doc": "Bind kwargs to the action signature (method already bound — no self).",
+    "kind": "function",
+    "public": true,
+    "signature": "(fn: Any, kwargs: dict[str, Any]) -> dict[str, Any]"
+   }
+  }
+ }
+}

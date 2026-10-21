@@ -1,0 +1,66 @@
+{
+ "ux_behavior.wire.control": {
+  "consumers": [
+   "tests/test_every_mode.py"
+  ],
+  "doc": "Control attrs for HTMX / Channel (progressive door).",
+  "exported_as": [],
+  "features": [
+   "wire-control"
+  ],
+  "imported_by": {
+   "function_level": [
+    "ux_behavior.root"
+   ],
+   "module_level": [],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "inspect",
+     "json",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.action",
+    "ux_behavior.wire.attach"
+   ],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "wire",
+  "path": "src/ux_behavior/wire/control.py",
+  "public": [
+   "control_attrs",
+   "resolve_action_name"
+  ],
+  "symbols": {
+   "_offline_attrs": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(action_name: str, args: dict[str, Any]) -> dict[str, str]"
+   },
+   "control_attrs": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(behavior: Any, action: Any, **args: Any) -> dict[str, str]"
+   },
+   "resolve_action_name": {
+    "doc": "Name a control target.",
+    "kind": "function",
+    "public": true,
+    "signature": "(behavior: Any, action: Any) -> str"
+   }
+  }
+ }
+}

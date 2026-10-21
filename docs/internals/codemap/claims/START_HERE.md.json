@@ -1,0 +1,81 @@
+{
+ "START_HERE.md": {
+  "claims": [
+   {
+    "kind": "cli",
+    "resolved": true,
+    "text": "uxbehavior doctor --fail"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.isolation:doctor"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire:Conflict"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire:Result"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:Behavior"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:Component"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:MorphState"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:action"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:close"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:confirm"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:notify"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:open"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior:select"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior.isolation"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior.wire"
+   }
+  ]
+ }
+}

@@ -1,0 +1,11 @@
+{
+ "docs/DOCUMENTATION.md": {
+  "claims": [
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior.__all__"
+   }
+  ]
+ }
+}

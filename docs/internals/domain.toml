@@ -1,0 +1,131 @@
+# Domain charter (curated): what ux-behavior is the single source of truth for,
+# the narrow public surface higher libraries build on, what it must not own,
+# and which lower libraries (and which of their public names) it may use.
+# scripts/codemap.py validates every reference and folds the charter into
+# codemap/index.json. A new import of another distribution, or of a name not
+# listed under its depends_on entry, fails `codemap.py --check`, so coupling is
+# a conscious edit here. Sources: DESIGN.md, AGENTS.md layer table,
+# docs/internals/ARCHITECTURE.md. See CODEMAP.md.
+
+domain = "ux-behavior is the single source of truth for product behavior: Components, @action verbs and Morph/Ref state that become a verified list of Ops."
+
+# DESIGN.md section 5: the Day-1 surface plus the progressive wire door.
+public_api = [
+  "ux_behavior:Behavior",
+  "ux_behavior:Component",
+  "ux_behavior:ComponentProtocol",
+  "ux_behavior:MorphState",
+  "ux_behavior:RefState",
+  "ux_behavior:action",
+  "ux_behavior:bind",
+  "ux_behavior:update",
+  "ux_behavior:notify",
+  "ux_behavior:go",
+  "ux_behavior:open",
+  "ux_behavior:close",
+  "ux_behavior:select",
+  "ux_behavior:confirm",
+  "ux_behavior:Op",
+  "ux_behavior:follow_up",
+  "ux_behavior:BehaviorError",
+  "ux_behavior:AuthorityError",
+  "ux_behavior:ValidationError",
+  "ux_behavior.wire",
+  "ux_behavior.wire:compose",
+  "ux_behavior.wire:lower",
+  "ux_behavior.wire:Conflict",
+  "ux_behavior.wire:Result",
+]
+
+[[owns]]
+concept = "product-behavior-dispatch"
+modules = ["ux_behavior.root"]
+symbols = ["ux_behavior:Behavior", "ux_behavior.root:Behavior.dispatch", "ux_behavior.root:Behavior.async_dispatch"]
+
+[[owns]]
+concept = "component-actions"
+modules = ["ux_behavior.component", "ux_behavior.action"]
+symbols = ["ux_behavior:Component", "ux_behavior:action", "ux_behavior:bind"]
+
+[[owns]]
+concept = "morph-state"
+modules = ["ux_behavior.fields", "ux_behavior.planes", "ux_behavior.state_api"]
+symbols = ["ux_behavior:MorphState", "ux_behavior:RefState", "ux_behavior:StateAPI"]
+
+[[owns]]
+concept = "behavior-ops"
+modules = ["ux_behavior.ops", "ux_behavior.chrome"]
+symbols = ["ux_behavior:Op", "ux_behavior:update", "ux_behavior:notify", "ux_behavior:go", "ux_behavior:open"]
+
+# Cap *policy* (which action needs which Cap); Cap crypto stays in ux-channel.
+[[owns]]
+concept = "cap-policy"
+modules = ["ux_behavior.root", "ux_behavior.client_risk"]
+symbols = ["ux_behavior.root:Behavior.trust", "ux_behavior.root:Behavior._require_caps"]
+
+[[owns]]
+concept = "action-payload-validation"
+modules = ["ux_behavior.validate"]
+symbols = ["ux_behavior.validate:bind_action_args", "ux_behavior:ValidationError"]
+
+[[owns]]
+concept = "op-stamp"
+modules = ["ux_behavior.domains"]
+symbols = ["ux_behavior.domains:DomainTable", "ux_behavior.root:Behavior._check_stamp"]
+
+[[owns]]
+concept = "continuations"
+modules = ["ux_behavior.events"]
+symbols = ["ux_behavior:follow_up", "ux_behavior:Continuation"]
+
+[[owns]]
+concept = "result-xor-compose"
+modules = ["ux_behavior.wire.compose", "ux_behavior.wire.result"]
+symbols = ["ux_behavior.wire:compose", "ux_behavior.wire:Result"]
+
+[[owns]]
+concept = "behavior-isolation-doctor"
+modules = ["ux_behavior.isolation", "ux_behavior.cli"]
+symbols = ["ux_behavior.isolation:doctor", "ux_behavior.cli:main"]
+
+# Concepts ux-behavior must NOT own (AGENTS.md layer table, DESIGN.md section 2,
+# ARCHITECTURE.md section 6). `keywords` drive a warning-only heuristic: any
+# module or top-level symbol whose name contains one as a whole word is listed
+# under `non_goal_warnings` in index.json.
+[[non_goals]]
+concept = "html-construction"
+owner = "ux-dom"
+keywords = ["tag", "serialize", "sanitize", "document"]
+
+[[non_goals]]
+concept = "wire-codecs-and-cap-crypto"
+owner = "ux-channel"
+keywords = ["codec", "hmac", "sign", "mint", "transport", "peer"]
+
+[[non_goals]]
+concept = "motion-ir"
+owner = "ux-motion"
+keywords = ["presence", "transition", "timeline"]
+
+[[non_goals]]
+concept = "field-validators"
+owner = "ux-valio"
+keywords = ["validator"]
+
+[[non_goals]]
+concept = "product-lifecycle"
+owner = "ux-compose"
+keywords = ["deploy", "router", "serve", "reloader", "hmr"]
+
+# Lower libraries ux-behavior may use, and exactly which of their names.
+# Optional extra (`ux-behavior[channel]`); imported lazily under ux_behavior.wire only.
+[[depends_on]]
+distribution = "ux-channel"
+imports = "ux_channel"
+names = [
+  "ux_channel:CapService",
+  "ux_channel:Channel",
+  "ux_channel:ChannelConfig",
+  "ux_channel:state",
+  "ux_channel.protocol.ops:dispatch",
+]

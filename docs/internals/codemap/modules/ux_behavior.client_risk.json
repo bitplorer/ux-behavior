@@ -1,0 +1,49 @@
+{
+ "ux_behavior.client_risk": {
+  "consumers": [],
+  "doc": "Client plane write policy — refuse money-shaped paths.",
+  "exported_as": [],
+  "features": [
+   "caps-and-trust"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.root"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "re",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.errors"
+   ],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "core",
+  "path": "src/ux_behavior/client_risk.py",
+  "public": [
+   "check_client_write"
+  ],
+  "symbols": {
+   "check_client_write": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(key: str, value: Any) -> None"
+   }
+  }
+ }
+}

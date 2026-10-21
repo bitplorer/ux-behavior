@@ -1,0 +1,31 @@
+{
+ "DESIGN.md": {
+  "claims": [
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire:Conflict"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire:Result"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire:compose"
+   },
+   {
+    "kind": "import",
+    "resolved": true,
+    "text": "ux_behavior.wire:lower"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior.wire"
+   }
+  ]
+ }
+}

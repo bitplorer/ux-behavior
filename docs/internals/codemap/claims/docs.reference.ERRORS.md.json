@@ -1,0 +1,41 @@
+{
+ "docs/reference/ERRORS.md": {
+  "claims": [
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "CAP_REQUIRED"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "CHANNEL_MISSING"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "COMPONENT_REPLACE"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "CORE_CHANNEL_ABSENT"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "STAMP_REJECT"
+   },
+   {
+    "kind": "env",
+    "resolved": true,
+    "text": "VALIDATION_FAILED"
+   },
+   {
+    "kind": "module",
+    "resolved": true,
+    "text": "ux_behavior.diagnostics.HINTS"
+   }
+  ]
+ }
+}

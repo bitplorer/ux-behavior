@@ -1,0 +1,103 @@
+{
+ "ux_behavior.wire.compose": {
+  "consumers": [
+   "docs/plans/2026-09-12-telos-phase-0-1-tip-793f120.md",
+   "tests/test_characterization_documented_usage.py",
+   "tests/test_compose.py",
+   "tests/test_live_channel.py",
+   "tests/test_result.py"
+  ],
+  "doc": "Fold author items into one Channel-shaped ops list.",
+  "exported_as": [],
+  "features": [
+   "wire-compose"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.wire",
+    "ux_behavior.wire.result"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior.ops"
+   ],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "wire",
+  "path": "src/ux_behavior/wire/compose.py",
+  "public": [
+   "Conflict",
+   "as_selector",
+   "compose",
+   "lower"
+  ],
+  "symbols": {
+   "Conflict": {
+    "bases": [
+     "ValueError"
+    ],
+    "doc": "morph(T) and motion html for T on the same Result.",
+    "kind": "class",
+    "methods": {},
+    "public": true
+   },
+   "_flatten": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(item: Any) -> list[dict[str, Any]]"
+   },
+   "_html_targets": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(node: Any) -> set[str]"
+   },
+   "_order": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(ops: list[dict[str, Any]]) -> list[dict[str, Any]]"
+   },
+   "_reject_overlap": {
+    "doc": "",
+    "kind": "function",
+    "public": false,
+    "signature": "(ops: list[dict[str, Any]]) -> None"
+   },
+   "as_selector": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(target: str) -> str"
+   },
+   "compose": {
+    "doc": "Flatten items to Channel-shaped ops. Reject overlapping writes.",
+    "kind": "function",
+    "public": true,
+    "signature": "(*items: Any) -> list[dict[str, Any]]"
+   },
+   "lower": {
+    "doc": "Author morph → Channel idiomorph wire shape.",
+    "kind": "function",
+    "public": true,
+    "signature": "(target: str, html: Any='') -> dict[str, Any]"
+   }
+  }
+ }
+}

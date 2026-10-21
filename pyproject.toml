@@ -46,3 +46,82 @@ asyncio_mode = "auto"
 filterwarnings = [
   "ignore::DeprecationWarning",
 ]
+
+[tool.codemap]
+packages = ["src/ux_behavior"]
+out_dir = "docs/internals/codemap"
+features = "docs/internals/features.toml"
+domain = "docs/internals/domain.toml"
+narrative = [
+  "docs/internals/ARCHITECTURE.md",
+  "docs/internals/INTERNALS.md",
+]
+# Docs whose reference-style claims are indexed and resolved against the code
+# (findings only, never failed; see "Doc claims" in ux-dom's CODEMAP.md).
+claims_docs = [
+  "README.md",
+  "AGENTS.md",
+  "DESIGN.md",
+  "START_HERE.md",
+  "START.md",
+  "CONTRIBUTING.md",
+  "SECURITY.md",
+  "docs",
+]
+# History and projection: they name retired or planned code on purpose.
+claims_exclude = ["docs/plans", "docs/adr"]
+# The map's own doc names modules only to describe the map.
+self_files = ["docs/internals/CODEMAP.md"]
+# Rule-breaking edges accepted on purpose: "importer -> imported". Say why.
+layer_exceptions = [
+  # Behavior.attach / Behavior.control delegate to the door, imported lazily
+  # so a cold `import ux_behavior` loads no wire module (docs/reference/WIRE.md).
+  "ux_behavior.root -> ux_behavior.wire.attach",
+  "ux_behavior.root -> ux_behavior.wire.control",
+]
+
+[tool.codemap.consumers]
+docs = [".md"]
+examples = [".py", ".md"]
+tests = [".py"]
+
+[tool.codemap.public_api]
+rule = "all_or_derived"
+packages = ["ux_behavior"]
+
+# Module prefix -> layer (longest prefix wins; the package root matches only
+# its own __init__). From DESIGN.md and docs/internals/ARCHITECTURE.md:
+# core = author vocabulary (Component, @action, fields, Ops, planes, errors),
+# behavior = the Behavior composition root and LocalRuntime, wire = the only
+# door that may import ux_channel, tooling = doctor + scaffold CLI.
+[tool.codemap.layers]
+"ux_behavior" = "root"
+"ux_behavior._version" = "core"
+"ux_behavior.action" = "core"
+"ux_behavior.chrome" = "core"
+"ux_behavior.client_risk" = "core"
+"ux_behavior.component" = "core"
+"ux_behavior.diagnostics" = "core"
+"ux_behavior.domains" = "core"
+"ux_behavior.errors" = "core"
+"ux_behavior.events" = "core"
+"ux_behavior.fields" = "core"
+"ux_behavior.ops" = "core"
+"ux_behavior.planes" = "core"
+"ux_behavior.state_api" = "core"
+"ux_behavior.validate" = "core"
+"ux_behavior.root" = "behavior"
+"ux_behavior.local" = "behavior"
+"ux_behavior.wire" = "wire"
+"ux_behavior.cli" = "tooling"
+"ux_behavior.isolation" = "tooling"
+
+# Layer -> other layers it may import at module or function level (own layer
+# always allowed; TYPE_CHECKING exempt). Core stays pure, only wire reaches
+# ux_channel (Isolation Law), and nothing below the root imports tooling.
+[tool.codemap.layer_rules]
+core = []
+behavior = ["core"]
+wire = ["behavior", "core"]
+tooling = ["core", "root"]
+root = ["behavior", "core"]

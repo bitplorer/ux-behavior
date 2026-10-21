@@ -1,0 +1,137 @@
+{
+ "ux_behavior.planes": {
+  "consumers": [
+   "docs/examples/EXAMPLES.md",
+   "docs/guides/PRODUCTION_APP.md",
+   "docs/guides/SNIPPETS.md",
+   "docs/patterns/COMPLEX_NESTED.md",
+   "docs/patterns/NESTED.md",
+   "docs/tutorial/02-states-together.md",
+   "tests/test_characterization_documented_usage.py",
+   "tests/test_morph_ref.py",
+   "tests/test_planes.py",
+   "tests/test_state_api.py"
+  ],
+  "doc": "Plane-aware storage backends.",
+  "exported_as": [
+   "ux_behavior:DictBackend"
+  ],
+  "features": [
+   "field-state"
+  ],
+  "imported_by": {
+   "function_level": [],
+   "module_level": [
+    "ux_behavior",
+    "ux_behavior.fields",
+    "ux_behavior.root",
+    "ux_behavior.state_api",
+    "ux_behavior.wire.channel_planes"
+   ],
+   "type_checking": []
+  },
+  "imports_external": {
+   "function_level": {},
+   "module_level": {
+    "stdlib": [
+     "__future__",
+     "dataclasses",
+     "typing"
+    ]
+   },
+   "type_checking": {}
+  },
+  "imports_internal": {
+   "function_level": [],
+   "module_level": [],
+   "type_checking": []
+  },
+  "is_public": true,
+  "layer": "core",
+  "path": "src/ux_behavior/planes.py",
+  "public": [
+   "DictBackend",
+   "MISSING",
+   "MemoryPlanes",
+   "PlaneBackend",
+   "client_path",
+   "field_key"
+  ],
+  "symbols": {
+   "DictBackend": {
+    "bases": [],
+    "decorators": [
+     "dataclass"
+    ],
+    "doc": "",
+    "kind": "class",
+    "methods": {
+     "get": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, key: str, default: Any=None) -> Any"
+     },
+     "has": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, key: str) -> bool"
+     },
+     "set": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, key: str, value: Any) -> None"
+     }
+    },
+    "public": true
+   },
+   "MemoryPlanes": {
+    "bases": [],
+    "decorators": [
+     "dataclass"
+    ],
+    "doc": "",
+    "kind": "class",
+    "methods": {
+     "backend": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, plane: str) -> PlaneBackend | None"
+     }
+    },
+    "public": true
+   },
+   "PlaneBackend": {
+    "bases": [
+     "Protocol"
+    ],
+    "doc": "",
+    "kind": "class",
+    "methods": {
+     "get": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, key: str, default: Any=None) -> Any"
+     },
+     "set": {
+      "doc": "",
+      "kind": "function",
+      "signature": "(self, key: str, value: Any) -> None"
+     }
+    },
+    "public": true
+   },
+   "client_path": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(name: str, key: str | None) -> str"
+   },
+   "field_key": {
+    "doc": "",
+    "kind": "function",
+    "public": true,
+    "signature": "(component_id: str, name: str) -> str"
+   }
+  }
+ }
+}
